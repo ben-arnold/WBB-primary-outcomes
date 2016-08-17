@@ -3,7 +3,7 @@
        log:  /Users/benarnold/WASHB-Bangladesh-primary-outcomes/src/dm/4-banglad
 > esh-dm-anthro.log
   log type:  text
- opened on:  17 Aug 2016, 14:09:44
+ opened on:  17 Aug 2016, 14:38:00
 
 . 
 . *--------------------------------------------
@@ -23,7 +23,7 @@
 . * input files:
 . *
 . *  Treatment assignments 
-. *       washb-bang-tr.dta (or washb-bang-blind-tr.dta if blinded)
+. *  washb-bangladesh-tr.dta (or washb-bangladesh-blind-tr.dta if blinded still)
 . * 
 . *
 . *  ENROLLMENT
@@ -51,14 +51,14 @@
 . * grab the treatment assignments
 . *--------------------------------------------
 . * blinded treatment assignments:
-. use "~/dropbox/washb-bangladesh-data/1-primary-outcome-datasets/washb-bang-bli
-> nd-tr.dta", clear
+. use "~/dropbox/washb-bangladesh-data/1-primary-outcome-datasets/washb-banglade
+> sh-blind-tr.dta", clear
 (WASH Benefits Bangladesh cluster level treatment assignments (scrambled/blinded
 > !)
 
 . 
 . * real treatment assignments (not used to keep data blinded)
-. * use "/Volumes/0-Treatment-assignments/washb-bang-tr.dta", clear
+. * use "/Volumes/0-Treatment-assignments/washb-bangladesh-tr.dta", clear
 . 
 . sort clusterid
 
@@ -632,7 +632,7 @@ agey                                                  Age in years (anthro meas)
       +------------------------------------------------------------+
       | dataid   childid   motherid         dob   aged        agem |
       |------------------------------------------------------------|
- 420. |  03407        T1         07   16sep2012    460   15.123271 |
+ 421. |  03407        T1         07   16sep2012    460   15.123271 |
       +------------------------------------------------------------+
 
 . list dataid childid motherid dob aged agem if agem>32 & agem<. & svy==2
@@ -640,17 +640,17 @@ agey                                                  Age in years (anthro meas)
       +------------------------------------------------------------+
       | dataid   childid   motherid         dob   aged        agem |
       |------------------------------------------------------------|
-  63. |  00502        T1              27aug2012   1159   38.104068 |
-  96. |  00807        T1              15oct2012   1109   36.460234 |
- 357. |  02802        T1              22oct2012   1128   37.084891 |
- 772. |  05902        T1              15oct2012   1109   36.460234 |
- 928. |  07101        T1              17dec2012   1072   35.243797 |
+  57. |  00502        T1              27aug2012   1159   38.104068 |
+  97. |  00807        T1              15oct2012   1109   36.460234 |
+ 360. |  02802        T1              22oct2012   1128   37.084891 |
+ 771. |  05902        T1              15oct2012   1109   36.460234 |
+ 923. |  07106        T1              19nov2012   1100   36.164344 |
       |------------------------------------------------------------|
- 929. |  07106        T1              19nov2012   1100   36.164344 |
-1006. |  07706        T1              27dec2012   1036   34.060237 |
-1173. |  08806        T1              22dec2012    982   32.284896 |
-1408. |  10707        T1              01dec2012   1003   32.975306 |
-3469. |  26906        T1              10mar2013    985   32.383526 |
+ 925. |  07101        T1              17dec2012   1072   35.243797 |
+1005. |  07706        T1              27dec2012   1036   34.060237 |
+1161. |  08806        T1              22dec2012    982   32.284896 |
+1407. |  10707        T1              01dec2012   1003   32.975306 |
+3460. |  26906        T1              10mar2013    985   32.383526 |
       +------------------------------------------------------------+
 
 . 
@@ -1554,9 +1554,13 @@ file ~/dropbox/washb-bangladesh-data/1-primary-outcome-datasets/TEMPanthro.dta s
 > eight length headcir laz* waz* whz* bmiz* hcz*
 
 . 
+. *** DROP TREATMENT ASSIGNMENTS to keep the data fully blinded (analyses can me
+> rge in treatement)
+. drop tr
+
+. 
 . compress
   variable block was long now byte
-  variable tr was long now byte
   variable svy was float now byte
   variable anthrodate was float now int
   variable month was float now byte
@@ -1568,7 +1572,7 @@ file ~/dropbox/washb-bangladesh-data/1-primary-outcome-datasets/TEMPanthro.dta s
   variable bmiz_x was float now byte
   variable hcz_x was float now byte
   variable childid was str3 now str2
-  (308,253 bytes saved)
+  (280,230 bytes saved)
 
 . sort dataid childid svy
 
@@ -1590,5 +1594,5 @@ file ~/dropbox/washb-bangladesh-data/1-primary-outcome-datasets/washb-bangladesh
        log:  /Users/benarnold/WASHB-Bangladesh-primary-outcomes/src/dm/4-banglad
 > esh-dm-anthro.log
   log type:  text
- closed on:  17 Aug 2016, 14:10:15
+ closed on:  17 Aug 2016, 14:38:30
 --------------------------------------------------------------------------------

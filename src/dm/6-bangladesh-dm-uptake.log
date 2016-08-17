@@ -3,7 +3,7 @@
        log:  /Users/benarnold/WASHB-Bangladesh-primary-outcomes/src/dm/6-banglad
 > esh-dm-uptake.log
   log type:  text
- opened on:  17 Aug 2016, 14:12:58
+ opened on:  17 Aug 2016, 14:39:06
 
 . 
 . *--------------------------------------------
@@ -28,7 +28,7 @@
 . * input files:
 . *
 . *  Treatment assignments 
-. *       washb-bang-tr.dta (or washb-bang-blind-tr.dta if blinded)
+. *  washb-bangladesh-tr.dta (or washb-bangladesh-blind-tr.dta if blinded still)
 . *
 . *  1. WASHB_Baseline_main_survey.dta
 . *  1. WASHB_Midline_main_survey_cleaned.dta
@@ -46,14 +46,14 @@
 . * grab the treatment assignments
 . *--------------------------------------------
 . * blinded treatment assignments:
-. use "~/dropbox/washb-bangladesh-data/1-primary-outcome-datasets/washb-bang-bli
-> nd-tr.dta", clear
+. use "~/dropbox/washb-bangladesh-data/1-primary-outcome-datasets/washb-banglade
+> sh-blind-tr.dta", clear
 (WASH Benefits Bangladesh cluster level treatment assignments (scrambled/blinded
 > !)
 
 . 
 . * real treatment assignments (not used to keep data blinded)
-. * use "/Volumes/0-Treatment-assignments/washb-bang-tr.dta", clear
+. * use "/Volumes/0-Treatment-assignments/washb-bangladesh-tr.dta", clear
 . 
 . sort clusterid
 
@@ -725,13 +725,17 @@ delimiter now cr
 
 . 
 . 
+. *** DROP TREATMENT ASSIGNMENTS to keep the data fully blinded (analyses can me
+> rge in treatement)
+. drop tr
+
+. 
 . compress
   variable block was long now byte
-  variable tr was long now byte
   variable svy was float now byte
   variable svydate was float now int
   variable rlnsn was float now byte
-  (208,684 bytes saved)
+  (163,966 bytes saved)
 
 . sort dataid svy
 
@@ -747,8 +751,6 @@ file ~/dropbox/washb-bangladesh-data/1-primary-outcome-datasets/washb-bangladesh
 
 . outsheet using "~/dropbox/washb-bangladesh-data/1-primary-outcome-datasets/was
 > hb-bangladesh-uptake.csv", comma replace
-(note: file /Users/benarnold/dropbox/washb-bangladesh-data/1-primary-outcome-dat
-> asets/washb-bangladesh-uptake.csv not found)
 
 . 
 . * write a codebook for the dataset
@@ -757,5 +759,5 @@ file ~/dropbox/washb-bangladesh-data/1-primary-outcome-datasets/washb-bangladesh
        log:  /Users/benarnold/WASHB-Bangladesh-primary-outcomes/src/dm/6-banglad
 > esh-dm-uptake.log
   log type:  text
- closed on:  17 Aug 2016, 14:12:58
+ closed on:  17 Aug 2016, 14:39:07
 --------------------------------------------------------------------------------

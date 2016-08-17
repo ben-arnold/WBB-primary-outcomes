@@ -3,7 +3,7 @@
        log:  /Users/benarnold/WASHB-Bangladesh-primary-outcomes/src/dm/5-banglad
 > esh-dm-consort.log
   log type:  text
- opened on:  17 Aug 2016, 14:09:28
+ opened on:  17 Aug 2016, 14:38:41
 
 . 
 . *--------------------------------------------
@@ -205,6 +205,12 @@ file /var/folders/1g/dryqjv753dv7rgwhzs2lyl140000gp/T//S_03012.000001 saved
 
 . sort dataid
 
+. 
+. *** DROP TREATMENT ASSIGNMENTS to keep the data fully blinded (analyses can me
+> rge in treatement)
+. drop tr
+
+. 
 . label data "WASH Benefits Bangladesh tracking file, compounds"
 
 . saveold "~/dropbox/WASHB-Bangladesh-Data/1-primary-outcome-datasets/washb-bang
@@ -222,5 +228,5 @@ file ~/dropbox/WASHB-Bangladesh-Data/1-primary-outcome-datasets/washb-bangladesh
        log:  /Users/benarnold/WASHB-Bangladesh-primary-outcomes/src/dm/5-banglad
 > esh-dm-consort.log
   log type:  text
- closed on:  17 Aug 2016, 14:09:28
+ closed on:  17 Aug 2016, 14:38:41
 --------------------------------------------------------------------------------

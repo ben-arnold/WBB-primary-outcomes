@@ -14,17 +14,20 @@ log using "~/WASHB-Bangladesh-primary-outcomes/src/dm/1-format-tr-assignments.lo
 * input REAL treatment assignments from the
 * bangladesh trial and save a formatted
 * stata dataset and csv file
+*
+* need to mount the encrypted disk to run
+* this script
 *--------------------------------------------
 
 *--------------------------------------------
 * input files:
-*  washb-bangladesh-tr-assignments.csv
+*  washb-bangladesh-raw-tr-assignments.csv
 *
 * output files:
-*  washb-bang-tr.dta /.csv
+*  washb-bangladesh-tr.dta /.csv
 * 
 *--------------------------------------------
-insheet using "~/dropbox/washbenefits/randomization/bangladesh/washb-bangladesh-tr-assignments.csv", comma clear
+insheet using "/Volumes/0-Treatment-assignments/washb-bangladesh-raw-tr-assignments.csv", comma clear
 gen clusterid = string(cluster_id)
 	replace clusterid = "00"+string(cluster_id) if cluster_id<10
 	replace clusterid = "0"+string(cluster_id) if cluster_id>=10 & cluster_id<100
@@ -48,8 +51,8 @@ order block clusterid tr
 sort block clusterid
 
 label data "WASH Benefits Bangladesh cluster level treatment assignments"
-saveold "/Volumes/0-Treatment-assignments/washb-bang-tr.dta", v(12) replace
-outsheet using "/Volumes/0-Treatment-assignments/washb-bang-tr.csv", comma replace
+saveold "/Volumes/0-Treatment-assignments/washb-bangladesh-tr.dta", v(12) replace
+outsheet using "/Volumes/0-Treatment-assignments/washb-bangladesh-tr.csv", comma replace
 
 log close
 exit

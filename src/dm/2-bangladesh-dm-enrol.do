@@ -28,7 +28,7 @@ log using "~/WASHB-Bangladesh-primary-outcomes/src/dm/2-bangladesh-dm-enrol.log"
 *--------------------------------------------
 * input files:
 *
-*  washb-bang-tr.dta (or washb-bang-blind-tr.dta if blinded still)
+*  washb-bangladesh-tr.dta (or washb-bangladesh-blind-tr.dta if blinded still)
 *
 *  1. WASHB_Baseline_main_survey.dta
 *  2. WASHB_Baseline_census.dta
@@ -42,10 +42,10 @@ log using "~/WASHB-Bangladesh-primary-outcomes/src/dm/2-bangladesh-dm-enrol.log"
 * grab the treatment assignments
 *--------------------------------------------
 * blinded treatment assignments:
-use "~/dropbox/washb-bangladesh-data/1-primary-outcome-datasets/washb-bang-blind-tr.dta", clear
+use "~/dropbox/washb-bangladesh-data/1-primary-outcome-datasets/washb-bangladesh-blind-tr.dta", clear
 
 * real treatment assignments (not used to keep data blinded)
-* use "/Volumes/0-Treatment-assignments/washb-bang-tr.dta", clear
+* use "/Volumes/0-Treatment-assignments/washb-bangladesh-tr.dta", clear
 
 sort clusterid
 tempfile trdata
@@ -518,6 +518,9 @@ assert _merge !=2
 drop _merge
 
 order dataid clusterid hhid block tr union fracode svydate Nhh Nlt18 Ncomp momage momheight
+
+*** DROP TREATMENT ASSIGNMENTS to keep the data fully blinded (analyses can merge in treatement)
+drop tr
 
 saveold "~/dropbox/WASHB-Bangladesh-Data/1-primary-outcome-datasets/washb-bangladesh-enrol.dta", replace version(12)
 outsheet using "~/dropbox/WASHB-Bangladesh-Data/1-primary-outcome-datasets/washb-bangladesh-enrol.csv", comma replace

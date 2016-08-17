@@ -105,6 +105,10 @@ assert _merge==3
 drop _merge
 compress
 sort dataid
+
+*** DROP TREATMENT ASSIGNMENTS just to keep this easier
+drop tr
+
 label data "WASH Benefits Bangladesh tracking file, compounds"
 saveold "~/dropbox/WASHB-Bangladesh-Data/1-primary-outcome-datasets/washb-bangladesh-track-compound.dta", version(12) replace
 outsheet using "~/dropbox/WASHB-Bangladesh-Data/1-primary-outcome-datasets/washb-bangladesh-track-compound.csv", comma replace

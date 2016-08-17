@@ -22,7 +22,7 @@ log using "~/WASHB-Bangladesh-primary-outcomes/src/dm/4-bangladesh-dm-anthro.log
 * input files:
 *
 *  Treatment assignments 
-*	washb-bang-tr.dta (or washb-bang-blind-tr.dta if blinded)
+*  washb-bangladesh-tr.dta (or washb-bangladesh-blind-tr.dta if blinded still)
 * 
 *
 *  ENROLLMENT
@@ -50,10 +50,10 @@ log using "~/WASHB-Bangladesh-primary-outcomes/src/dm/4-bangladesh-dm-anthro.log
 * grab the treatment assignments
 *--------------------------------------------
 * blinded treatment assignments:
-use "~/dropbox/washb-bangladesh-data/1-primary-outcome-datasets/washb-bang-blind-tr.dta", clear
+use "~/dropbox/washb-bangladesh-data/1-primary-outcome-datasets/washb-bangladesh-blind-tr.dta", clear
 
 * real treatment assignments (not used to keep data blinded)
-* use "/Volumes/0-Treatment-assignments/washb-bang-tr.dta", clear
+* use "/Volumes/0-Treatment-assignments/washb-bangladesh-tr.dta", clear
 
 sort clusterid
 tempfile trdata
@@ -600,6 +600,9 @@ label var block "Randomization block ID"
 * restrict to variables used in the analysis
 keep dataid childid motherid tchild clusterid block tr svy anthrodate month c404-c406 c408-c410 c411-c413 c414-c416 c418-c420 sex birthord aged agem agey weight length headcir laz* waz* whz* bmiz* hcz* 
 order dataid childid motherid tchild clusterid block tr svy anthrodate month c404-c406 c408-c410 c411-c413 c414-c416 c418-c420 sex birthord aged agem agey weight length headcir laz* waz* whz* bmiz* hcz*
+
+*** DROP TREATMENT ASSIGNMENTS to keep the data fully blinded (analyses can merge in treatement)
+drop tr
 
 compress
 sort dataid childid svy

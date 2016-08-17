@@ -27,7 +27,7 @@ log using "~/WASHB-Bangladesh-primary-outcomes/src/dm/6-bangladesh-dm-uptake.log
 * input files:
 *
 *  Treatment assignments 
-*	washb-bang-tr.dta (or washb-bang-blind-tr.dta if blinded)
+*  washb-bangladesh-tr.dta (or washb-bangladesh-blind-tr.dta if blinded still)
 *
 *  1. WASHB_Baseline_main_survey.dta
 *  1. WASHB_Midline_main_survey_cleaned.dta
@@ -45,10 +45,10 @@ log using "~/WASHB-Bangladesh-primary-outcomes/src/dm/6-bangladesh-dm-uptake.log
 * grab the treatment assignments
 *--------------------------------------------
 * blinded treatment assignments:
-use "~/dropbox/washb-bangladesh-data/1-primary-outcome-datasets/washb-bang-blind-tr.dta", clear
+use "~/dropbox/washb-bangladesh-data/1-primary-outcome-datasets/washb-bangladesh-blind-tr.dta", clear
 
 * real treatment assignments (not used to keep data blinded)
-* use "/Volumes/0-Treatment-assignments/washb-bang-tr.dta", clear
+* use "/Volumes/0-Treatment-assignments/washb-bangladesh-tr.dta", clear
 
 sort clusterid
 tempfile trdata
@@ -328,6 +328,9 @@ keep dataid clusterid block tr svy svydate storewat freechl latseal latfeces hum
 
 order dataid clusterid block tr svy svydate storewat freechl latseal latfeces humfeces hwsw hwss hwsws *lns*
 
+
+*** DROP TREATMENT ASSIGNMENTS to keep the data fully blinded (analyses can merge in treatement)
+drop tr
 
 compress
 sort dataid svy

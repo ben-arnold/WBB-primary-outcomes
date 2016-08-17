@@ -3,7 +3,7 @@
        log:  /Users/benarnold/WASHB-Bangladesh-primary-outcomes/src/dm/2-banglad
 > esh-dm-enrol.log
   log type:  text
- opened on:  17 Aug 2016, 13:46:07
+ opened on:  17 Aug 2016, 14:37:13
 
 . 
 . *--------------------------------------------
@@ -29,7 +29,7 @@
 . *--------------------------------------------
 . * input files:
 . *
-. *  washb-bang-tr.dta (or washb-bang-blind-tr.dta if blinded still)
+. *  washb-bangladesh-tr.dta (or washb-bangladesh-blind-tr.dta if blinded still)
 . *
 . *  1. WASHB_Baseline_main_survey.dta
 . *  2. WASHB_Baseline_census.dta
@@ -43,14 +43,14 @@
 . * grab the treatment assignments
 . *--------------------------------------------
 . * blinded treatment assignments:
-. use "~/dropbox/washb-bangladesh-data/1-primary-outcome-datasets/washb-bang-bli
-> nd-tr.dta", clear
+. use "~/dropbox/washb-bangladesh-data/1-primary-outcome-datasets/washb-banglade
+> sh-blind-tr.dta", clear
 (WASH Benefits Bangladesh cluster level treatment assignments (scrambled/blinded
 > !)
 
 . 
 . * real treatment assignments (not used to keep data blinded)
-. * use "/Volumes/0-Treatment-assignments/washb-bang-tr.dta", clear
+. * use "/Volumes/0-Treatment-assignments/washb-bangladesh-tr.dta", clear
 . 
 . sort clusterid
 
@@ -1009,6 +1009,11 @@ file /var/folders/1g/dryqjv753dv7rgwhzs2lyl140000gp/T//S_03012.000005 saved
 > age momheight
 
 . 
+. *** DROP TREATMENT ASSIGNMENTS to keep the data fully blinded (analyses can me
+> rge in treatement)
+. drop tr
+
+. 
 . saveold "~/dropbox/WASHB-Bangladesh-Data/1-primary-outcome-datasets/washb-bang
 > ladesh-enrol.dta", replace version(12)
 (saving in Stata 12 format, which can be read by Stata 11 or 12)
@@ -1025,8 +1030,8 @@ Contains data from ~/dropbox/WASHB-Bangladesh-Data/1-primary-outcome-datasets/wa
   obs:         5,551                          Bangladesh enrollment analysis
                                                 dataset (HH obs), created by
                                                 2-bangladesh-dm-enro
- vars:            73                          17 Aug 2016 13:46
- size:       516,243                          
+ vars:            72                          17 Aug 2016 14:37
+ size:       510,692                          
 --------------------------------------------------------------------------------
               storage   display    value
 variable name   type    format     label      variable label
@@ -1035,8 +1040,6 @@ dataid          str5    %5s                   dataid
 clusterid       str3    %9s                   Cluster ID
 hhid            str1    %9s                   Household ID
 block           byte    %9.0g                 Randomization block ID
-tr              byte    %9.0g      tr         Randomized treatment assignment
-                                                (scrambled/blinded!!)
 union           int     %18.0g     q4008_lbl
                                               Administrative union (q4008)
 fracode         str6    %6s                   FRA code (q4001)
@@ -1137,7 +1140,6 @@ dataid        5551   5551         .       .      .  dataid
 clusterid     5551    720         .       .      .  Cluster ID
 hhid          5551      3         .       .      .  Household ID
 block         5551     90  45.75716       1     90  Randomization block ID
-tr            5551      7  3.625833       1      7  Randomized treatment assi...
 union         5551    139  66.74851       1    139  Administrative union (q4008)
 fracode       5551     28         .       .      .  FRA code (q4001)
 svydate       5551    209  19410.03   19144  19546  Survey date
@@ -1215,5 +1217,5 @@ n_asset_mo~e  5551     12  1.556656       0     13  number of mobile phone
        log:  /Users/benarnold/WASHB-Bangladesh-primary-outcomes/src/dm/2-banglad
 > esh-dm-enrol.log
   log type:  text
- closed on:  17 Aug 2016, 13:46:08
+ closed on:  17 Aug 2016, 14:37:15
 --------------------------------------------------------------------------------

@@ -3,7 +3,7 @@
        log:  /Users/benarnold/WASHB-Bangladesh-primary-outcomes/src/dm/3-banglad
 > esh-dm-diar.log
   log type:  text
- opened on:  17 Aug 2016, 13:46:20
+ opened on:  17 Aug 2016, 14:37:30
 
 . 
 . *--------------------------------------------
@@ -28,7 +28,7 @@
 . * input files:
 . *
 . *  Treatment assignments 
-. *       washb-bang-tr.dta (or washb-bang-blind-tr.dta if blinded)
+. *  washb-bangladesh-tr.dta (or washb-bangladesh-blind-tr.dta if blinded still)
 . *
 . *  ENROLLMENT
 . *  1. WASHB_Baseline_main_survey.dta
@@ -57,14 +57,14 @@
 . * grab the treatment assignments
 . *--------------------------------------------
 . * blinded treatment assignments:
-. use "~/dropbox/washb-bangladesh-data/1-primary-outcome-datasets/washb-bang-bli
-> nd-tr.dta", clear
+. use "~/dropbox/washb-bangladesh-data/1-primary-outcome-datasets/washb-banglade
+> sh-blind-tr.dta", clear
 (WASH Benefits Bangladesh cluster level treatment assignments (scrambled/blinded
 > !)
 
 . 
 . * real treatment assignments (not used to keep data blinded)
-. * use "/Volumes/0-Treatment-assignments/washb-bang-tr.dta", clear
+. * use "/Volumes/0-Treatment-assignments/washb-bangladesh-tr.dta", clear
 . 
 . sort clusterid
 
@@ -1300,6 +1300,11 @@ Nutrition + WSH |     2,457        162        693 |     3,312
 > d diar7d bruise* tooth*
 
 . 
+. *** DROP TREATMENT ASSIGNMENTS to keep the data fully blinded (analyses can me
+> rge in treatement)
+. drop tr
+
+. 
 . * drop households at enrollment with no target children and no siblings
 . assert svy==0 if childid==""
 
@@ -1308,13 +1313,12 @@ Nutrition + WSH |     2,457        162        693 |     3,312
 
 . compress
   variable block was long now byte
-  variable tr was long now byte
   variable svy was float now byte
   variable svydate was float now int
   variable month was float now byte
   variable agedays was float now int
   variable dob was double now int
-  (497,068 bytes saved)
+  (429,286 bytes saved)
 
 . sort dataid childid 
 
@@ -1337,5 +1341,5 @@ file ~/dropbox/WASHB-Bangladesh-Data/1-primary-outcome-datasets/washb-bangladesh
        log:  /Users/benarnold/WASHB-Bangladesh-primary-outcomes/src/dm/3-banglad
 > esh-dm-diar.log
   log type:  text
- closed on:  17 Aug 2016, 13:46:26
+ closed on:  17 Aug 2016, 14:37:37
 --------------------------------------------------------------------------------

@@ -16,7 +16,7 @@
 
 rm(list=ls())
 library(foreign)
-d <- read.dta('~/dropbox/wbb-primary-analysis/data/final/ben/washb-bang-tr.dta')
+d <- read.dta('/Volumes/0-Treatment-assignments/washb-bangladesh-tr.dta')
 
 # randomly re-order treatment within each block
 set.seed(6435345)
@@ -33,9 +33,9 @@ attr(blind_tr,'var.labels')[3] <- "Randomized treatment assignment (scrambled/bl
 attr(blind_tr,'datalabel') <- 'WASH Benefits Bangladesh cluster level treatment assignments (scrambled/blinded!!)'
 
 # save R version of the TRUE tr assignments
-save(d,file='/Volumes/0-Treatment-assignments/washb-bang-tr.RData')
+save(d,file='/Volumes/0-Treatment-assignments/washb-bangladesh-tr.RData')
 
 # save a re-randomized dataset
-save(blind_tr,file='~/dropbox/washb-bangladesh-data/1-primary-outcome-datasets/washb-bang-blind-tr.RData')
-write.dta(blind_tr,file='~/dropbox/washb-bangladesh-data/1-primary-outcome-datasets/washb-bang-blind-tr.dta')
-write.csv(blind_tr,file='~/dropbox/washb-bangladesh-data/1-primary-outcome-datasets/washb-bang-blind-tr.csv')
+save(blind_tr,file='~/dropbox/washb-bangladesh-data/1-primary-outcome-datasets/washb-bangladesh-blind-tr.RData')
+write.dta(blind_tr,file='~/dropbox/washb-bangladesh-data/1-primary-outcome-datasets/washb-bangladesh-blind-tr.dta')
+write.csv(blind_tr,file='~/dropbox/washb-bangladesh-data/1-primary-outcome-datasets/washb-bangladesh-blind-tr.csv')

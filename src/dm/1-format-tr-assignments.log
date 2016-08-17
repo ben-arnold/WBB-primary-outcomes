@@ -3,7 +3,7 @@
        log:  /Users/benarnold/WASHB-Bangladesh-primary-outcomes/src/dm/1-format-
 > tr-assignments.log
   log type:  text
- opened on:  17 Aug 2016, 13:24:23
+ opened on:  17 Aug 2016, 14:33:29
 
 . 
 . *--------------------------------------------
@@ -15,18 +15,21 @@
 . * input REAL treatment assignments from the
 . * bangladesh trial and save a formatted
 . * stata dataset and csv file
+. *
+. * need to mount the encrypted disk to run
+. * this script
 . *--------------------------------------------
 . 
 . *--------------------------------------------
 . * input files:
-. *  washb-bangladesh-tr-assignments.csv
+. *  washb-bangladesh-raw-tr-assignments.csv
 . *
 . * output files:
-. *  washb-bang-tr.dta /.csv
+. *  washb-bangladesh-tr.dta /.csv
 . * 
 . *--------------------------------------------
-. insheet using "~/dropbox/washbenefits/randomization/bangladesh/washb-banglades
-> h-tr-assignments.csv", comma clear
+. insheet using "/Volumes/0-Treatment-assignments/washb-bangladesh-raw-tr-assign
+> ments.csv", comma clear
 (4 vars, 720 obs)
 
 . gen clusterid = string(cluster_id)
@@ -99,14 +102,13 @@ Nutrition + WSH |         90       12.50      100.00
 . 
 . label data "WASH Benefits Bangladesh cluster level treatment assignments"
 
-. saveold "/Volumes/0-Treatment-assignments/washb-bang-tr.dta", v(12) replace
+. saveold "/Volumes/0-Treatment-assignments/washb-bangladesh-tr.dta", v(12) repl
+> ace
 (saving in Stata 12 format, which can be read by Stata 11 or 12)
-(note: file /Volumes/0-Treatment-assignments/washb-bang-tr.dta not found)
-file /Volumes/0-Treatment-assignments/washb-bang-tr.dta saved
+file /Volumes/0-Treatment-assignments/washb-bangladesh-tr.dta saved
 
-. outsheet using "/Volumes/0-Treatment-assignments/washb-bang-tr.csv", comma rep
-> lace
-(note: file /Volumes/0-Treatment-assignments/washb-bang-tr.csv not found)
+. outsheet using "/Volumes/0-Treatment-assignments/washb-bangladesh-tr.csv", com
+> ma replace
 
 . 
 . log close
@@ -114,5 +116,5 @@ file /Volumes/0-Treatment-assignments/washb-bang-tr.dta saved
        log:  /Users/benarnold/WASHB-Bangladesh-primary-outcomes/src/dm/1-format-
 > tr-assignments.log
   log type:  text
- closed on:  17 Aug 2016, 13:24:23
+ closed on:  17 Aug 2016, 14:33:29
 --------------------------------------------------------------------------------

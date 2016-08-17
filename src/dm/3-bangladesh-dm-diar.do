@@ -27,7 +27,7 @@ log using "~/WASHB-Bangladesh-primary-outcomes/src/dm/3-bangladesh-dm-diar.log",
 * input files:
 *
 *  Treatment assignments 
-*	washb-bang-tr.dta (or washb-bang-blind-tr.dta if blinded)
+*  washb-bangladesh-tr.dta (or washb-bangladesh-blind-tr.dta if blinded still)
 *
 *  ENROLLMENT
 *  1. WASHB_Baseline_main_survey.dta
@@ -56,10 +56,10 @@ log using "~/WASHB-Bangladesh-primary-outcomes/src/dm/3-bangladesh-dm-diar.log",
 * grab the treatment assignments
 *--------------------------------------------
 * blinded treatment assignments:
-use "~/dropbox/washb-bangladesh-data/1-primary-outcome-datasets/washb-bang-blind-tr.dta", clear
+use "~/dropbox/washb-bangladesh-data/1-primary-outcome-datasets/washb-bangladesh-blind-tr.dta", clear
 
 * real treatment assignments (not used to keep data blinded)
-* use "/Volumes/0-Treatment-assignments/washb-bang-tr.dta", clear
+* use "/Volumes/0-Treatment-assignments/washb-bangladesh-tr.dta", clear
 
 sort clusterid
 tempfile trdata
@@ -437,6 +437,9 @@ label var sex "Sex (1=male)"
 * restrict to identifying vars and child level variables
 keep dataid childid tchild clusterid block tr svy svydate month sex dob agedays ageyrs enrolage newbirth sibnewbirth gt36mos  d3plus* dloose* dblood* diar2d diar7d bruise* tooth*
 order  dataid childid tchild clusterid block tr svy svydate month sex dob agedays ageyrs enrolage newbirth sibnewbirth gt36mos d3plus* dloose* dblood* diar2d diar7d bruise* tooth*
+
+*** DROP TREATMENT ASSIGNMENTS to keep the data fully blinded (analyses can merge in treatement)
+drop tr
 
 * drop households at enrollment with no target children and no siblings
 assert svy==0 if childid==""
