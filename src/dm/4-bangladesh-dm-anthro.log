@@ -1,0 +1,1594 @@
+--------------------------------------------------------------------------------
+      name:  <unnamed>
+       log:  /Users/benarnold/WASHB-Bangladesh-primary-outcomes/src/dm/4-banglad
+> esh-dm-anthro.log
+  log type:  text
+ opened on:  17 Aug 2016, 14:09:44
+
+. 
+. *--------------------------------------------
+. * 4-bangladesh-dm-anthro.do
+. *
+. * ben arnold (benarnold@berkeley.edu)
+. *
+. * process the Bangladesh trial year 1 and 
+. * year 2 anthropometry data for analysis
+. *
+. *--------------------------------------------
+. 
+. 
+. 
+. 
+. *--------------------------------------------
+. * input files:
+. *
+. *  Treatment assignments 
+. *       washb-bang-tr.dta (or washb-bang-blind-tr.dta if blinded)
+. * 
+. *
+. *  ENROLLMENT
+. *  1. WASHB_Baseline_main_survey.dta
+. *  3. WASHB_Baseline_childinfo.dta
+. *
+. *  YEAR 1
+. *  1. WASHB_Midline_main_survey_cleaned.dta
+. *  3. WASHB_Midline_childinfo_cleaned.dta
+. *  8. WASHB_Midline_anthropometry_cleaned.dta
+. *
+. *  YEAR 2
+. *  04. WASHB_Endline_main_survey_cleaned.dta
+. *  07. WASHB_Endline_childinformation_cleaned.dta
+. *  09. WASHB_Endline_anthropometry_cleaned.dta
+. *
+. * output files:
+. *  final/washb-bangladesh-anthro.dta / .csv
+. *
+. *--------------------------------------------
+. 
+. 
+. 
+. *--------------------------------------------
+. * grab the treatment assignments
+. *--------------------------------------------
+. * blinded treatment assignments:
+. use "~/dropbox/washb-bangladesh-data/1-primary-outcome-datasets/washb-bang-bli
+> nd-tr.dta", clear
+(WASH Benefits Bangladesh cluster level treatment assignments (scrambled/blinded
+> !)
+
+. 
+. * real treatment assignments (not used to keep data blinded)
+. * use "/Volumes/0-Treatment-assignments/washb-bang-tr.dta", clear
+. 
+. sort clusterid
+
+. tempfile trdata
+
+. save `trdata'
+file /var/folders/1g/dryqjv753dv7rgwhzs2lyl140000gp/T//S_03012.000001 saved
+
+. 
+. 
+. 
+. *--------------------------------------------
+. * YEAR 1
+. * merge the household and child data
+. *--------------------------------------------
+. 
+. use "~/dropbox/WASHB-Bangladesh-Data/0-Untouched-data/1-Main-survey/2_Midline/
+> 1. WASHB_Midline_main_survey_cleaned.dta", clear
+
+. sort dataid 
+
+. tempfile main
+
+. save `main'
+file /var/folders/1g/dryqjv753dv7rgwhzs2lyl140000gp/T//S_03012.000002 saved
+
+. 
+. use "~/dropbox/WASHB-Bangladesh-Data/0-Untouched-data/1-Main-survey/2_Midline/
+> 3. WASHB_Midline_childinfo_cleaned.dta", clear
+
+. sort dataid hhid
+
+. tempfile childinfo
+
+. save `childinfo'
+file /var/folders/1g/dryqjv753dv7rgwhzs2lyl140000gp/T//S_03012.000003 saved
+
+. 
+. use "~/dropbox/WASHB-Bangladesh-Data/0-Untouched-data/1-Main-survey/2_Midline/
+> 8. WASHB_Midline_anthropometry_cleaned.dta", clear
+
+. duplicates list dataid childid
+
+Duplicates in terms of dataid childid
+
+(0 observations are duplicates)
+
+. sort dataid childid
+
+. tempfile childanthro
+
+. save `childanthro'
+file /var/folders/1g/dryqjv753dv7rgwhzs2lyl140000gp/T//S_03012.000004 saved
+
+. 
+. 
+. use `main', clear
+
+. merge 1:m dataid using `childinfo'
+
+    Result                           # of obs.
+    -----------------------------------------
+    not matched                           833
+        from master                         0  (_merge==1)
+        from using                        833  (_merge==2)
+
+    matched                             8,952  (_merge==3)
+    -----------------------------------------
+
+. assert _merge!=1
+
+. drop if _merge==2
+(833 observations deleted)
+
+. drop _merge
+
+. 
+. * merge in the child anthro information
+. sort dataid childid
+
+. merge 1:1 dataid childid using `childanthro'
+
+    Result                           # of obs.
+    -----------------------------------------
+    not matched                         4,247
+        from master                     4,244  (_merge==1)
+        from using                          3  (_merge==2)
+
+    matched                             4,708  (_merge==3)
+    -----------------------------------------
+
+. 
+. 
+. * list 3 children who are not matching
+. * dropped, after confirming with Kishor
+. count if _merge==2
+  3
+
+. list dataid clusterid bariid motherid childid  if _merge==2
+
+      +-------------------------------------------------+
+      | dataid   cluste~d   bariid   motherid   childid |
+      |-------------------------------------------------|
+8953. |  11402        114        1         02        T1 |
+8954. |  33608        336        8         08        T1 |
+8955. |  46707        467        6         07        T1 |
+      +-------------------------------------------------+
+
+. drop if _merge==2
+(3 observations deleted)
+
+. 
+. keep if _merge==3
+(4,244 observations deleted)
+
+. drop _merge
+
+. 
+. * assign survey
+. gen svy = 1 
+
+.         label var svy "Survey round (0,1,2)"
+
+.         
+. sort dataid childid
+
+. tempfile year1
+
+. save `year1'
+file /var/folders/1g/dryqjv753dv7rgwhzs2lyl140000gp/T//S_03012.000005 saved
+
+.         
+. *--------------------------------------------
+. * YEAR 2
+. * merge the household and child data
+. *--------------------------------------------
+.         
+. 
+. use "~/dropbox/WASHB-Bangladesh-Data/0-Untouched-data/1-Main-survey/3_Endline/
+> 04. WASHB_Endline_main_survey_cleaned.dta", clear
+
+. sort dataid 
+
+. tempfile main
+
+. save `main'
+file /var/folders/1g/dryqjv753dv7rgwhzs2lyl140000gp/T//S_03012.000006 saved
+
+. 
+. use "~/dropbox/WASHB-Bangladesh-Data/0-Untouched-data/1-Main-survey/3_Endline/
+> 07. WASHB_Endline_childinformation_cleaned.dta", clear
+
+. sort dataid hhid
+
+. tempfile childinfo
+
+. save `childinfo'
+file /var/folders/1g/dryqjv753dv7rgwhzs2lyl140000gp/T//S_03012.000007 saved
+
+. 
+. use "~/dropbox/WASHB-Bangladesh-Data/0-Untouched-data/1-Main-survey/3_Endline/
+> 09. WASHB_Endline_anthropometry_cleaned.dta", clear
+
+. 
+. 
+. * for now, drop sibling measurements because there is no clean way to merge th
+> em
+. * to the childinfo data
+. tab childid
+
+    childid |      Freq.     Percent        Cum.
+------------+-----------------------------------
+         S1 |      2,143       31.61       31.61
+         T1 |      4,609       67.98       99.59
+         T2 |         28        0.41      100.00
+------------+-----------------------------------
+      Total |      6,780      100.00
+
+. drop if childid=="S1"
+(2,143 observations deleted)
+
+. 
+. * rename variables to be consistent with year 1
+. * sub the "an" prefix for a "c" prefix
+. foreach var of varlist an* {
+  2.         local vname = "`var'"
+  3.         local vstub = substr("`vname'",3,.)
+  4.         rename `var' c`vstub'
+  5. }
+
+. 
+. 
+. * list duplicates
+. duplicates list dataid childid
+
+Duplicates in terms of dataid childid
+
+(0 observations are duplicates)
+
+. sort dataid childid
+
+. tempfile childanthro
+
+. save `childanthro'
+file /var/folders/1g/dryqjv753dv7rgwhzs2lyl140000gp/T//S_03012.000008 saved
+
+. 
+. use `main', clear
+
+. merge 1:m dataid using `childinfo'
+
+    Result                           # of obs.
+    -----------------------------------------
+    not matched                             0
+    matched                             9,964  (_merge==3)
+    -----------------------------------------
+
+. assert _merge==3
+
+. drop _merge
+
+. 
+. * merge in the child anthro information
+. sort dataid childid
+
+. merge 1:1 dataid childid using `childanthro'
+
+    Result                           # of obs.
+    -----------------------------------------
+    not matched                         5,335
+        from master                     5,331  (_merge==1)
+        from using                          4  (_merge==2)
+
+    matched                             4,633  (_merge==3)
+    -----------------------------------------
+
+. 
+. 
+. * list 4 children who are not matching
+. * dropped, after confirming with Kishor
+. count if _merge==2
+  4
+
+. list dataid childid  if _merge==2
+
+      +------------------+
+      | dataid   childid |
+      |------------------|
+9965. |  01002        T1 |
+9966. |  03801        T1 |
+9967. |  11305        T1 |
+9968. |  13304        T1 |
+      +------------------+
+
+. drop if _merge==2
+(4 observations deleted)
+
+. keep if _merge!=1
+(5,331 observations deleted)
+
+. drop _merge
+
+. 
+. 
+. 
+. *--------------------------------------------
+. * Year 2 data formats differ for many variables, 
+. * which creates problems in the append. 
+. * standardize to earlier year formats
+. *--------------------------------------------
+. 
+. * convert survey date to date format
+. gen rq4002 = date(q4002,"DMY")
+
+. drop q4002
+
+. rename rq4002 q4002
+
+. 
+. 
+. * numeric to string
+. local rtoslist "q4014 q4015 q4016 q4017 q105years q105months q105days q716mins
+>  q716secs q721mins q721secs q817years q817months q905adays q905ahours q905amin
+> s q912adays q912ahours q912amins q1004days q1004hours q1004mins q1011mins q101
+> 5mins q807cahours q807camins q807cbhours q807cbmins q807cchours q807ccmins q80
+> 7cdhours q807cdmins q807cehours q807cemins"
+
+. foreach var of local rtoslist {
+  2.         gen r`var' = string(`var')
+  3.         drop `var'
+  4.         rename r`var' `var'
+  5. }
+
+. 
+. * string to numeric
+. local storlist "q102 q1303 q1307 q1308 q1310 q1311"
+
+. foreach var of local storlist {
+  2.         gen r`var' = real(`var')
+  3.         drop `var'
+  4.         rename r`var' `var'
+  5. }
+
+. 
+. 
+. 
+. *--------------------------------------------
+. * APPEND YEAR 1, YEAR 2
+. *--------------------------------------------
+. gen svy = 2
+
+.         label var svy "Survey round (0,1,2)"
+
+.         
+. append using `year1'
+(note: variable q103a was byte, now int to accommodate using data's values)
+(note: variable q105days was str2, now str3 to accommodate using data's
+       values)
+(note: variable q105months was str2, now str3 to accommodate using data's
+       values)
+(note: variable q701a was byte, now int to accommodate using data's values)
+(note: variable q701b was byte, now int to accommodate using data's values)
+(note: variable q701c was byte, now int to accommodate using data's values)
+(note: variable q701d was byte, now int to accommodate using data's values)
+(note: variable q701f was byte, now int to accommodate using data's values)
+(note: variable q702a was byte, now int to accommodate using data's values)
+(note: variable q702b was byte, now int to accommodate using data's values)
+(note: variable q702c was byte, now int to accommodate using data's values)
+(note: variable q702d was byte, now int to accommodate using data's values)
+(note: variable q702e was byte, now int to accommodate using data's values)
+(note: variable q702f was byte, now int to accommodate using data's values)
+(note: variable q715reason was str45, now str74 to accommodate using data's
+       values)
+(note: variable q807ab_5 was byte, now int to accommodate using data's values)
+(note: variable q807ab_7 was byte, now int to accommodate using data's values)
+(note: variable q807cahours was str2, now str3 to accommodate using data's
+       values)
+(note: variable q807camins was str2, now str3 to accommodate using data's
+       values)
+(note: variable q807cbhours was str2, now str3 to accommodate using data's
+       values)
+(note: variable q807cbmins was str2, now str3 to accommodate using data's
+       values)
+(note: variable q807cchours was str2, now str3 to accommodate using data's
+       values)
+(note: variable q807ccmins was str2, now str3 to accommodate using data's
+       values)
+(note: variable q807cdhours was str2, now str3 to accommodate using data's
+       values)
+(note: variable q807cdmins was str2, now str3 to accommodate using data's
+       values)
+(note: variable q807cehours was str2, now str3 to accommodate using data's
+       values)
+(note: variable q807cemins was str2, now str3 to accommodate using data's
+       values)
+(note: variable q809_1 was byte, now int to accommodate using data's values)
+(note: variable q809_2 was byte, now int to accommodate using data's values)
+(note: variable q809_7 was byte, now int to accommodate using data's values)
+(note: variable q809_9a was byte, now int to accommodate using data's values)
+(note: variable q809_13 was byte, now int to accommodate using data's values)
+(note: variable q809_18 was byte, now int to accommodate using data's values)
+(note: variable q817months was str2, now str3 to accommodate using data's
+       values)
+(note: variable q905ahours was str2, now str3 to accommodate using data's
+       values)
+(note: variable q905amins was str2, now str3 to accommodate using data's
+       values)
+(note: variable q905adays was str2, now str3 to accommodate using data's
+       values)
+(note: variable q912ahours was str2, now str3 to accommodate using data's
+       values)
+(note: variable q912amins was str2, now str3 to accommodate using data's
+       values)
+(note: variable q912adays was str2, now str3 to accommodate using data's
+       values)
+(note: variable q913 was byte, now int to accommodate using data's values)
+(note: variable q1010 was byte, now int to accommodate using data's values)
+(note: variable q1301 was str78, now str79 to accommodate using data's values)
+(note: variable q1305 was str52, now str63 to accommodate using data's values)
+(note: variable q1306 was str35, now str39 to accommodate using data's values)
+(label q4008_lbl already defined)
+
+. 
+. 
+. 
+. *--------------------------------------------
+. * merge in the treatment assignment information 
+. *--------------------------------------------
+. 
+. * drop clusterid and block variables to 
+. * ensure we get a complete set
+. 
+. * merge in the treatment assignment info (keep only matching obs)
+. capture drop clusterid
+
+. gen clusterid = substr(dataid,1,3)
+
+. sort clusterid
+
+. merge m:1 clusterid using `trdata'
+
+    Result                           # of obs.
+    -----------------------------------------
+    not matched                             0
+    matched                             9,341  (_merge==3)
+    -----------------------------------------
+
+. assert _merge != 1
+
+. drop if _merge==2
+(0 observations deleted)
+
+. drop _merge
+
+. 
+. 
+. *--------------------------------------------
+. * identify target children
+. *--------------------------------------------
+. gen byte tchild = strpos(childid,"T")>0
+
+.         label var tchild "Target child in birth cohort"
+
+.         label define tchild 0 "Sibling" 1 "Target child"
+
+.         label values tchild tchild
+
+.         tab tchild
+
+Target child |
+    in birth |
+      cohort |      Freq.     Percent        Cum.
+-------------+-----------------------------------
+Target child |      9,341      100.00      100.00
+-------------+-----------------------------------
+       Total |      9,341      100.00
+
+. 
+.         
+. * check for duplicates (there should be none)
+. duplicates report dataid childid svy
+
+Duplicates in terms of dataid childid svy
+
+--------------------------------------
+   copies | observations       surplus
+----------+---------------------------
+        1 |         9341             0
+--------------------------------------
+
+. 
+. tab svy tchild
+
+           |   Target
+           |  child in
+    Survey |   birth
+     round |   cohort
+   (0,1,2) | Target ch |     Total
+-----------+-----------+----------
+         1 |     4,708 |     4,708 
+         2 |     4,633 |     4,633 
+-----------+-----------+----------
+     Total |     9,341 |     9,341 
+
+
+. 
+. 
+. *--------------------------------------------
+. * for a small number of children without age
+. * or sex information in one of the measurement
+. * rounds, fill it in using the other round
+. *--------------------------------------------
+. 
+. 
+. *--------------------------------------------
+. * Age, using measurement date and birth date
+. *--------------------------------------------
+. label var sex "Sex"
+
+. label define sex 0 "female" 1 "male"
+
+. label values sex sex
+
+. 
+. label var dob "Date of birth"
+
+. format dob %d
+
+. 
+. * date was saved in a different variable in Y2
+. replace c4002 = date(c01,"DMY") if svy==2
+(4,633 real changes made)
+
+. 
+. gen anthrodate = c4002
+(4 missing values generated)
+
+.         format anthrodate %d
+
+.         label var anthrodate "Date of anthro measurement"
+
+.         
+.         * for 4 missing anthro dates at midline, impute with
+.         * either the child info date (only available at midline)
+.         * or the household survey date
+.         replace anthrodate=entrydt if anthrodate==.
+(4 real changes made)
+
+.         assert anthrodate!=.    
+
+.         codebook anthrodate
+
+--------------------------------------------------------------------------------
+anthrodate                                            Date of anthro measurement
+--------------------------------------------------------------------------------
+
+                  type:  numeric daily date (float)
+
+                 range:  [19616,20416]                units:  1
+       or equivalently:  [15sep2013,24nov2015]        units:  days
+         unique values:  432                      missing .:  0/9,341
+
+                  mean:   20014.9 = 18oct2014 (+ 21 hours)
+              std. dev:   231.481
+
+           percentiles:        10%       25%       50%       75%       90%
+                             19684     19814     19986     20223     20307
+                         22nov2013 01apr2014 20sep2014 15may2015 07aug2015
+
+. 
+. gen aged = anthrodate-dob
+
+.         label var aged "Age in days (anthro meas)"
+
+. gen double agem = aged/30.4167
+
+.         label var agem "Age in months (anthro meas)"
+
+. gen double agey = aged/365.25
+
+.         label var agey "Age in years (anthro meas)"
+
+. codebook agey
+
+--------------------------------------------------------------------------------
+agey                                                  Age in years (anthro meas)
+--------------------------------------------------------------------------------
+
+                  type:  numeric (double)
+
+                 range:  [.11498973,3.1731691]        units:  1.000e-10
+         unique values:  636                      missing .:  0/9,341
+
+                  mean:   1.29483
+              std. dev:   .592061
+
+           percentiles:        10%       25%       50%       75%       90%
+                           .605065   .728268   1.05407   1.85626   1.99589
+
+. 
+. * Month of measurement
+. gen month = month(anthrodate)
+
+.         label var month "Month of measurement"
+
+. 
+. 
+. * check children who seem too old
+. list dataid childid motherid dob aged agem if agem>15 & agem<. & svy==1
+
+      +------------------------------------------------------------+
+      | dataid   childid   motherid         dob   aged        agem |
+      |------------------------------------------------------------|
+ 420. |  03407        T1         07   16sep2012    460   15.123271 |
+      +------------------------------------------------------------+
+
+. list dataid childid motherid dob aged agem if agem>32 & agem<. & svy==2
+
+      +------------------------------------------------------------+
+      | dataid   childid   motherid         dob   aged        agem |
+      |------------------------------------------------------------|
+  63. |  00502        T1              27aug2012   1159   38.104068 |
+  96. |  00807        T1              15oct2012   1109   36.460234 |
+ 357. |  02802        T1              22oct2012   1128   37.084891 |
+ 772. |  05902        T1              15oct2012   1109   36.460234 |
+ 928. |  07101        T1              17dec2012   1072   35.243797 |
+      |------------------------------------------------------------|
+ 929. |  07106        T1              19nov2012   1100   36.164344 |
+1006. |  07706        T1              27dec2012   1036   34.060237 |
+1173. |  08806        T1              22dec2012    982   32.284896 |
+1408. |  10707        T1              01dec2012   1003   32.975306 |
+3469. |  26906        T1              10mar2013    985   32.383526 |
+      +------------------------------------------------------------+
+
+. 
+. 
+. *--------------------------------------------
+. * birth order of target children
+. * collected at year 2, so backfill
+. *--------------------------------------------
+. gen int birthord = .
+(9,341 missing values generated)
+
+.         replace birthord = q4020_1b if childid=="T1"
+(4,605 real changes made)
+
+.         replace birthord = q4021_1b if childid=="T2"
+(28 real changes made)
+
+.         label var birthord "Birth order (target child)"
+
+.         
+. sort dataid childid svy
+
+. by dataid childid: egen _x = min(birthord)
+(243 missing values generated)
+
+. replace birthord = _x if birthord==.
+(4,465 real changes made)
+
+. drop _x
+
+. 
+. * some missing values in the measure
+. * 243 at year 1
+. tab birthord if svy==1, m
+
+Birth order |
+    (target |
+     child) |      Freq.     Percent        Cum.
+------------+-----------------------------------
+          1 |      1,494       31.73       31.73
+          2 |      1,416       30.08       61.81
+          3 |        850       18.05       79.86
+          4 |        435        9.24       89.10
+          5 |        148        3.14       92.25
+          6 |         66        1.40       93.65
+          7 |         34        0.72       94.37
+          8 |         12        0.25       94.63
+          9 |          7        0.15       94.77
+         10 |          2        0.04       94.82
+         11 |          1        0.02       94.84
+          . |        243        5.16      100.00
+------------+-----------------------------------
+      Total |      4,708      100.00
+
+. tab birthord if svy==2, m
+
+Birth order |
+    (target |
+     child) |      Freq.     Percent        Cum.
+------------+-----------------------------------
+          1 |      1,580       34.10       34.10
+          2 |      1,465       31.62       65.72
+          3 |        871       18.80       84.52
+          4 |        443        9.56       94.09
+          5 |        152        3.28       97.37
+          6 |         66        1.42       98.79
+          7 |         34        0.73       99.53
+          8 |         12        0.26       99.78
+          9 |          7        0.15       99.94
+         10 |          2        0.04       99.98
+         11 |          1        0.02      100.00
+------------+-----------------------------------
+      Total |      4,633      100.00
+
+. 
+. *--------------------------------------------
+. * ensure that all the anthro measurements 
+. * are rounded to the correct level of precision
+. * no more than 2 decimal places
+. *--------------------------------------------
+. for any c414 c415 c416 c404 c405 c406 c408 c409 c410 c411 c412 c413 c418 c419 
+> c420: replace X = round(X,0.01)
+
+->  replace c414 = round(c414,0.01)
+(3,869 real changes made)
+
+->  replace c415 = round(c415,0.01)
+(4,334 real changes made)
+
+->  replace c416 = round(c416,0.01)
+(233 real changes made)
+
+->  replace c404 = round(c404,0.01)
+(4,653 real changes made)
+
+->  replace c405 = round(c405,0.01)
+(4,634 real changes made)
+
+->  replace c406 = round(c406,0.01)
+(1,274 real changes made)
+
+->  replace c408 = round(c408,0.01)
+(4,250 real changes made)
+
+->  replace c409 = round(c409,0.01)
+(4,283 real changes made)
+
+->  replace c410 = round(c410,0.01)
+(1,451 real changes made)
+
+->  replace c411 = round(c411,0.01)
+(396 real changes made)
+
+->  replace c412 = round(c412,0.01)
+(384 real changes made)
+
+->  replace c413 = round(c413,0.01)
+(19 real changes made)
+
+->  replace c418 = round(c418,0.01)
+(4,289 real changes made)
+
+->  replace c419 = round(c419,0.01)
+(4,346 real changes made)
+
+->  replace c420 = round(c420,0.01)
+(80 real changes made)
+
+. 
+. *--------------------------------------------
+. * Calculate median length measurements
+. *--------------------------------------------
+. label var c414 "Child length meas 1"
+
+. label var c415 "Child length meas 2"
+
+. label var c416 "Child length meas 3"
+
+. 
+. gen len1 = c414
+
+. gen len2 = c415
+
+. gen len3 = c416
+(8,841 missing values generated)
+
+. replace len1 = . if len1>999 | len1<=0
+(50 real changes made, 50 to missing)
+
+. replace len2 = . if len2>999 | len2<=0
+(77 real changes made, 77 to missing)
+
+. replace len3 = . if len3>999 | len3<=0
+(75 real changes made, 75 to missing)
+
+. 
+. 
+. egen float length = rowmedian(len1 len2 len3)
+(50 missing values generated)
+
+.         replace length = . if length>999
+(0 real changes made)
+
+.         replace length = round(length,0.001)
+(1,221 real changes made)
+
+.         label var length "Child length (median), cm"
+
+.         notes length: Median of replicate measures
+
+. 
+. drop len1-len3
+
+. 
+. *--------------------------------------------
+. * Calculate median weight measurements
+. *--------------------------------------------
+. 
+. label var c404 "Maternal weight meas 1"
+
+. label var c405 "Maternal weight meas 2"
+
+. label var c406 "Maternal weight meas 3"
+
+. label var c408 "Child weight w/ mother meas 1"
+
+. label var c409 "Child weight w/ mother meas 2"
+
+. label var c410 "Child weight w/ mother meas 3"
+
+. label var c411 "Child weight meas 1"
+
+. label var c412 "Child weight meas 2"
+
+. label var c413 "Child weight meas 3"
+
+. for any c404 c405 c406 c408 c409 c410 c411 c412 c413 : replace X = . if (X>99 
+> | X<=0)
+
+->  replace c404 = . if (c404>99 | c404<=0)
+(15 real changes made, 15 to missing)
+
+->  replace c405 = . if (c405>99 | c405<=0)
+(16 real changes made, 16 to missing)
+
+->  replace c406 = . if (c406>99 | c406<=0)
+(1 real change made, 1 to missing)
+
+->  replace c408 = . if (c408>99 | c408<=0)
+(0 real changes made)
+
+->  replace c409 = . if (c409>99 | c409<=0)
+(0 real changes made)
+
+->  replace c410 = . if (c410>99 | c410<=0)
+(1 real change made, 1 to missing)
+
+->  replace c411 = . if (c411>99 | c411<=0)
+(0 real changes made)
+
+->  replace c412 = . if (c412>99 | c412<=0)
+(0 real changes made)
+
+->  replace c413 = . if (c413>99 | c413<=0)
+(0 real changes made)
+
+. 
+. 
+. * create median of mom + child and mom alone
+. * we have to do it this way because this reflects
+. * the method used in the field to determine if a 
+. * 3rd measurement was required
+. egen float wmc = rowmedian(c408 c409 c410)
+(2099 missing values generated)
+
+. egen float wmm = rowmedian(c404 c405 c406)
+(15 missing values generated)
+
+. 
+. * create median of the child (if measured alone)
+. egen float wch = rowmedian(c411 c412 c413)
+(7242 missing values generated)
+
+. 
+. gen float weight = wch
+(7,242 missing values generated)
+
+.         replace weight = wmc-wmm if (weight==.) & (wmc!=.) & (wmm!=.)
+(7,242 real changes made)
+
+.         replace weight = round(weight,0.001)
+(5,847 real changes made)
+
+.         label var weight "Child weight (median), kg"
+
+.         notes weight: Median of replicate measures
+
+. 
+. drop  wmc wmm wch
+
+. 
+. 
+. *--------------------------------------------
+. * Calculate median head circumference measurements
+. *--------------------------------------------
+. label var c418 "Head circumference meas 1"
+
+. label var c419 "Head circumference meas 2"
+
+. label var c420 "Head circumference meas 3"
+
+. 
+. gen hc1 = c418
+
+. gen hc2 = c419
+
+. gen hc3 = c420
+(9,221 missing values generated)
+
+. replace hc1 = . if hc1>99 | hc1<=0
+(7 real changes made, 7 to missing)
+
+. replace hc2 = . if hc2>99 | hc2<=0
+(10 real changes made, 10 to missing)
+
+. replace hc3 = . if hc3>99 | hc3<=0
+(5 real changes made, 5 to missing)
+
+. 
+. egen float headcir = rowmedian(hc1 hc2 hc3)
+(7 missing values generated)
+
+.         replace headcir = . if headcir>99
+(0 real changes made)
+
+.         replace headcir = round(headcir,0.001)
+(893 real changes made)
+
+.         label var headcir "Child head circumference (median), cm"
+
+.         notes headcir: Median of replicate measures
+
+. 
+. 
+. *--------------------------------------------
+. * Calculate laz, waz, whz, using the zscore06
+. * add-on package. do not specify oedema
+. *--------------------------------------------
+. 
+. zscore06, a(agem) s(sex) h(length) w(weight) female(0) male(1) measure(c417) r
+> ecum(1) stand(2)
+
+Z-scores (haz06, waz06, bmiz06 and whz06) succesfully calculated
+*** note 1: 99 indicates that height, weight or age were out of the reference va
+> lue range
+*** note 2: no zscores are calculated for children with missing age
+
+. 
+. * save a temporary dataset to merge with the WHO igrowup output
+. save "~/dropbox/washb-bangladesh-data/1-primary-outcome-datasets/washb-working
+> -anthro.dta", replace
+(note: file /Users/benarnold/dropbox/washb-bangladesh-data/1-primary-outcome-dat
+> asets/washb-working-anthro.dta not found)
+file ~/dropbox/washb-bangladesh-data/1-primary-outcome-datasets/washb-working-an
+> thro.dta saved
+
+. 
+. 
+. *--------------------------------------------
+. * Calculate laz, waz, whz, and wcz using the 
+. * WHO -igrowup- macro. 
+. *
+. * this is necessary because the zscore06 
+. * package does not calculate z-scores for 
+. * head circumference.  we are using both
+. * approaches because the zscore06 package is
+. * ostensibly more accurate (see the package's documentation)
+. * though as demonstrated below they provide identical results
+. * (just a good internal validity check)
+. *
+. * The WHO -igrowup- macro requires 15 parameters.
+. * Refer to the documentation for details on this
+. * finicky macro.
+. *
+. * We don't have all of the measurements that
+. * it processes, so need to create empty
+. * variables that allow it to run
+. *---------------------------------------------
+. 
+. /// Indicate to the Stata compiler where the igrowup_standard.ado file is stor
+> ed ***
+> adopath + "~/WASHB-Bangladesh-primary-outcomes/src/dm/4-who-igrowup"
+  [1]  (BASE)      "/Applications/Stata/ado/base/"
+  [2]  (SITE)      "/Applications/Stata/ado/site/"
+  [3]              "."
+  [4]  (PERSONAL)  "~/Library/Application Support/Stata/ado/personal/"
+  [5]  (PLUS)      "~/Library/Application Support/Stata/ado/plus/"
+  [6]  (OLDPLACE)  "~/ado/"
+  [7]              "~/WASHB-Bangladesh-primary-outcomes/src/dm/4-who-igrowup"
+
+. 
+. 
+. gen str reflib="~/WASHB-Bangladesh-primary-outcomes/src/dm/4-who-igrowup"
+
+. lab var reflib "Directory of reference tables"
+
+. 
+. gen str datalib="~/dropbox/washb-bangladesh-data/1-primary-outcome-datasets"
+
+. lab var datalib "Directory for datafiles"
+
+. 
+. gen str datalab="TEMPanthro"
+
+. lab var datalab "Working file"
+
+. 
+. gen str ageunit="days"
+
+. gen str measure="L" if c417==1
+(859 missing values generated)
+
+. replace measure="H" if c417==2
+(858 real changes made)
+
+. replace measure=" " if measure == ""
+(1 real change made)
+
+. label var measure "Height measured lying -L- or standing -H-"
+
+. 
+. * create a temporary sex variable for WHO coding
+. gen whosex = sex
+
+.         replace whosex = 2 if sex==0
+(4,691 real changes made)
+
+. 
+. * create missing variables so that macro will run
+. for any uac triskin subskin oedema: gen X = .
+
+->  gen uac = .
+(9,341 missing values generated)
+
+->  gen triskin = .
+(9,341 missing values generated)
+
+->  gen subskin = .
+(9,341 missing values generated)
+
+->  gen oedema = .
+(9,341 missing values generated)
+
+. 
+. * set sampling wgtghts to negative to make the prevalence
+. * calculations blow up -- impossible to run that piece of 
+. * code w/o Stata SE b/c requires 10,000 variables
+. gen sw = -10
+
+. 
+. 
+. *---------------------------------------------
+. * Save a temporary dataset and run -igrowup-
+. * (note: igrowup adds variables to the data in
+. * memory and saves a copy dataset with the 
+. * suffix "_z_st.dta"). Dataset name must correspond
+. * to the "datalab" variable (defined in last chunk)
+. *---------------------------------------------
+. 
+. keep dataid childid svy aged whosex whosex aged ageunit weight length measure 
+> headcir uac triskin subskin oedema sw  reflib datalib datalab 
+
+. 
+. save "~/dropbox/washb-bangladesh-data/1-primary-outcome-datasets/TEMPanthro", 
+> replace
+(note: file /Users/benarnold/dropbox/washb-bangladesh-data/1-primary-outcome-dat
+> asets/TEMPanthro.dta not found)
+file ~/dropbox/washb-bangladesh-data/1-primary-outcome-datasets/TEMPanthro.dta s
+> aved
+
+. 
+. #delimit;
+delimiter now ;
+. igrowup_standard reflib datalib datalab 
+> whosex aged ageunit weight length measure headcir uac triskin subskin oedema s
+> w;
+
+Please wait, programme is running.............
+
+..............................................
+Note: z-scores are flagged according to the following rules:
+ 
+                            _zwfl = . if (_zwfl < -5 or _zwfl >5)
+                            _zlen = . if (_zlen < -6 or _zlen >6)
+                            _zwei = . if (_zwei < -6 or _zwei >5)
+                            _zbmi = . if (_zbmi < -5 or _zbmi >5)
+                            _zhc  = . if (_zhc  < -5 or _zhc  >5)
+                            _zac  = . if (_zac  < -5 or _zac  >5)
+                            _zts  = . if (_zts  < -5 or _zts  >5)
+                            _zss  = . if (_zss  < -5 or _zss  >5)
+                            
+(note: file /Users/benarnold/dropbox/washb-bangladesh-data/1-primary-outcome-dat
+> asets/TEMPanthro_z_st.dta not found)
+file ~/dropbox/washb-bangladesh-data/1-primary-outcome-datasets/TEMPanthro_z_st.
+> dta saved
+Note 1:     Original data plus z-scores are written to
+            ~/dropbox/washb-bangladesh-data/1-primary-outcome-datasets/TEMPanthr
+> o_z_st.dta
+                            
+                            
+(note: file /Users/benarnold/dropbox/washb-bangladesh-data/1-primary-outcome-dat
+> asets/TEMPanthro_z_st.xls not found)
+Note 2:     Original data plus z-scores are written to
+            ~/dropbox/washb-bangladesh-data/1-primary-outcome-datasets/TEMPanthr
+> o_z_st.xls
+                            
+
+Please wait, programme is calculating prevalences.............
+
+..............................................
+Error - Negative sampling weights encountered, prevalence tables are not produce
+> d!
+
+. #delimit cr
+delimiter now cr
+. 
+. 
+. 
+. *---------------------------------------------
+. * Retrieve WHO calculated output
+. * "_f" variables identify variables outside of
+. * reasonable bounds
+. *
+. * merge back to the main anthro dataset
+. *---------------------------------------------
+. 
+. use "~/dropbox/washb-bangladesh-data/1-primary-outcome-datasets/TEMPanthro_z_s
+> t", clear
+
+. 
+. keep dataid childid svy _zwei _zlen _zbmi _zwfl _zhc _fwei _flen _fbmi _fwfl _
+> fhc
+
+. sort dataid childid svy
+
+. save  "~/dropbox/washb-bangladesh-data/1-primary-outcome-datasets/TEMPanthro",
+>  replace
+file ~/dropbox/washb-bangladesh-data/1-primary-outcome-datasets/TEMPanthro.dta s
+> aved
+
+. 
+. use "~/dropbox/washb-bangladesh-data/1-primary-outcome-datasets/washb-working-
+> anthro.dta", clear
+
+. sort dataid childid svy
+
+. merge 1:1 dataid childid svy using "~/dropbox/washb-bangladesh-data/1-primary-
+> outcome-datasets/TEMPanthro"
+
+    Result                           # of obs.
+    -----------------------------------------
+    not matched                             0
+    matched                             9,341  (_merge==3)
+    -----------------------------------------
+
+. assert _merge==3
+
+. drop _merge
+
+. 
+. 
+. * compare measurements from the 2 packages to ensure they are identical
+. * (correlation = 1)
+. corr haz06 _zlen 
+(obs=9,291)
+
+             |    haz06    _zlen
+-------------+------------------
+       haz06 |   1.0000
+       _zlen |   1.0000   1.0000
+
+
+. corr waz06 _zwei
+(obs=9,341)
+
+             |    waz06    _zwei
+-------------+------------------
+       waz06 |   1.0000
+       _zwei |   1.0000   1.0000
+
+
+. corr whz06 _zwfl
+(obs=9,288)
+
+             |    whz06    _zwfl
+-------------+------------------
+       whz06 |   1.0000
+       _zwfl |   1.0000   1.0000
+
+
+. corr bmiz06 _zbmi
+(obs=9,291)
+
+             |   bmiz06    _zbmi
+-------------+------------------
+      bmiz06 |   1.0000
+       _zbmi |   1.0000   1.0000
+
+
+. 
+. 
+. * delete tempfiles
+. erase "~/dropbox/washb-bangladesh-data/1-primary-outcome-datasets/washb-workin
+> g-anthro.dta"
+
+. erase "~/dropbox/washb-bangladesh-data/1-primary-outcome-datasets/TEMPanthro.d
+> ta"
+
+. erase "~/dropbox/washb-bangladesh-data/1-primary-outcome-datasets/TEMPanthro_z
+> _st.dta"
+
+. erase "~/dropbox/washb-bangladesh-data/1-primary-outcome-datasets/TEMPanthro_z
+> _st.xls"
+
+. 
+. *--------------------------------------------
+. * Set extreme values to missing and flag them
+. * based on the WHO 2006 standards
+. *--------------------------------------------
+. rename haz06 laz
+
+. rename waz06 waz
+
+. rename whz06 whz
+
+. rename bmiz06 bmiz
+
+. rename _zhc hcz
+
+. 
+. gen laz_x = (laz < -6 | laz >6)
+
+.         replace laz_x = . if laz==.
+(36 real changes made, 36 to missing)
+
+.         label var laz_x "abs(LAZ)>6, set to missing"
+
+.         
+. gen waz_x = (waz < -6 | waz >5)
+
+.         replace waz_x = . if waz==.
+(0 real changes made)
+
+.         label var waz_x "WAZ < -6 or WAZ > 5, set to missing"
+
+. 
+. gen whz_x = (whz < -5 | whz >5)
+
+.         replace whz_x = . if whz==.
+(36 real changes made, 36 to missing)
+
+.         label var whz_x "abs(WHZ)>5, set to missing"
+
+.         
+. gen bmiz_x = (bmiz < -5 | bmiz >5)
+
+.         replace bmiz_x = . if bmiz==.
+(36 real changes made, 36 to missing)
+
+.         label var bmiz_x "abs(BMIZ)>5, set to missing"
+
+. 
+. gen hcz_x = _fhc
+(7 missing values generated)
+
+.         replace hcz_x = . if hcz==.
+(0 real changes made)
+
+.         label var hcz_x "abs(HCZ)>5, set to missing"
+
+.         
+. * list extreme values before setting them to missing
+. list dataid aged length weight laz waz whz if laz_x==1
+
+      +-----------------------------------------------------------+
+      | dataid   aged   length   weight       laz     waz     whz |
+      |-----------------------------------------------------------|
+ 253. |  02008    776        .     10.6   2998.01    -.87      99 |
+ 358. |  02807    228    46.15    6.375     -9.35   -1.67   11.52 |
+ 363. |  02901    738        .    11.25   3058.65     -.2      99 |
+ 470. |  03706    717    42.95    10.45    -13.23     -.7      99 |
+ 677. |  05206    790        .   13.425   3120.75     .59      99 |
+      |-----------------------------------------------------------|
+ 683. |  05301    782        .   10.275   2989.03   -1.16      99 |
+ 752. |  05801    760        .      9.3   3023.35    -1.9      99 |
+ 773. |  05905    251    42.15      7.6    -11.33    -.44      99 |
+ 805. |  06108    805        .   10.975   3092.67   -1.22      99 |
+ 817. |  06207    795        .    10.95   2968.76     -.7      99 |
+      |-----------------------------------------------------------|
+1586. |  12007    760        .     10.8   3023.35    -.64      99 |
+1697. |  12907    745        .    9.875   3211.21   -1.89      99 |
+2160. |  16605    737        .   11.225   3227.82    -.73      99 |
+2841. |  22101    731        .   11.425   3071.88    -.04      99 |
+3182. |  24803    705     67.9      6.6     -6.39   -4.88   -2.33 |
+      |-----------------------------------------------------------|
+3436. |  26607    191    53.85      4.3     -6.61   -5.11     .19 |
+3437. |  26607    623     61.5      5.8     -8.14   -5.43    -1.2 |
+4197. |  32601    296    58.75    3.825     -6.24   -6.51   -4.67 |
+4618. |  35901    755        .    10.85   3190.92   -1.11      99 |
+4770. |  37101    256    43.55    7.225    -10.81    -.91      99 |
+      |-----------------------------------------------------------|
+4828. |  37504    272     56.6    4.825     -6.82   -5.06    -.44 |
+5062. |  39204    790        .      9.4   2976.63   -1.96      99 |
+5934. |  46108    749        .    9.225   3040.88   -1.92      99 |
+6751. |  52503    219    54.45      4.9     -6.89   -4.53    1.24 |
+6752. |  52503    612    60.65      5.2     -8.38   -6.02   -2.12 |
+      |-----------------------------------------------------------|
+7128. |  55305    724     66.8    6.275     -6.04   -4.82      -2 |
+8638. |  66802    323     51.2    3.275     -9.89   -7.34   -1.03 |
+8639. |  66802    720     61.1      6.1     -8.48   -5.41    -.72 |
+      +-----------------------------------------------------------+
+
+. list dataid aged length weight laz waz whz if waz_x==1
+
+      +---------------------------------------------------------+
+      | dataid   aged   length   weight     laz     waz     whz |
+      |---------------------------------------------------------|
+4197. |  32601    296    58.75    3.825   -6.24   -6.51   -4.67 |
+6752. |  52503    612    60.65      5.2   -8.38   -6.02   -2.12 |
+7416. |  57503    212     69.4   18.175     .13    8.89   11.19 |
+8058. |  62408    348    77.45     17.5    1.01    6.25    7.08 |
+8638. |  66802    323     51.2    3.275   -9.89   -7.34   -1.03 |
+      +---------------------------------------------------------+
+
+. list dataid aged length weight laz waz whz if whz_x==1
+
+      +-----------------------------------------------------------+
+      | dataid   aged   length   weight       laz     waz     whz |
+      |-----------------------------------------------------------|
+ 253. |  02008    776        .     10.6   2998.01    -.87      99 |
+ 358. |  02807    228    46.15    6.375     -9.35   -1.67   11.52 |
+ 363. |  02901    738        .    11.25   3058.65     -.2      99 |
+ 470. |  03706    717    42.95    10.45    -13.23     -.7      99 |
+ 615. |  04706    790    89.05       19      -.14    3.64    5.18 |
+      |-----------------------------------------------------------|
+ 677. |  05206    790        .   13.425   3120.75     .59      99 |
+ 683. |  05301    782        .   10.275   2989.03   -1.16      99 |
+ 752. |  05801    760        .      9.3   3023.35    -1.9      99 |
+ 773. |  05905    251    42.15      7.6    -11.33    -.44      99 |
+ 805. |  06108    805        .   10.975   3092.67   -1.22      99 |
+      |-----------------------------------------------------------|
+ 817. |  06207    795        .    10.95   2968.76     -.7      99 |
+1586. |  12007    760        .     10.8   3023.35    -.64      99 |
+1697. |  12907    745        .    9.875   3211.21   -1.89      99 |
+2160. |  16605    737        .   11.225   3227.82    -.73      99 |
+2841. |  22101    731        .   11.425   3071.88    -.04      99 |
+      |-----------------------------------------------------------|
+4618. |  35901    755        .    10.85   3190.92   -1.11      99 |
+4770. |  37101    256    43.55    7.225    -10.81    -.91      99 |
+5062. |  39204    790        .      9.4   2976.63   -1.96      99 |
+5934. |  46108    749        .    9.225   3040.88   -1.92      99 |
+7416. |  57503    212     69.4   18.175       .13    8.89   11.19 |
+      |-----------------------------------------------------------|
+7470. |  57901    270     66.4    12.05     -1.48    3.08    5.32 |
+8058. |  62408    348    77.45     17.5      1.01    6.25    7.08 |
+      +-----------------------------------------------------------+
+
+. list dataid aged length weight laz waz whz if bmiz_x==1
+
+      +-----------------------------------------------------------+
+      | dataid   aged   length   weight       laz     waz     whz |
+      |-----------------------------------------------------------|
+ 161. |  01306    758     88.2      8.4       .09   -3.33   -4.91 |
+ 253. |  02008    776        .     10.6   2998.01    -.87      99 |
+ 358. |  02807    228    46.15    6.375     -9.35   -1.67   11.52 |
+ 363. |  02901    738        .    11.25   3058.65     -.2      99 |
+ 470. |  03706    717    42.95    10.45    -13.23     -.7      99 |
+      |-----------------------------------------------------------|
+ 615. |  04706    790    89.05       19      -.14    3.64    5.18 |
+ 677. |  05206    790        .   13.425   3120.75     .59      99 |
+ 683. |  05301    782        .   10.275   2989.03   -1.16      99 |
+ 752. |  05801    760        .      9.3   3023.35    -1.9      99 |
+ 773. |  05905    251    42.15      7.6    -11.33    -.44      99 |
+      |-----------------------------------------------------------|
+ 805. |  06108    805        .   10.975   3092.67   -1.22      99 |
+ 817. |  06207    795        .    10.95   2968.76     -.7      99 |
+1586. |  12007    760        .     10.8   3023.35    -.64      99 |
+1697. |  12907    745        .    9.875   3211.21   -1.89      99 |
+2160. |  16605    737        .   11.225   3227.82    -.73      99 |
+      |-----------------------------------------------------------|
+2841. |  22101    731        .   11.425   3071.88    -.04      99 |
+4149. |  32207    228    68.05    12.05      -.84    3.33    4.97 |
+4197. |  32601    296    58.75    3.825     -6.24   -6.51   -4.67 |
+4618. |  35901    755        .    10.85   3190.92   -1.11      99 |
+4770. |  37101    256    43.55    7.225    -10.81    -.91      99 |
+      |-----------------------------------------------------------|
+5062. |  39204    790        .      9.4   2976.63   -1.96      99 |
+5934. |  46108    749        .    9.225   3040.88   -1.92      99 |
+7416. |  57503    212     69.4   18.175       .13    8.89   11.19 |
+7470. |  57901    270     66.4    12.05     -1.48    3.08    5.32 |
+8058. |  62408    348    77.45     17.5      1.01    6.25    7.08 |
+      +-----------------------------------------------------------+
+
+. list dataid aged headcir hcz if hcz_x==1
+
+      +---------------------------------+
+      | dataid   aged   headcir     hcz |
+      |---------------------------------|
+ 648. |  05002    291     34.95   -6.78 |
+ 649. |  05002    701      35.9      -8 |
+ 773. |  05905    251     69.15   19.28 |
+1886. |  14307    202      36.2   -6.15 |
+1887. |  14307    647      37.6   -7.64 |
+      |---------------------------------|
+2124. |  16308    851     39.35   -5.95 |
+2766. |  21505    254      37.7    -5.6 |
+2767. |  21505    677      40.1   -5.86 |
+2924. |  22708    219      36.6   -6.07 |
+2925. |  22708    642        40   -5.84 |
+      |---------------------------------|
+3484. |  27101    248     58.05   10.78 |
+3485. |  27101    680      65.5   12.92 |
+4197. |  32601    296     36.85   -6.69 |
+4537. |  35204    319     38.75   -5.37 |
+4770. |  37101    256     66.85   17.47 |
+      |---------------------------------|
+4996. |  38706    340     36.75   -5.83 |
+4997. |  38706    740      37.6    -6.9 |
+5647. |  43907    674      39.9   -5.04 |
+6566. |  51008    618     39.35   -5.25 |
+6571. |  51103    246     36.75   -6.28 |
+      |---------------------------------|
+6572. |  51103    641     38.25   -7.14 |
+7050. |  54704    698     40.85   -5.36 |
+7277. |  56404    343     37.45   -5.33 |
+7278. |  56404    725      39.3   -5.63 |
+7773. |  60207    241      37.5   -5.62 |
+      |---------------------------------|
+7818. |  60507    369     39.45   -5.17 |
+7835. |  60701    379      38.6   -5.89 |
+7836. |  60701    748     40.05   -6.06 |
+8263. |  63908    641      40.5   -5.47 |
+8622. |  66608    655      39.3   -5.41 |
+      |---------------------------------|
+8638. |  66802    323     37.45   -6.43 |
+9047. |  69903    659        41   -5.14 |
+      +---------------------------------+
+
+. 
+. replace laz = . if laz_x==1
+(28 real changes made, 28 to missing)
+
+. replace waz = . if waz_x==1
+(5 real changes made, 5 to missing)
+
+. replace whz = . if whz_x==1
+(22 real changes made, 22 to missing)
+
+. replace bmiz = . if bmiz_x==1
+(25 real changes made, 25 to missing)
+
+. replace hcz = . if hcz_x==1
+(32 real changes made, 32 to missing)
+
+. 
+. * drop extra Z-score calculation variables
+. drop _z* _f*
+
+. 
+. *--------------------------------------------
+. * Identify children who are stunted, 
+. * underweight, or wasted based on their Z-scores
+. *--------------------------------------------
+. 
+. gen byte lazminus2 = laz < -2
+
+.         replace lazminus2 =. if laz==. | laz_x==1
+(64 real changes made, 64 to missing)
+
+.         label var lazminus2 "Stunted (LAZ<-2)"
+
+. gen byte lazminus3 = laz < -3
+
+.         replace lazminus3 =. if laz==. | laz_x==1
+(64 real changes made, 64 to missing)
+
+.         label var lazminus3 "Severely Stunted (LAZ<-3)"
+
+. 
+. gen byte wazminus2 = waz < -2
+
+.         replace wazminus2 =. if waz==. | waz_x==1
+(5 real changes made, 5 to missing)
+
+.         label var wazminus2 "Underweight (WAZ<-2)"
+
+. gen byte wazminus3 = waz < -3
+
+.         replace wazminus3 =. if waz==. | waz_x==1
+(5 real changes made, 5 to missing)
+
+.         label var wazminus3 "Severely Underweight (WAZ<-3)"
+
+. 
+. gen byte whzminus2 = whz < -2
+
+.         replace whzminus2 =. if whz==. | whz_x==1
+(58 real changes made, 58 to missing)
+
+.         label var whzminus2 "Wasted (WHZ<-2)"
+
+. gen byte whzminus3 = whz < -3
+
+.         replace whzminus3 =. if whz==. | whz_x==1
+(58 real changes made, 58 to missing)
+
+.         label var whzminus3 "Severely Wasted (WHZ<-3)"
+
+.         
+.         
+. *--------------------------------------------
+. * Save an analysis dataset
+. *--------------------------------------------
+. 
+. label var dataid "Compound ID"
+
+. label var childid "Child ID"
+
+. label var clusterid "Cluster ID"
+
+. label var block "Randomization block ID"
+
+. 
+. * restrict to variables used in the analysis
+. keep dataid childid motherid tchild clusterid block tr svy anthrodate month c4
+> 04-c406 c408-c410 c411-c413 c414-c416 c418-c420 sex birthord aged agem agey we
+> ight length headcir laz* waz* whz* bmiz* hcz* 
+
+. order dataid childid motherid tchild clusterid block tr svy anthrodate month c
+> 404-c406 c408-c410 c411-c413 c414-c416 c418-c420 sex birthord aged agem agey w
+> eight length headcir laz* waz* whz* bmiz* hcz*
+
+. 
+. compress
+  variable block was long now byte
+  variable tr was long now byte
+  variable svy was float now byte
+  variable anthrodate was float now int
+  variable month was float now byte
+  variable birthord was int now byte
+  variable aged was float now int
+  variable laz_x was float now byte
+  variable waz_x was float now byte
+  variable whz_x was float now byte
+  variable bmiz_x was float now byte
+  variable hcz_x was float now byte
+  variable childid was str3 now str2
+  (308,253 bytes saved)
+
+. sort dataid childid svy
+
+. label data "Bangladesh anthropometry analysis dataset, created by 4-bangladesh
+> -dm-anthro.do"
+
+. save "~/dropbox/washb-bangladesh-data/1-primary-outcome-datasets/washb-banglad
+> esh-anthro.dta", replace
+file ~/dropbox/washb-bangladesh-data/1-primary-outcome-datasets/washb-bangladesh
+> -anthro.dta saved
+
+. outsheet using "~/dropbox/washb-bangladesh-data/1-primary-outcome-datasets/was
+> hb-bangladesh-anthro.csv", comma replace
+
+. 
+. * write a codebook for the dataset
+. log close
+      name:  <unnamed>
+       log:  /Users/benarnold/WASHB-Bangladesh-primary-outcomes/src/dm/4-banglad
+> esh-dm-anthro.log
+  log type:  text
+ closed on:  17 Aug 2016, 14:10:15
+--------------------------------------------------------------------------------

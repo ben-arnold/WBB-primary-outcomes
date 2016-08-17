@@ -1,0 +1,761 @@
+--------------------------------------------------------------------------------
+      name:  <unnamed>
+       log:  /Users/benarnold/WASHB-Bangladesh-primary-outcomes/src/dm/6-banglad
+> esh-dm-uptake.log
+  log type:  text
+ opened on:  17 Aug 2016, 14:12:58
+
+. 
+. *--------------------------------------------
+. * 6-bangladesh-dm-uptake.do
+. *
+. * ben arnold (benarnold@berkeley.edu)
+. *
+. * process the Bangladesh trial uptake
+. * data for analysis
+. *
+. * note: unlike other dm scripts, this script
+. * relies on an earlier dm script (3-bangladesh-dm-diar.do)
+. * to grab child ages at survey measurements
+. * rather than re-calculate them here
+. *
+. *--------------------------------------------
+. 
+. 
+. 
+. 
+. *--------------------------------------------
+. * input files:
+. *
+. *  Treatment assignments 
+. *       washb-bang-tr.dta (or washb-bang-blind-tr.dta if blinded)
+. *
+. *  1. WASHB_Baseline_main_survey.dta
+. *  1. WASHB_Midline_main_survey_cleaned.dta
+. * 04. WASHB_Endline_main_survey_cleaned.dta
+. * 11. WASHB_Endline_LNS_cleaned.dta
+. *
+. *  washb-bangladesh-diar.dta
+. *
+. * output files:
+. *  final/washb-bangladesh-uptake.dta / .csv
+. *--------------------------------------------
+. 
+. 
+. *--------------------------------------------
+. * grab the treatment assignments
+. *--------------------------------------------
+. * blinded treatment assignments:
+. use "~/dropbox/washb-bangladesh-data/1-primary-outcome-datasets/washb-bang-bli
+> nd-tr.dta", clear
+(WASH Benefits Bangladesh cluster level treatment assignments (scrambled/blinded
+> !)
+
+. 
+. * real treatment assignments (not used to keep data blinded)
+. * use "/Volumes/0-Treatment-assignments/washb-bang-tr.dta", clear
+. 
+. sort clusterid
+
+. tempfile trdata
+
+. save `trdata'
+file /var/folders/1g/dryqjv753dv7rgwhzs2lyl140000gp/T//S_03012.000001 saved
+
+. 
+. 
+. *--------------------------------------------
+. * load index child ages at each survey
+. * to subset nutrition uptake measures to 
+. * children 6-24 months old
+. *--------------------------------------------
+. use "~/dropbox/washb-bangladesh-data/1-primary-outcome-datasets/washb-banglade
+> sh-diar.dta", clear
+(Bangladesh diarrhea dataset, created by 3-bangladesh-dm-diar.do)
+
+. * restrict to index children and drop twins
+. keep if childid=="T1"
+(13,239 observations deleted)
+
+. keep dataid svy agedays ageyrs
+
+. sort dataid 
+
+. tempfile aged
+
+. save `aged'
+file /var/folders/1g/dryqjv753dv7rgwhzs2lyl140000gp/T//S_03012.000002 saved
+
+. 
+. 
+. *--------------------------------------------
+. * load the enrollment dataset
+. *--------------------------------------------
+. 
+. use "~/dropbox/WASHB-Bangladesh-Data/0-Untouched-data/1-Main-survey/1_Baseline
+> /1. WASHB_Baseline_main_survey.dta", clear
+
+. sort dataid 
+
+. 
+. * format survey dates
+. gen svydate = q4002
+
+.         format svydate %d
+
+.         label var svydate "Survey date"
+
+.         codebook svydate
+
+--------------------------------------------------------------------------------
+svydate                                                              Survey date
+--------------------------------------------------------------------------------
+
+                  type:  numeric daily date (float)
+
+                 range:  [19144,19546]                units:  1
+       or equivalently:  [31may2012,07jul2013]        units:  days
+         unique values:  209                      missing .:  0/5,551
+
+                  mean:     19410 = 21feb2013 (+ 1 hour)
+              std. dev:   106.863
+
+           percentiles:        10%       25%       50%       75%       90%
+                             19213     19362     19433     19489     19528
+                         08aug2012 04jan2013 16mar2013 11may2013 19jun2013
+
+. 
+. * identify survey round
+. gen svy = 0
+
+.         label var svy "Survey round (0,1,2)"
+
+.         
+. * restrict to the relevant variables for uptake
+. 
+. # delimit;
+delimiter now ;
+. keep dataid svy svydate
+> q1003_*
+> q809_9a q809_9 q809_9a q809_16 
+> q4201 q4203 q4205
+> q704_1 q704_2 q704_3 q704_4 q704_5 q704_6
+> q1009_* q1026 q1027*
+> ;
+
+. # delimit cr
+delimiter now cr
+. order dataid svy svydate
+
+. sort dataid
+
+. 
+. tempfile svy0
+
+. save `svy0'
+file /var/folders/1g/dryqjv753dv7rgwhzs2lyl140000gp/T//S_03012.000003 saved
+
+. 
+. 
+. *--------------------------------------------
+. * load the year 1 dataset
+. *--------------------------------------------
+. 
+. use "~/dropbox/WASHB-Bangladesh-Data/0-Untouched-data/1-Main-survey/2_Midline/
+> 1. WASHB_Midline_main_survey_cleaned.dta", clear
+
+. 
+. * format survey dates
+. gen svydate = q4002
+
+.         format svydate %d
+
+.         label var svydate "Survey date"
+
+.         codebook svydate
+
+--------------------------------------------------------------------------------
+svydate                                                              Survey date
+--------------------------------------------------------------------------------
+
+                  type:  numeric daily date (float)
+
+                 range:  [19616,19987]                units:  1
+       or equivalently:  [15sep2013,21sep2014]        units:  days
+         unique values:  225                      missing .:  0/4,716
+
+                  mean:   19807.4 = 25mar2014 (+ 9 hours)
+              std. dev:    110.22
+
+           percentiles:        10%       25%       50%       75%       90%
+                             19641     19720     19815     19897     19963
+                         10oct2013 28dec2013 02apr2014 23jun2014 28aug2014
+
+. 
+. * identify survey round
+. gen svy = 1
+
+.         label var svy "Survey round (0,1,2)"
+
+.         
+. * restrict to the relevant variables for uptake
+. 
+. # delimit;
+delimiter now ;
+. keep dataid svy svydate
+> q1003_*
+> q809_9a q809_9 q809_9a q809_16 
+> q4201 q4203 q4205
+> q704_1 q704_2 q704_3 q704_4 q704_5 q704_6
+> q1009_* q1026 q1027*
+> n1402* n1403_* n1404 n1405 n1406 n1407 n1407a n1408 n1409
+> ;
+
+. # delimit cr
+delimiter now cr
+. order dataid svy svydate
+
+. sort dataid
+
+. 
+. * convert LNS indicators from string to real (for clean append, below)
+. local vlist "n1404 n1405 n1406 n1407 n1408 n1409"
+
+. foreach var of local vlist {
+  2.         gen r`var' = real(`var')
+  3.         drop `var'
+  4.         rename r`var' `var'
+  5. }
+(3,606 missing values generated)
+(3,606 missing values generated)
+(3,606 missing values generated)
+(3,606 missing values generated)
+(3,625 missing values generated)
+(3,642 missing values generated)
+
+. 
+. 
+. tempfile svy1
+
+. save `svy1'
+file /var/folders/1g/dryqjv753dv7rgwhzs2lyl140000gp/T//S_03012.000004 saved
+
+. 
+. 
+. 
+. *--------------------------------------------
+. * load the year 2 LNS uptake dataset
+. *--------------------------------------------
+. 
+. use "~/dropbox/WASHB-Bangladesh-Data/0-Untouched-data/1-Main-survey/3_Endline/
+> 11. WASHB_Endline_LNS_cleaned.dta", clear
+
+. 
+. * drop 9 twins (seem to have identical data)
+. drop if childid=="T2"
+(9 observations deleted)
+
+. keep dataid n1402* n1403_* n1404 n1405 n1406 n1407 n1407a n1408 n1409
+
+. 
+. sort dataid
+
+. tempfile y2lns
+
+. save `y2lns'
+file /var/folders/1g/dryqjv753dv7rgwhzs2lyl140000gp/T//S_03012.000005 saved
+
+. 
+. 
+. *--------------------------------------------
+. * load the year 2 main survey dataset
+. *--------------------------------------------
+. 
+. use "~/dropbox/WASHB-Bangladesh-Data/0-Untouched-data/1-Main-survey/3_Endline/
+> 04. WASHB_Endline_main_survey_cleaned.dta", clear
+
+. 
+. * format survey dates
+. gen svydate = date(q4002,"DMY")
+
+.         format svydate %d
+
+.         label var svydate "Survey date"
+
+.         codebook svydate
+
+--------------------------------------------------------------------------------
+svydate                                                              Survey date
+--------------------------------------------------------------------------------
+
+                  type:  numeric daily date (float)
+
+                 range:  [20080,20392]                units:  1
+       or equivalently:  [23dec2014,31oct2015]        units:  days
+         unique values:  174                      missing .:  0/4,639
+
+                  mean:   20224.2 = 16may2015 (+ 6 hours)
+              std. dev:     87.54
+
+           percentiles:        10%       25%       50%       75%       90%
+                             20104     20145     20223     20298     20351
+                         16jan2015 26feb2015 15may2015 29jul2015 20sep2015
+
+. 
+. * identify survey round
+. gen svy = 2
+
+.         label var svy "Survey round (0,1,2)"
+
+.         
+. * variable q4205 changed to q4206 in year 2
+. rename q4206 q4205
+
+.         
+. * restrict to the relevant variables for uptake
+. # delimit;
+delimiter now ;
+. keep dataid svy svydate
+> q1003_*
+> q809_9a q809_9 q809_9a q809_16 
+> q4201 q4203 q4205
+> q704_1 q704_2 q704_3 q704_4 q704_5 q704_6
+> q1009_* q1026 q1027*
+> ;
+
+. # delimit cr
+delimiter now cr
+. 
+. * for handwashing station indicators, missing values should be 0
+. for any q704_1 q704_2 q704_3 q704_4 q704_5 q704_6: replace X = 0 if X==.
+
+->  replace q704_1 = 0 if q704_1==.
+(476 real changes made)
+
+->  replace q704_2 = 0 if q704_2==.
+(3,831 real changes made)
+
+->  replace q704_3 = 0 if q704_3==.
+(4,476 real changes made)
+
+->  replace q704_4 = 0 if q704_4==.
+(4,434 real changes made)
+
+->  replace q704_5 = 0 if q704_5==.
+(3,108 real changes made)
+
+->  replace q704_6 = 0 if q704_6==.
+(4,603 real changes made)
+
+. 
+. order dataid svy svydate
+
+. sort dataid
+
+. 
+. * merge in the LNS uptake variables
+. merge 1:1 dataid using `y2lns'
+
+    Result                           # of obs.
+    -----------------------------------------
+    not matched                         3,487
+        from master                     3,487  (_merge==1)
+        from using                          0  (_merge==2)
+
+    matched                             1,152  (_merge==3)
+    -----------------------------------------
+
+. assert _merge !=2
+
+. drop _merge
+
+. 
+. 
+. *--------------------------------------------
+. * Append the enrollment, year 1, year 2 data
+. *--------------------------------------------
+. append using `svy0'
+(note: variable q809_9a was byte, now int to accommodate using data's values)
+
+. append using `svy1'
+(note: variable n1404 was int, now float to accommodate using data's values)
+(note: variable n1405 was int, now float to accommodate using data's values)
+(note: variable n1407 was int, now float to accommodate using data's values)
+(note: variable n1408 was byte, now float to accommodate using data's values)
+(note: variable n1409 was byte, now float to accommodate using data's values)
+
+. 
+. *--------------------------------------------
+. * merge in child ages at each measurement
+. *--------------------------------------------
+. sort dataid svy
+
+. merge 1:1 dataid svy using `aged'
+
+    Result                           # of obs.
+    -----------------------------------------
+    not matched                         5,551
+        from master                     5,551  (_merge==1)
+        from using                          0  (_merge==2)
+
+    matched                             9,355  (_merge==3)
+    -----------------------------------------
+
+. assert _merge !=2
+
+. drop _merge
+
+. 
+. *--------------------------------------------
+. * merge in the treatment assignment info
+. *--------------------------------------------
+. gen clusterid = substr(dataid,1,3)
+
+. sort clusterid
+
+. capture drop  block tr
+
+. merge m:1 clusterid using `trdata'
+
+    Result                           # of obs.
+    -----------------------------------------
+    not matched                             0
+    matched                            14,906  (_merge==3)
+    -----------------------------------------
+
+. assert _merge == 3
+
+. drop _merge
+
+. 
+. 
+. *--------------------------------------------
+. * Updtake indicators
+. *--------------------------------------------
+. 
+. 
+. * has stored drinking water
+. recode q1003_6 q1003_7 q1003_8 (.=0)
+(q1003_6: 3906 changes made)
+(q1003_7: 4613 changes made)
+(q1003_8: 2462 changes made)
+
+. gen byte storewat = (q1003_6==1 | q1003_7==1 | q1003_8==1)
+
+.         replace storewat = . if (q1003_6==. & q1003_7==. & q1003_8==.)
+(0 real changes made)
+
+.         label var storewat "Store drinking water (q10001)"
+
+.         
+. * store water with detectable free chlorine (not at baseline)
+. gen byte freechl = q1027level>0 & q1027level<.
+
+.         replace freechl = . if (svy==0) | (q1027==999)
+(5,623 real changes made, 5,623 to missing)
+
+.         label var freechl "Free chlorine detected in stored water (>0 mg/L)"
+
+.         
+. * latrine with a functional water seal
+. gen byte latseal = (q809_9a==1)
+
+.         replace latseal = . if (q809_9a==. | q809_9a==888)
+(1,360 real changes made, 1,360 to missing)
+
+.         label var latseal "Latrine has functional water seal (q809_9a)"
+
+. 
+. * no visible feces on the latrine slab or floor
+. gen byte latfeces = (q809_16!=1)
+
+.         replace latfeces = . if (q809_16==. | q809_16==888)
+(625 real changes made, 625 to missing)
+
+.         label var latfeces "No visible feces on slab/floor of latrine"
+
+. 
+. * no human feces in house or compound
+. gen byte humfeces = 1
+
+.         replace humfeces = 0 if (q4201>0) | (q4203>0) | (q4205>0)
+(826 real changes made)
+
+.         replace humfeces = . if inlist(q4201,99,.) & inlist(q4203,99,.) & inli
+> st(q4205,99,.)
+(6 real changes made, 6 to missing)
+
+.         label var humfeces "No human feces observed in house/compound (q4201,4
+> 203,4205)"
+
+.         
+. * primary handwashing station has water
+. gen byte hwsw = (q704_1==1)
+
+.         replace hwsw = . if q704_1==.
+(825 real changes made, 825 to missing)
+
+.         label var hwsw "Prim handwashing loc has water (q704_1)"
+
+. 
+. * primary handwashing station has soap
+. gen byte hwss = (q704_2==1|q704_3==1|q704_4==1|q704_5==1|q704_6==1)
+
+.         replace hwss = . if (q704_2==.&q704_3==.&q704_4==.&q704_5==.&q704_6==.
+> )
+(825 real changes made, 825 to missing)
+
+.         label var hwss "Prim handwashing loc has soap (q704_2-6)"
+
+.         
+. * primary handwashing station has water + soap
+. gen byte hwsws = (hwsw==1&hwss==1)
+
+.         replace hwsws = . if (hwsw==. & hwss==.)
+(825 real changes made, 825 to missing)
+
+.         label var hwsws "Prim handwashing loc has water+soap (q704_1-6)"
+
+. 
+.         
+. * mean sachets of LNS fed in prior week to index child 6-24 mos
+. * using 5.95 months because of 1 child who was 5.98 months due to rounding
+. gen double agem = agedays/30.4167
+(5,551 missing values generated)
+
+.         label var agem "Index child, age in months"
+
+.         
+. recode n1404 n1405 n1406 n1407 (99=.) (999=.)
+(n1404: 55 changes made)
+(n1405: 159 changes made)
+(n1406: 135 changes made)
+(n1407: 3 changes made)
+
+. 
+.   * Sachets consumed per week
+.   gen lnsn = (n1405+n1406-n1407) / (n1404) * 7
+(12,919 missing values generated)
+
+.   replace lnsn = . if (agem < 5.95) | (agem>24)
+(194 real changes made, 194 to missing)
+
+.   label var lnsn "LNS sachets consumed per week"
+
+.   
+.   * percent of expected
+.   gen lnsp = (lnsn/14)
+(13,113 missing values generated)
+
+.   label var lnsp "Percent of expected LNS sachets consumed"
+
+.   
+.   list n1404 - n1407 lnsn lnsp if lnsn<0
+
+       +-------------------------------------------------------+
+       | n1404   n1405   n1406   n1407        lnsn        lnsp |
+       |-------------------------------------------------------|
+   23. |    10      10      40      51         -.7        -.05 |
+ 1136. |     1       9      42      53         -14          -1 |
+ 1142. |     4       1      20      53         -56          -4 |
+ 3720. |    25       1       0       7       -1.68        -.12 |
+ 3975. |     2       4      60      75       -38.5       -2.75 |
+       |-------------------------------------------------------|
+ 7983. |    17       1       1      26   -9.882353   -.7058824 |
+10529. |     2      11      49      72         -42          -3 |
+10907. |     7       0       0      47         -47   -3.357143 |
+14793. |    15       0       0       6        -2.8         -.2 |
+       +-------------------------------------------------------+
+
+. 
+. sum lnsn lnsp, d
+
+                LNS sachets consumed per week
+-------------------------------------------------------------
+      Percentiles      Smallest
+ 1%            0            -56
+ 5%     5.833333            -47
+10%     8.866667            -42       Obs               1,793
+25%         12.6          -38.5       Sum of Wgt.       1,793
+
+50%           14                      Mean           15.11812
+                        Largest       Std. Dev.      16.93857
+75%     14.93333            133
+90%     19.52632            287       Variance       286.9151
+95%         24.5            350       Skewness       15.79378
+99%         59.5            434       Kurtosis       336.0279
+
+          Percent of expected LNS sachets consumed
+-------------------------------------------------------------
+      Percentiles      Smallest
+ 1%            0             -4
+ 5%     .4166667      -3.357143
+10%     .6333333             -3       Obs               1,793
+25%           .9          -2.75       Sum of Wgt.       1,793
+
+50%            1                      Mean           1.079865
+                        Largest       Std. Dev.      1.209898
+75%     1.066667            9.5
+90%     1.394737           20.5       Variance       1.463853
+95%         1.75             25       Skewness       15.79378
+99%         4.25             31       Kurtosis       336.0279
+
+. count if (lnsn<0 | lnsn>28) & (lnsn!=.)
+  61
+
+. sum lnsn lnsp if lnsn>=0 & lnsn<=28, d
+
+                LNS sachets consumed per week
+-------------------------------------------------------------
+      Percentiles      Smallest
+ 1%            0              0
+ 5%     6.533333              0
+10%         8.96              0       Obs               1,732
+25%         12.6              0       Sum of Wgt.       1,732
+
+50%           14                      Mean           13.68311
+                        Largest       Std. Dev.      4.208453
+75%     14.77778             28
+90%     17.73333             28       Variance       17.71107
+95%           21             28       Skewness      -.0625588
+99%           28             28       Kurtosis       6.101369
+
+          Percent of expected LNS sachets consumed
+-------------------------------------------------------------
+      Percentiles      Smallest
+ 1%            0              0
+ 5%     .4666667              0
+10%          .64              0       Obs               1,732
+25%           .9              0       Sum of Wgt.       1,732
+
+50%            1                      Mean           .9773649
+                        Largest       Std. Dev.      .3006038
+75%     1.055556              2
+90%     1.266667              2       Variance       .0903626
+95%          1.5              2       Skewness      -.0625588
+99%            2              2       Kurtosis       6.101369
+
+.   
+. * mean sachets of LNS reported fed in prior week to index child 6-24 mos
+. 
+.         * Sachets consumed per week
+.         gen rlnsn = (n1408*n1409)
+(12,709 missing values generated)
+
+.         replace rlnsn = . if (agem < 5.95) | (agem>24)
+(218 real changes made, 218 to missing)
+
+.         label var rlnsn "LNS sachets consumed per week (reported)"
+
+.  
+.         * percent of expected
+.         gen rlnsp = (rlnsn/14)
+(12,927 missing values generated)
+
+.         label var rlnsp "Percent of expected LNS sachets consumed (reported)"
+
+.         
+.         list n1408 n1409 rlnsn rlnsp if n1409>2 & n1409<.
+
+       +----------------------------------+
+       | n1408   n1409   rlnsn      rlnsp |
+       |----------------------------------|
+  625. |     7       7      49        3.5 |
+ 1530. |     2       7      14          1 |
+ 4639. |     7       3      21        1.5 |
+ 6420. |     1       3       3   .2142857 |
+ 8224. |     7       3      21        1.5 |
+       |----------------------------------|
+ 8895. |     7       3      21        1.5 |
+ 9343. |     7       3      21        1.5 |
+14191. |     7       4      28          2 |
+14192. |     7       3      21        1.5 |
+       +----------------------------------+
+
+.         
+. sum rlnsn rlnsp, d
+
+          LNS sachets consumed per week (reported)
+-------------------------------------------------------------
+      Percentiles      Smallest
+ 1%            2              0
+ 5%            6              0
+10%           10              0       Obs               1,979
+25%           14              0       Sum of Wgt.       1,979
+
+50%           14                      Mean           13.09096
+                        Largest       Std. Dev.      2.783712
+75%           14             21
+90%           14             21       Variance       7.749054
+95%           14             28       Skewness      -1.304779
+99%           14             49       Kurtosis       23.67537
+
+          Percent of expected LNS sachets consumed
+                         (reported)
+-------------------------------------------------------------
+      Percentiles      Smallest
+ 1%     .1428571              0
+ 5%     .4285714              0
+10%     .7142857              0       Obs               1,979
+25%            1              0       Sum of Wgt.       1,979
+
+50%            1                      Mean           .9350682
+                        Largest       Std. Dev.      .1988366
+75%            1            1.5
+90%            1            1.5       Variance        .039536
+95%            1              2       Skewness      -1.304779
+99%            1            3.5       Kurtosis       23.67538
+
+.         
+. *--------------------------------------------
+. * Save an uptake analysis dataset
+. * compound-survey level observations
+. *--------------------------------------------
+. label var dataid "Compound ID"
+
+. 
+. * restrict to household level variables used in the analysis
+. * and save the data
+. keep dataid clusterid block tr svy svydate storewat freechl latseal latfeces h
+> umfeces hwsw hwss hwsws *lns*
+
+. 
+. order dataid clusterid block tr svy svydate storewat freechl latseal latfeces 
+> humfeces hwsw hwss hwsws *lns*
+
+. 
+. 
+. compress
+  variable block was long now byte
+  variable tr was long now byte
+  variable svy was float now byte
+  variable svydate was float now int
+  variable rlnsn was float now byte
+  (208,684 bytes saved)
+
+. sort dataid svy
+
+. label data "Bangladesh uptake analysis dataset (compound-svy obs), created by 
+> 6-bangladesh-dm-uptake.do"
+note: label truncated to 80 characters
+
+. saveold "~/dropbox/washb-bangladesh-data/1-primary-outcome-datasets/washb-bang
+> ladesh-uptake.dta", replace version(12)
+(saving in Stata 12 format, which can be read by Stata 11 or 12)
+file ~/dropbox/washb-bangladesh-data/1-primary-outcome-datasets/washb-bangladesh
+> -uptake.dta saved
+
+. outsheet using "~/dropbox/washb-bangladesh-data/1-primary-outcome-datasets/was
+> hb-bangladesh-uptake.csv", comma replace
+(note: file /Users/benarnold/dropbox/washb-bangladesh-data/1-primary-outcome-dat
+> asets/washb-bangladesh-uptake.csv not found)
+
+. 
+. * write a codebook for the dataset
+. log close
+      name:  <unnamed>
+       log:  /Users/benarnold/WASHB-Bangladesh-primary-outcomes/src/dm/6-banglad
+> esh-dm-uptake.log
+  log type:  text
+ closed on:  17 Aug 2016, 14:12:58
+--------------------------------------------------------------------------------

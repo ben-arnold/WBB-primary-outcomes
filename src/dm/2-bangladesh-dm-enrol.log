@@ -1,0 +1,1219 @@
+--------------------------------------------------------------------------------
+      name:  <unnamed>
+       log:  /Users/benarnold/WASHB-Bangladesh-primary-outcomes/src/dm/2-banglad
+> esh-dm-enrol.log
+  log type:  text
+ opened on:  17 Aug 2016, 13:46:07
+
+. 
+. *--------------------------------------------
+. * 2-bangladesh-dm-enrol.do
+. *
+. * ben arnold (benarnold@berkeley.edu)
+. *
+. * process the Bangladesh trial enrollment dataset
+. * 
+. * this includes enrollment adjustement covariates
+. * along with uptake variable measures
+. *
+. * it creates 2 files: a household-level
+. * enrollment dataset with analysis covariates
+. * and a child-level enrollment dataset with
+. * diarrhea outcomes
+. *
+. *--------------------------------------------
+. 
+. 
+. 
+. 
+. *--------------------------------------------
+. * input files:
+. *
+. *  washb-bang-tr.dta (or washb-bang-blind-tr.dta if blinded still)
+. *
+. *  1. WASHB_Baseline_main_survey.dta
+. *  2. WASHB_Baseline_census.dta
+. *
+. * output files:
+. *  final/washb-bangladesh-enrol.dta / .csv
+. *--------------------------------------------
+. 
+. 
+. *--------------------------------------------
+. * grab the treatment assignments
+. *--------------------------------------------
+. * blinded treatment assignments:
+. use "~/dropbox/washb-bangladesh-data/1-primary-outcome-datasets/washb-bang-bli
+> nd-tr.dta", clear
+(WASH Benefits Bangladesh cluster level treatment assignments (scrambled/blinded
+> !)
+
+. 
+. * real treatment assignments (not used to keep data blinded)
+. * use "/Volumes/0-Treatment-assignments/washb-bang-tr.dta", clear
+. 
+. sort clusterid
+
+. tempfile trdata
+
+. save `trdata'
+file /var/folders/1g/dryqjv753dv7rgwhzs2lyl140000gp/T//S_03012.000001 saved
+
+. 
+. *--------------------------------------------
+. * calculate a few compound-level variables
+. * from the census for the merge
+. *--------------------------------------------
+. 
+. 
+. use "~/dropbox/WASHB-Bangladesh-Data/0-Untouched-data/1-Main-survey/1_Baseline
+> /2. WASHB_Baseline_census.dta", clear
+
+. sort dataid hhid
+
+. bysort dataid: egen Ncomp = sum(a6)
+
+.         label var Ncomp "Total indivs in compound"
+
+. gen Nlt18 = a4+a5
+
+.         label var Nlt18 "N indivs in HH <=18y"
+
+. replace hhid = subinstr(hhid,"H","",.)
+(14,032 real changes made)
+
+. keep dataid hhid Ncomp Nlt18
+
+. sort dataid hhid
+
+. tempfile bcensus
+
+. save `bcensus'
+file /var/folders/1g/dryqjv753dv7rgwhzs2lyl140000gp/T//S_03012.000002 saved
+
+. 
+. *--------------------------------------------
+. * merge the household and census data
+. *--------------------------------------------
+. 
+. use "~/dropbox/WASHB-Bangladesh-Data/0-Untouched-data/1-Main-survey/1_Baseline
+> /1. WASHB_Baseline_main_survey.dta", clear
+
+. sort dataid 
+
+. tempfile bmain
+
+. save `bmain'
+file /var/folders/1g/dryqjv753dv7rgwhzs2lyl140000gp/T//S_03012.000003 saved
+
+. 
+. * merge census information to the data
+. gen hhid = q4016
+
+. sort dataid hhid
+
+. 
+. merge 1:1 dataid hhid using `bcensus'
+(note: variable hhid was str1, now str3 to accommodate using data's values)
+
+    Result                           # of obs.
+    -----------------------------------------
+    not matched                         8,481
+        from master                         0  (_merge==1)
+        from using                      8,481  (_merge==2)
+
+    matched                             5,551  (_merge==3)
+    -----------------------------------------
+
+. assert _merge!=1
+
+. * drop households in same compounds that were not actually surveyed 
+. keep if _merge==3
+(8,481 observations deleted)
+
+. drop _merge
+
+. 
+. 
+. * merge in the treatment assignment info (keep only matching obs)
+. gen clusterid = substr(dataid,1,3)
+
+. sort clusterid
+
+. capture drop block tr
+
+. merge m:1 clusterid using `trdata'
+
+    Result                           # of obs.
+    -----------------------------------------
+    not matched                             0
+    matched                             5,551  (_merge==3)
+    -----------------------------------------
+
+. assert _merge == 3
+
+. drop _merge
+
+. 
+. order dataid clusterid block tr
+
+. sort dataid
+
+. 
+. 
+. * format survey dates
+. gen svydate = q4002
+
+.         format svydate %d
+
+.         label var svydate "Survey date"
+
+.         codebook svydate
+
+--------------------------------------------------------------------------------
+svydate                                                              Survey date
+--------------------------------------------------------------------------------
+
+                  type:  numeric daily date (float)
+
+                 range:  [19144,19546]                units:  1
+       or equivalently:  [31may2012,07jul2013]        units:  days
+         unique values:  209                      missing .:  0/5,551
+
+                  mean:     19410 = 21feb2013 (+ 1 hour)
+              std. dev:   106.863
+
+           percentiles:        10%       25%       50%       75%       90%
+                             19213     19362     19433     19489     19528
+                         08aug2012 04jan2013 16mar2013 11may2013 19jun2013
+
+. 
+. *--------------------------------------------
+. * Adjustment covariates
+. *--------------------------------------------
+. 
+. * Administrative Union 
+. rename q4008 union
+
+.         label var union "Administrative union (q4008)"
+
+.         
+. * FRA ID code
+. rename q4001 fracode 
+
+.         label var fracode "FRA code (q4001)"
+
+.         
+. * Mother's age
+. gen momage = q103 if (q102==1)
+(20 missing values generated)
+
+.         label var momage "Mother's age, years"
+
+. 
+. * Mother's education
+. gen momedu = .
+(5,551 missing values generated)
+
+.         replace momedu = 0 if (q009==0)
+(869 real changes made)
+
+.         replace momedu = 1 if (q009>=1 & q009<=5)
+(1,742 real changes made)
+
+.         replace momedu = 2 if (q009>5 & q009<.)
+(2,940 real changes made)
+
+.         label define momedu 0 "No education" 1 "Primary (1-5y)" 2 "Secondary (
+> >5y)"
+
+.         label values momedu momedu
+
+.         label var momedu "Mother's education (category)"
+
+. 
+. * Household food insecurity
+. * See definitions in sections 5.3 and 5.4 of
+. * Household Food Insecurity Access Scale (HFIAS) for Measurement of Food Acces
+> s: Indicator Guide
+. * Version 3 (Coates et al. 2007) available at:
+. * http://www.fao.org/fileadmin/user_upload/eufao-fsi4dm/doc-training/hfias.pdf
+. egen int hfias = rowtotal(q110*a)
+
+.         label var hfias "HFIAs food insecurity score (0-27)"
+
+. gen int hfiacat = .
+(5,551 missing values generated)
+
+.         replace hfiacat = 1 if (q1101==0 | q1101a==1) & (q1102==0 & q1103==0 &
+>  q1104==0 & q1105==0 & q1106==0 & q1107==0 & q1108==0 & q1109==0)
+(3,823 real changes made)
+
+.         replace hfiacat = 2 if ((q1101a==2 | q1101a==3 | q1102a==1 | q1102a==2
+>  | q1102a==3 | q1103a==1 | q1104a==1) & q1105==0 & q1106==0 & q1107==0 & q1108
+> ==0 & q1109==0)
+(974 real changes made)
+
+.         replace hfiacat = 3 if ((q1103a==2 | q1103a==3 | q1104a==2 | q1104a==3
+>  | q1105a==1 | q1105a==2 | q1106a==1 | q1106a==2) & q1107==0 & q1108==0 & q110
+> 9==0)
+(1,069 real changes made)
+
+.         replace hfiacat = 4 if (q1105a==3 | q1106a==3 | q1107a==1 | q1107a==2 
+> | q1107a==3 | q1108a==1 | q1108a==2 | q1108a==3 | q1109a==1 | q1109a==2 | q110
+> 9a==3)
+(196 real changes made)
+
+.         label define hfiacat 1 "Food Secure" 2 "Mildly Food Insecure" 3 "Moder
+> ately Food Insecure" 4 "Severely Food Insecure"   
+
+.         label values hfiacat hfiacat
+
+.         label var hfiacat "HFIAS food insecurity category"
+
+.         
+. * Distance to household's primary drinking water source (minutes)
+. ** Check dataid=="26902", with time to water of 10 hours???
+. gen watmin = real(q1011hours)*60 + real(q1011mins)
+
+.         label var watmin "Dist (mins) to primary water source"
+
+.         
+. * Main roof material of house
+. gen byte roof = inlist(q4101,2,3)
+
+.         replace roof = . if q4101==.
+(0 real changes made)
+
+.         label var roof "Improved roof material (tin, cement)"
+
+.         
+. * Main wall material of house
+. gen byte walls = inlist(q4102,2,3,4)
+
+.         replace walls = . if q4102==.
+(0 real changes made)
+
+.         label var walls "Improved wall material (wood, brick, tin)"
+
+. 
+. * Main floor material of house
+. gen byte floor = inlist(q4103,2,3)
+
+.         replace floor = . if q4103==.
+(0 real changes made)
+
+.         label var floor "Improved floor (wood, concrete)"
+
+. 
+. * Electricity
+. rename q4105_a elec
+
+.         label var elec "Household has electricity"
+
+. 
+. * Household Assests
+. rename q4105_b n_asset_wardrobe
+
+. rename q4105_c n_asset_table
+
+. rename q4105_d n_asset_chair
+
+. rename q4105_e n_asset_clock
+
+. rename q4105_f n_asset_khat
+
+. rename q4105_g n_asset_chouki
+
+. rename q4105_h asset_radio
+
+. rename q4105_i asset_tvbw
+
+.         replace asset_tvbw = 0 if asset_tvbw==9
+(1 real change made)
+
+. rename q4105_j asset_tvcol
+
+. rename q4105_k asset_refrig
+
+. rename q4105_l asset_bike
+
+. rename q4105_m asset_moto
+
+. rename q4105_n asset_sewmach
+
+. rename q4105_o n_asset_mobile
+
+. rename q4105_p asset_phone
+
+. 
+. * reduce some household assets to binary variables
+. gen asset_tv = (asset_tvbw==1) | (asset_tvcol==1)
+
+.         replace asset_tv=. if (asset_tvbw==.) & (asset_tvcol==.)
+(0 real changes made)
+
+.         label var asset_tv "Has bw or color TV"
+
+. 
+. local assets "wardrobe table chair clock khat chouki mobile"
+
+. foreach var of local assets {
+  2.         gen asset_`var' = n_asset_`var'>0
+  3.                 replace asset_`var' = . if n_asset_`var' == .
+  4. }
+(0 real changes made)
+(0 real changes made)
+(0 real changes made)
+(2,859 real changes made, 2,859 to missing)
+(0 real changes made)
+(0 real changes made)
+(0 real changes made)
+
+. label var asset_wardrobe "Has >=1 wardrobe"
+
+. label var asset_table "Has >=1 table"
+
+. label var asset_chair "Has >=1 chair"
+
+. label var asset_clock "Has >=1 clock"
+
+. label var asset_khat "Has >=1 khat"
+
+. label var asset_chouki "Has >=1 chouki"
+
+. label var asset_mobile "Has >=1 mobile"
+
+. 
+. 
+. * person counts
+. * Number of children < 18 y in the household (Nlt18 - computed above w/ census
+> )
+. * Number of individuals living in the compound (Ncomp - computed above w/ cens
+> us)
+.         
+. /* REMAINING PRE-SPECIFIED COVARIATES
+> Child birth order  (in child-level datasets -- only for index children)
+> Mother’s height (cm) -- added below
+> 
+> */
+. 
+. *--------------------------------------------
+. * additional balance table characteristics
+. *--------------------------------------------
+. 
+. ** maternal
+. *  age (completed above)
+. *  parity (not collected at enrollment)
+. 
+. *  years of education q009
+. gen momeduy = q009
+
+.         replace momeduy = . if inlist(q009,.,999)
+(0 real changes made)
+
+.         label var momeduy "Mother, years of education (q009)"
+
+.         
+. ** paternal
+. *  age (not collected at enrollment)
+. *  years of education q010
+. gen dadeduy = q010
+
+.         replace dadeduy = . if inlist(q010,.,999)
+(12 real changes made, 12 to missing)
+
+.         label var dadeduy "Father, years of education (q010)"
+
+.         
+. *  works in agriculture (%) q011
+. gen dadagri = inlist(q011,1,3)
+
+.         replace dadagri = . if inlist(q011,.,35,999)
+(2 real changes made, 2 to missing)
+
+.         label var dadagri "Father works in agriculture (q011)"
+
+. 
+. ** household 
+. *  number of persons q012
+. gen Nhh = q012
+
+.         label var Nhh "Number of persons in household (q012)"
+
+. 
+. *  has electricity (above)
+. 
+. *  has cement floor
+. gen byte cement = inlist(q4103,3)
+
+.         replace cement = . if q4103==.
+(0 real changes made)
+
+.         label var cement "Has cement floor (q4103)"
+
+. 
+. *  acres of agricultural land owned
+. * decimal to acre conversion: 1/100
+. * decimal to hectares conversion: 0.004046
+. * include q4112??
+. gen landacre = q4110/100
+(98 missing values generated)
+
+.         replace landacre = . if inlist(q4110,.,999)
+(195 real changes made, 195 to missing)
+
+.         label var landacre "Acres of land owned (q4110)"
+
+. 
+. ** drinking water
+. *  primary water source = shallow tubewell
+. gen byte tubewell = (q1010==1)
+
+.         replace tubewell = . if q1010==.
+(0 real changes made)
+
+.         label var tubewell "Primary water source: shallow tubewell (q1010)"
+
+.         
+. *  stored water observed at home
+. recode q1003_6 q1003_7 q1003_8 (.=0)
+(q1003_6: 0 changes made)
+(q1003_7: 0 changes made)
+(q1003_8: 0 changes made)
+
+. gen byte storewat = (q1003_6==1 | q1003_7==1 | q1003_8==1)
+
+.         replace storewat = . if (q1003_6==. & q1003_7==. & q1003_8==.)
+(0 real changes made)
+
+.         label var storewat "Store drinking water (q1003)"
+
+. 
+. *  reported treating water yesterday
+. gen byte treatwat = (q1007==1) & inlist(q1008,1,2)
+
+.         replace treatwat = . if (q1007==.) & inlist(q1008,999)
+(0 real changes made)
+
+.         label var treatwat "Reported treating water today or yesterday (q1008)
+> "
+
+. 
+.         
+. ** Sanitation
+. *  daily OD
+. *  adult men
+. gen byte odmen = (q801_a==1)
+
+.         replace odmen = . if inlist(q801_a,.,888,999)
+(105 real changes made, 105 to missing)
+
+.         label var odmen "Daily OD, adult men (q801a)"
+
+. *  adult women
+. gen byte odwom = (q801_b==1)
+
+.         replace odwom = . if inlist(q801_b,.,888,999)
+(4 real changes made, 4 to missing)
+
+.         label var odwom "Daily OD, adult women (q801b)"
+
+. *  children 8-<15 years
+. gen byte odch815 = (q801_e==1)
+
+.         replace odch815 = . if inlist(q801_e,.,888,999)
+(3,256 real changes made, 3,256 to missing)
+
+.         label var odch815 "Daily OD, children 8-15 (q801e)"
+
+. *  children 3-<8 years
+. gen byte odch38 = (q801_d==1)
+
+.         replace odch38 = . if inlist(q801_d,.,888,999)
+(2,697 real changes made, 2,697 to missing)
+
+.         label var odch38 "Daily OD, children 3-8 (q801d)"
+
+. *  children <3 years
+. gen byte odchu3 = (q801_c==1)
+
+.         replace odchu3 = . if inlist(q801_c,.,888,999)
+(4,393 real changes made, 4,393 to missing)
+
+.         label var odchu3 "Daily OD, children <3 (q801c)"
+
+. 
+. ** latrine
+. *  owned (%)
+. gen byte latown = (q816==1)
+
+.         replace latown = . if (q808==1) & inlist(q816,.,888)
+(0 real changes made)
+
+.         label var latown "Own their latrine (not shared) (q816)"
+
+. 
+. *  concrete slab (%)
+. gen byte latslab = (q809_7==1)
+
+.         replace latslab = . if inlist(q809_7,.,888)
+(238 real changes made, 238 to missing)
+
+.         label var latslab "Latrine has concrete slab (q809_7)"
+
+. 
+. *  functional water seal
+. gen byte latseal = (q809_9a==1)
+
+.         replace latseal = . if  inlist(q809_9a,.,888)
+(880 real changes made, 880 to missing)
+
+.         label var latseal "Latrine has functional water seal (q809_9a)"
+
+.         
+. *  no visible stool on slab or floor
+. gen byte latfeces = (q809_16!=1)
+
+.         replace latfeces = . if inlist(q809_16,.,888)
+(349 real changes made, 349 to missing)
+
+.         label var latfeces "No visible feces on slab/floor of latrine"
+
+. 
+. * owned a potty
+. gen byte potty = (q913==1)
+
+.         replace potty = . if inlist(q913,.,999)
+(2 real changes made, 2 to missing)
+
+.         label var potty "Has a potty for child defecation"
+
+. 
+. * human feces observed in the household compound
+. gen byte humfeces = 0
+
+.         replace humfeces = 1 if (q4201>0) | (q4203>0) | (q4205>0)
+(466 real changes made)
+
+.         replace humfeces = . if inlist(q4201,99,.) & inlist(q4203,99,.) & inli
+> st(q4205,99,.)
+(6 real changes made, 6 to missing)
+
+.         label var humfeces "Human feces observed in house/compound (q4201,4203
+> ,4205)"
+
+.         
+. * human feces observed in the location where child spends the most time
+. gen byte humfecesch = 0
+
+.         replace humfecesch = 1 if (q4203>0)
+(72 real changes made)
+
+.         replace humfecesch = . if inlist(q4203,99,.)
+(9 real changes made, 9 to missing)
+
+.         label var humfecesch "Human feces obs in loc where child spends most t
+> ime (q4203)"
+
+. 
+. ** handwashing
+. *  within 6 steps of latrine
+. gen byte hwlat = (q703==2 & q707<=6) | (q709==2 & q713<=6)
+
+.         replace hwlat = . if (q703==.) & (q709==.)
+(0 real changes made)
+
+.         label var hwlat "Has handwashing loc w/in 6 steps of latrine"
+
+. *   has water
+. gen byte hwlatwat = (q703==2 & q707<=6 & q704_1==1) | (q709==2 & q713<=6 & q71
+> 0_1==1)
+
+.         replace hwlatwat = . if (q704_1==.) & (q710_1==.)
+(482 real changes made, 482 to missing)
+
+.         label var hwlatwat "Has handwashing loc w/in 6 steps of latrine w/ wat
+> er"
+
+. *   has soap
+. gen byte hwlatsoap = (q703==2 & (q704_2==1 | q704_3==1 | q704_4==1 | q704_5==1
+>  | q704_6==1) ) | (q709==2 & (q710_2==1 | q710_3==1 | q710_4==1 | q710_5==1 | 
+> q710_6==1))
+
+.         replace hwlatsoap = . if (q704_2==.) & (q704_3==.) & (q704_4==.) & (q7
+> 04_5==.) & (q704_6==.) & (q710_2==.) & (q710_3==.) & (q710_4==.) & (q710_5==.)
+>  & (q710_6==.)
+(482 real changes made, 482 to missing)
+
+.         label var hwlatsoap "Has handwashing loc w/in 6 steps of latrine w/ so
+> ap"
+
+. 
+. *  within 6 steps of kitchen
+. gen byte hwkit = (q703==3 & q706<=6) | (q709==3 & q712<=6)
+
+.         replace hwkit = . if (q703==.) & (q709==.)
+(0 real changes made)
+
+.         label var hwkit "Has handwashing loc w/in 6 steps of kitchen"
+
+. *   has water
+. gen byte hwkitwat = (q703==3 & q706<=6 & q704_1==1) | (q709==3 & q712<=6 & q71
+> 0_1==1)
+
+.         replace hwkitwat = . if (q704_1==.)  & (q710_1==.)
+(482 real changes made, 482 to missing)
+
+.         label var hwkitwat "Has handwashing loc w/in 6 steps of kitchen w/ wat
+> er"
+
+. *   has soap
+. gen byte hwkitsoap = (q703==3 & q706<=6 & (q704_2==1 | q704_3==1 | q704_4==1 |
+>  q704_5==1 | q704_6==1) ) | (q709==3 & q712<=6 & (q710_2==1 | q710_3==1 | q710
+> _4==1 | q710_5==1 | q710_6==1))
+
+.         replace hwkitsoap = . if  (q704_2==.) & (q704_3==.) & (q704_4==.) & (q
+> 704_5==.) & (q704_6==.) & (q710_2==.) & (q710_3==.) & (q710_4==.) & (q710_5==.
+> ) & (q710_6==.)
+(482 real changes made, 482 to missing)
+
+.         label var hwkitsoap "Has handwashing loc w/in 6 steps of kitchen w/ so
+> ap"
+
+. 
+. 
+. *--------------------------------------------
+. * Updtake indicators
+. *--------------------------------------------
+. 
+. * has stored drinking water (above)
+. 
+.         
+. * store water with detectable free chlorine (not at baseline)
+. *gen byte freechl = q1027level>0 & q1027level<.
+. *       replace freechl = . if (svy==0) | (q1027==999)
+. *       label var freechl "Free chlorine detected in stored water (>0 mg/L)"
+.         
+. * latrine with a functional water seal (above)
+. 
+. * no visible feces on the latrine slab or floor (above)
+. 
+. * no human feces in house or compound (above)
+. 
+.         
+. * primary handwashing station has water
+. gen byte hwsw = (q704_1==1)
+
+.         replace hwsw = . if q704_1==.
+(482 real changes made, 482 to missing)
+
+.         label var hwsw "Prim handwashing loc has water (q704_1)"
+
+. 
+. * primary handwashing station has soap
+. gen byte hwss = (q704_2==1|q704_3==1|q704_4==1|q704_5==1|q704_6==1)
+
+.         replace hwss = . if (q704_2==.&q704_3==.&q704_4==.&q704_5==.&q704_6==.
+> )
+(482 real changes made, 482 to missing)
+
+.         label var hwss "Prim handwashing loc has soap (q704_2-6)"
+
+.         
+. * primary handwashing station has water + soap
+. gen byte hwsws = (hwsw==1&hwss==1)
+
+.         replace hwsws = . if (hwsw==. & hwss==.)
+(482 real changes made, 482 to missing)
+
+.         label var hwsws "Prim handwashing loc has water+soap (q704_1-6)"
+
+. 
+. * mean saches of LNS fed in prior week to index child 6-24 mos (not at baselin
+> e)
+. 
+. 
+. *--------------------------------------------
+. * Save an enrollment analysis dataset
+. * household level observations
+. *--------------------------------------------
+. 
+. label var hhid "Household ID"
+
+. label var clusterid "Cluster ID"
+
+. label var block "Randomization block ID"
+
+. 
+. * restrict to household level variables used in the analysis
+. * and save the data
+. keep dataid clusterid hhid block tr union fracode svydate Nhh Nlt18 Ncomp moma
+> ge momedu momeduy dadeduy dadagri landacre hfias hfiacat tubewell watmin store
+> wat treatwat odmen odwom odch815 odch38 odchu3 latown latslab latseal latfeces
+>  potty humfeces humfecesch hwlat* hwkit* hwsw hwss hwsws roof walls floor ceme
+> nt elec asset_* n_asset_*
+
+. 
+. order dataid clusterid hhid block tr union fracode svydate Nhh Nlt18 Ncomp mom
+> age momedu momeduy dadeduy        dadagri landacre hfias hfiacat tubewell watm
+> in storewat treatwat odmen odwom odch815 odch38 odchu3 latown latslab latseal 
+> latfeces potty humfeces humfecesch hwlat* hwkit* hwsw hwss hwsws roof walls fl
+> oor cement elec asset_* n_asset_*
+
+. 
+. ** double check to ensure there are no duplicates
+. duplicates drop dataid clusterid hhid block tr union fracode svydate Nhh Nlt18
+>  Ncomp momage momedu momeduy dadeduy      dadagri landacre hfias hfiacat tubew
+> ell watmin storewat treatwat odmen odwom odch815 odch38 odchu3 latown latslab 
+> latseal latfeces potty humfeces humfecesch hwlat* hwkit* hwsw hwss hwsws roof 
+> walls floor cement elec asset_* n_asset_*, force
+
+Duplicates in terms of dataid clusterid hhid block tr union fracode svydate Nhh
+    Nlt18 Ncomp momage momedu momeduy dadeduy dadagri landacre hfias hfiacat
+    tubewell watmin storewat treatwat odmen odwom odch815 odch38 odchu3 latown
+    latslab latseal latfeces potty humfeces humfecesch hwlat hwlatwat hwlatsoap
+    hwkit hwkitwat hwkitsoap hwsw hwss hwsws roof walls floor cement elec
+    asset_radio asset_tvbw asset_tvcol asset_refrig asset_bike asset_moto
+    asset_sewmach asset_phone asset_tv asset_wardrobe asset_table asset_chair
+    asset_clock asset_khat asset_chouki asset_mobile n_asset_wardrobe
+    n_asset_table n_asset_chair n_asset_clock n_asset_khat n_asset_chouki
+    n_asset_mobile
+
+(0 observations are duplicates)
+
+. 
+. compress
+  variable block was long now byte
+  variable tr was long now byte
+  variable union was float now int
+  variable svydate was float now int
+  variable Nhh was float now byte
+  variable Nlt18 was float now byte
+  variable Ncomp was float now byte
+  variable momage was float now byte
+  variable momedu was float now byte
+  variable momeduy was float now byte
+  variable dadeduy was float now byte
+  variable dadagri was float now byte
+  variable hfias was int now byte
+  variable hfiacat was int now byte
+  variable watmin was float now int
+  variable asset_tv was float now byte
+  variable asset_wardrobe was float now byte
+  variable asset_table was float now byte
+  variable asset_chair was float now byte
+  variable asset_clock was float now byte
+  variable asset_khat was float now byte
+  variable asset_chouki was float now byte
+  variable asset_mobile was float now byte
+  variable hhid was str3 now str1
+  (355,264 bytes saved)
+
+. sort dataid 
+
+. label data "Bangladesh enrollment analysis dataset (HH obs), created by 2-bang
+> ladesh-dm-enrol.do"
+note: label truncated to 80 characters
+
+. saveold "~/dropbox/WASHB-Bangladesh-Data/1-primary-outcome-datasets/washb-bang
+> ladesh-enrol.dta", replace version(12)
+(saving in Stata 12 format, which can be read by Stata 11 or 12)
+file ~/dropbox/WASHB-Bangladesh-Data/1-primary-outcome-datasets/washb-bangladesh
+> -enrol.dta saved
+
+. 
+. *--------------------------------------------
+. * There is a single variable measured at
+. * other timepoints that we need to merge into
+. * the enrollment data: maternal height
+. * get maternal height measurements from
+. * year 1 and year 2 visits, then merge it
+. * into the enrollment data
+. *--------------------------------------------
+. 
+. *** Year 1 data
+. use "~/dropbox/WASHB-Bangladesh-Data/0-Untouched-data/1-Main-survey/2_Midline/
+> 8. WASHB_Midline_anthropometry_cleaned.dta", clear
+
+. 
+. * calculate median maternal height
+. for any c422 c423 c424: replace X = . if X >999
+
+->  replace c422 = . if c422 >999
+(1 real change made, 1 to missing)
+
+->  replace c423 = . if c423 >999
+(1 real change made, 1 to missing)
+
+->  replace c424 = . if c424 >999
+(0 real changes made)
+
+. egen float momheight1 = rowmedian(c422 c423 c424)
+(713 missing values generated)
+
+.         replace momheight1 = . if momheight >999
+(0 real changes made)
+
+.         label var momheight1 "Maternal height (median), year 1 visit"
+
+.         
+. * restrict to measurements without missing maternal height
+. keep if momheight1 != .
+(713 observations deleted)
+
+. 
+. * bring along individual measurements
+. gen y1hgt1 = c422
+
+. gen y1hgt2 = c423
+
+. gen y1hgt3 = c424
+(3,761 missing values generated)
+
+. 
+. * restrict to single observation per compound
+. * (confirmed that maternal height is duplicated in the data
+. *  or is only reported for one child in the 31 cases where 
+. *  there are multiple target children in the home)
+. keep dataid momheight1 y1hgt*
+
+. bysort dataid: keep if _n==1
+(24 observations deleted)
+
+. 
+. sort dataid
+
+. tempfile momhgt1
+
+. save `momhgt1'
+file /var/folders/1g/dryqjv753dv7rgwhzs2lyl140000gp/T//S_03012.000004 saved
+
+. 
+. *** Year 2 data
+. use "~/dropbox/WASHB-Bangladesh-Data/0-Untouched-data/1-Main-survey/3_Endline/
+> 09. WASHB_Endline_anthropometry_cleaned.dta", clear
+
+. 
+. 
+. * calculate median maternal height
+. for any an422 an423 an424: replace X = . if X >999
+
+->  replace an422 = . if an422 >999
+(31 real changes made, 31 to missing)
+
+->  replace an423 = . if an423 >999
+(32 real changes made, 32 to missing)
+
+->  replace an424 = . if an424 >999
+(1 real change made, 1 to missing)
+
+. egen float momheight2 = rowmedian(an422 an423 an424)
+(31 missing values generated)
+
+.         replace momheight2 = . if momheight >999
+(0 real changes made)
+
+.         label var momheight2 "Maternal height (median), year 2 visit"
+
+.         
+. * restrict to measurements without missing maternal height
+. keep if momheight2 != .
+(31 observations deleted)
+
+. 
+. * bring along individual measurements
+. gen y2hgt1 = an422
+
+. gen y2hgt2 = an423
+(1 missing value generated)
+
+. gen y2hgt3 = an424
+(6,620 missing values generated)
+
+. 
+. * restrict to single observation per compound
+. * (confirmed that maternal height is duplicated in the data
+. *  or is only reported for one child in the cases where 
+. *  there are multiple target children in the home)
+. keep dataid momheight2 y2hgt*
+
+. bysort dataid: keep if _n==1
+(2,161 observations deleted)
+
+. 
+. * merge the year 1 and year 2 data
+. sort dataid
+
+. merge 1:1 dataid using `momhgt1'
+
+    Result                           # of obs.
+    -----------------------------------------
+    not matched                         1,060
+        from master                       837  (_merge==1)
+        from using                        223  (_merge==2)
+
+    matched                             3,751  (_merge==3)
+    -----------------------------------------
+
+. 
+. 
+. * calculate the overall median
+. egen float momheight = rowmedian(y1hgt1 y1hgt2 y1hgt3 y2hgt1 y2hgt2 y2hgt3)
+
+.         label var momheight "Maternal height (median)"
+
+. 
+. * replace the height measurement with round 1 median if the two medians differ
+>  by >3 cm
+. gen diff = momheight1-momheight2
+(1,060 missing values generated)
+
+. replace momheight = momheight1 if abs(diff)>3 & (diff!=.)
+(44 real changes made)
+
+. 
+. * merge in the maternal height variable
+. keep dataid momheight
+
+. sort dataid
+
+. tempfile momheight
+
+. save `momheight'
+file /var/folders/1g/dryqjv753dv7rgwhzs2lyl140000gp/T//S_03012.000005 saved
+
+. 
+. use "~/dropbox/WASHB-Bangladesh-Data/1-primary-outcome-datasets/washb-banglade
+> sh-enrol.dta", clear
+(Bangladesh enrollment analysis dataset (HH obs), created by 2-bangladesh-dm-enr
+> o)
+
+. merge 1:1 dataid using `momheight'
+
+    Result                           # of obs.
+    -----------------------------------------
+    not matched                           740
+        from master                       740  (_merge==1)
+        from using                          0  (_merge==2)
+
+    matched                             4,811  (_merge==3)
+    -----------------------------------------
+
+. assert _merge !=2
+
+. drop _merge
+
+. 
+. order dataid clusterid hhid block tr union fracode svydate Nhh Nlt18 Ncomp mom
+> age momheight
+
+. 
+. saveold "~/dropbox/WASHB-Bangladesh-Data/1-primary-outcome-datasets/washb-bang
+> ladesh-enrol.dta", replace version(12)
+(saving in Stata 12 format, which can be read by Stata 11 or 12)
+file ~/dropbox/WASHB-Bangladesh-Data/1-primary-outcome-datasets/washb-bangladesh
+> -enrol.dta saved
+
+. outsheet using "~/dropbox/WASHB-Bangladesh-Data/1-primary-outcome-datasets/was
+> hb-bangladesh-enrol.csv", comma replace
+
+. desc
+
+Contains data from ~/dropbox/WASHB-Bangladesh-Data/1-primary-outcome-datasets/wa
+> shb-bangladesh-enrol.dta
+  obs:         5,551                          Bangladesh enrollment analysis
+                                                dataset (HH obs), created by
+                                                2-bangladesh-dm-enro
+ vars:            73                          17 Aug 2016 13:46
+ size:       516,243                          
+--------------------------------------------------------------------------------
+              storage   display    value
+variable name   type    format     label      variable label
+--------------------------------------------------------------------------------
+dataid          str5    %5s                   dataid
+clusterid       str3    %9s                   Cluster ID
+hhid            str1    %9s                   Household ID
+block           byte    %9.0g                 Randomization block ID
+tr              byte    %9.0g      tr         Randomized treatment assignment
+                                                (scrambled/blinded!!)
+union           int     %18.0g     q4008_lbl
+                                              Administrative union (q4008)
+fracode         str6    %6s                   FRA code (q4001)
+svydate         int     %d                    Survey date
+Nhh             byte    %9.0g                 Number of persons in household
+                                                (q012)
+Nlt18           byte    %9.0g                 N indivs in HH <=18y
+Ncomp           byte    %9.0g                 Total indivs in compound
+momage          byte    %9.0g                 Mother's age, years
+momheight       float   %9.0g                 Maternal height (median)
+momedu          byte    %15.0g     momedu     Mother's education (category)
+momeduy         byte    %9.0g                 Mother, years of education (q009)
+dadeduy         byte    %9.0g                 Father, years of education (q010)
+dadagri         byte    %9.0g                 Father works in agriculture (q011)
+landacre        float   %9.0g                 Acres of land owned (q4110)
+hfias           byte    %8.0g                 HFIAs food insecurity score (0-27)
+hfiacat         byte    %24.0g     hfiacat    HFIAS food insecurity category
+tubewell        byte    %8.0g                 Primary water source: shallow
+                                                tubewell (q1010)
+watmin          int     %9.0g                 Dist (mins) to primary water
+                                                source
+storewat        byte    %8.0g                 Store drinking water (q1003)
+treatwat        byte    %8.0g                 Reported treating water today or
+                                                yesterday (q1008)
+odmen           byte    %8.0g                 Daily OD, adult men (q801a)
+odwom           byte    %8.0g                 Daily OD, adult women (q801b)
+odch815         byte    %8.0g                 Daily OD, children 8-15 (q801e)
+odch38          byte    %8.0g                 Daily OD, children 3-8 (q801d)
+odchu3          byte    %8.0g                 Daily OD, children <3 (q801c)
+latown          byte    %8.0g                 Own their latrine (not shared)
+                                                (q816)
+latslab         byte    %8.0g                 Latrine has concrete slab (q809_7)
+latseal         byte    %8.0g                 Latrine has functional water seal
+                                                (q809_9a)
+latfeces        byte    %8.0g                 No visible feces on slab/floor of
+                                                latrine
+potty           byte    %8.0g                 Has a potty for child defecation
+humfeces        byte    %8.0g                 Human feces observed in
+                                                house/compound (q4201,4203,4205)
+humfecesch      byte    %8.0g                 Human feces obs in loc where child
+                                                spends most time (q4203)
+hwlat           byte    %8.0g                 Has handwashing loc w/in 6 steps
+                                                of latrine
+hwlatwat        byte    %8.0g                 Has handwashing loc w/in 6 steps
+                                                of latrine w/ water
+hwlatsoap       byte    %8.0g                 Has handwashing loc w/in 6 steps
+                                                of latrine w/ soap
+hwkit           byte    %8.0g                 Has handwashing loc w/in 6 steps
+                                                of kitchen
+hwkitwat        byte    %8.0g                 Has handwashing loc w/in 6 steps
+                                                of kitchen w/ water
+hwkitsoap       byte    %8.0g                 Has handwashing loc w/in 6 steps
+                                                of kitchen w/ soap
+hwsw            byte    %8.0g                 Prim handwashing loc has water
+                                                (q704_1)
+hwss            byte    %8.0g                 Prim handwashing loc has soap
+                                                (q704_2-6)
+hwsws           byte    %8.0g                 Prim handwashing loc has
+                                                water+soap (q704_1-6)
+roof            byte    %8.0g                 Improved roof material (tin,
+                                                cement)
+walls           byte    %8.0g                 Improved wall material (wood,
+                                                brick, tin)
+floor           byte    %8.0g                 Improved floor (wood, concrete)
+cement          byte    %8.0g                 Has cement floor (q4103)
+elec            byte    %8.0g                 Household has electricity
+asset_radio     byte    %8.0g                 households have radio
+asset_tvbw      byte    %8.0g                 households have B/W television
+asset_tvcol     byte    %8.0g                 households have color television
+asset_refrig    byte    %8.0g                 households have Refrigerator
+asset_bike      byte    %8.0g                 households have bicycle
+asset_moto      byte    %8.0g                 households have motorcycle
+asset_sewmach   byte    %8.0g                 households have sewing machine
+asset_phone     byte    %8.0g                 number of land phone
+asset_tv        byte    %9.0g                 Has bw or color TV
+asset_wardrobe  byte    %9.0g                 Has >=1 wardrobe
+asset_table     byte    %9.0g                 Has >=1 table
+asset_chair     byte    %9.0g                 Has >=1 chair
+asset_clock     byte    %9.0g                 Has >=1 clock
+asset_khat      byte    %9.0g                 Has >=1 khat
+asset_chouki    byte    %9.0g                 Has >=1 chouki
+asset_mobile    byte    %9.0g                 Has >=1 mobile
+n_asset_wardr~e byte    %8.0g                 number of waredrobe
+n_asset_table   byte    %8.0g                 number of Tables
+n_asset_chair   byte    %8.0g                 number of Chair
+n_asset_clock   byte    %8.0g                 number of clock
+n_asset_khat    byte    %8.0g                 number of Khat
+n_asset_chouki  byte    %8.0g                 number of chouki
+n_asset_mobile  byte    %8.0g                 number of mobile phone
+--------------------------------------------------------------------------------
+Sorted by: dataid
+
+. codebook, c
+
+Variable       Obs Unique      Mean     Min    Max  Label
+--------------------------------------------------------------------------------
+dataid        5551   5551         .       .      .  dataid
+clusterid     5551    720         .       .      .  Cluster ID
+hhid          5551      3         .       .      .  Household ID
+block         5551     90  45.75716       1     90  Randomization block ID
+tr            5551      7  3.625833       1      7  Randomized treatment assi...
+union         5551    139  66.74851       1    139  Administrative union (q4008)
+fracode       5551     28         .       .      .  FRA code (q4001)
+svydate       5551    209  19410.03   19144  19546  Survey date
+Nhh           5551     21  4.680958       1     23  Number of persons in hous...
+Nlt18         5551     11  1.593046       0     10  N indivs in HH <=18y
+Ncomp         5551     44  10.99784       2     52  Total indivs in compound
+momage        5531     33  23.76749      14     60  Mother's age, years
+momheight     4811    702  150.5354  120.65    168  Maternal height (median)
+momedu        5551      3  1.373086       0      2  Mother's education (categ...
+momeduy       5551     18  5.815889       0     17  Mother, years of educatio...
+dadeduy       5539     18  4.854306       0     17  Father, years of educatio...
+dadagri       5549      2  .3146513       0      1  Father works in agricultu...
+landacre      5258    105  .1455725       0   8.88  Acres of land owned (q4110)
+hfias         5551     24  1.901099       0     24  HFIAs food insecurity sco...
+hfiacat       5551      4  1.569267       1      4  HFIAS food insecurity cat...
+tubewell      5551      2  .7400468       0      1  Primary water source: sha...
+watmin        5551     22  .9351468       0    600  Dist (mins) to primary wa...
+storewat      5551      2  .4761304       0      1  Store drinking water (q1003)
+treatwat      5551      2  .0014412       0      1  Reported treating water t...
+odmen         5446      2  .0762027       0      1  Daily OD, adult men (q801a)
+odwom         5547      2  .0425455       0      1  Daily OD, adult women (q8...
+odch815       2295      2  .1002179       0      1  Daily OD, children 8-15 (...
+odch38        2854      2   .379117       0      1  Daily OD, children 3-8 (q...
+odchu3        1158      2   .835924       0      1  Daily OD, children <3 (q8...
+latown        5551      2  .5361196       0      1  Own their latrine (not sh...
+latslab       5313      2  .9371353       0      1  Latrine has concrete slab...
+latseal       4671      2  .2932991       0      1  Latrine has functional wa...
+latfeces      5202      2  .4921184       0      1  No visible feces on slab/...
+potty         5549      2  .0439719       0      1  Has a potty for child def...
+humfeces      5545      2  .0829576       0      1  Human feces observed in h...
+humfecesch    5542      2  .0113677       0      1  Human feces obs in loc wh...
+hwlat         5551      2  .1138534       0      1  Has handwashing loc w/in ...
+hwlatwat      5069      2  .1195502       0      1  Has handwashing loc w/in ...
+hwlatsoap     5069      2  .0654962       0      1  Has handwashing loc w/in ...
+hwkit         5551      2  .0990812       0      1  Has handwashing loc w/in ...
+hwkitwat      5069      2  .0877885       0      1  Has handwashing loc w/in ...
+hwkitsoap     5069      2  .0260406       0      1  Has handwashing loc w/in ...
+hwsw          5069      2  .9420004       0      1  Prim handwashing loc has ...
+hwss          5069      2  .2351549       0      1  Prim handwashing loc has ...
+hwsws         5069      2  .2337739       0      1  Prim handwashing loc has ...
+roof          5551      2  .9855882       0      1  Improved roof material (t...
+walls         5551      2  .7191497       0      1  Improved wall material (w...
+floor         5551      2  .1050261       0      1  Improved floor (wood, con...
+cement        5551      2  .1050261       0      1  Has cement floor (q4103)
+elec          5551      2  .5883625       0      1  Household has electricity
+asset_radio   5551      2  .0407134       0      1  households have radio
+asset_tvbw    5551      2  .0816069       0      1  households have B/W telev...
+asset_tvcol   5551      2  .2277067       0      1  households have color tel...
+asset_refrig  5551      2  .0787246       0      1  households have Refrigerator
+asset_bike    5551      2  .3107548       0      1  households have bicycle
+asset_moto    5551      2  .0652135       0      1  households have motorcycle
+asset_sewm~h  5551      2  .0641326       0      1  households have sewing ma...
+asset_phone   5551      3  .0045037       0      9  number of land phone
+asset_tv      5551      2  .2992254       0      1  Has bw or color TV
+asset_ward~e  5551      2  .1650153       0      1  Has >=1 wardrobe
+asset_table   5551      2  .7250946       0      1  Has >=1 table
+asset_chair   5551      2  .7276166       0      1  Has >=1 chair
+asset_clock   2692      2  .7451709       0      1  Has >=1 clock
+asset_khat    5551      2  .6103405       0      1  Has >=1 khat
+asset_chouki  5551      2  .7870654       0      1  Has >=1 chouki
+asset_mobile  5551      2  .8553414       0      1  Has >=1 mobile
+n_asset_wa~e  5551      8  .2250045       0      8  number of waredrobe
+n_asset_ta~e  5551     10  1.079805       0     10  number of Tables
+n_asset_ch~r  5551     22  2.253468       0     25  number of Chair
+n_asset_cl~k  2692     11   1.18685       0     10  number of clock
+n_asset_khat  5551     11  1.032066       0     10  number of Khat
+n_asset_ch~i  5551      7  1.239596       0      6  number of chouki
+n_asset_mo~e  5551     12  1.556656       0     13  number of mobile phone
+--------------------------------------------------------------------------------
+
+. 
+. * write a codebook for the dataset
+. log close
+      name:  <unnamed>
+       log:  /Users/benarnold/WASHB-Bangladesh-primary-outcomes/src/dm/2-banglad
+> esh-dm-enrol.log
+  log type:  text
+ closed on:  17 Aug 2016, 13:46:08
+--------------------------------------------------------------------------------

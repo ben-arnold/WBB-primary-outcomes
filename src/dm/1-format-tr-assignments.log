@@ -1,0 +1,118 @@
+--------------------------------------------------------------------------------
+      name:  <unnamed>
+       log:  /Users/benarnold/WASHB-Bangladesh-primary-outcomes/src/dm/1-format-
+> tr-assignments.log
+  log type:  text
+ opened on:  17 Aug 2016, 13:24:23
+
+. 
+. *--------------------------------------------
+. * 1-format-tr-assignments.do
+. *
+. * ben arnold (benarnold@berkeley.edu)
+. *
+. *
+. * input REAL treatment assignments from the
+. * bangladesh trial and save a formatted
+. * stata dataset and csv file
+. *--------------------------------------------
+. 
+. *--------------------------------------------
+. * input files:
+. *  washb-bangladesh-tr-assignments.csv
+. *
+. * output files:
+. *  washb-bang-tr.dta /.csv
+. * 
+. *--------------------------------------------
+. insheet using "~/dropbox/washbenefits/randomization/bangladesh/washb-banglades
+> h-tr-assignments.csv", comma clear
+(4 vars, 720 obs)
+
+. gen clusterid = string(cluster_id)
+
+.         replace clusterid = "00"+string(cluster_id) if cluster_id<10
+(9 real changes made)
+
+.         replace clusterid = "0"+string(cluster_id) if cluster_id>=10 & cluster
+> _id<100
+(90 real changes made)
+
+.         label var clusterid "Cluster ID"
+
+. label var block "Randomization block"
+
+. gen tr = 0
+
+.         label define tr  1 "Control" 2 "Water" 3 "Sanitation" 4 "Handwashing" 
+> 5 "WSH" 6 "Nutrition" 7  "Nutrition + WSH"
+
+.         label values tr tr
+
+.         label var tr "Randomized treatment assignment"
+
+.         replace tr = 1 if tr_label == "Control"
+(180 real changes made)
+
+.         replace tr = 2 if tr_label == "Water"
+(90 real changes made)
+
+.         replace tr = 3 if tr_label == "Sanitation"
+(90 real changes made)
+
+.         replace tr = 4 if tr_label == "Handwashing"
+(90 real changes made)
+
+.         replace tr = 5 if tr_label == "WSH"
+(90 real changes made)
+
+.         replace tr = 6 if tr_label == "Nutrition"
+(90 real changes made)
+
+.         replace tr = 7 if tr_label == "Nutrition + WSH"
+(90 real changes made)
+
+.         assert tr!=. 
+
+.         tab tr
+
+     Randomized |
+      treatment |
+     assignment |      Freq.     Percent        Cum.
+----------------+-----------------------------------
+        Control |        180       25.00       25.00
+          Water |         90       12.50       37.50
+     Sanitation |         90       12.50       50.00
+    Handwashing |         90       12.50       62.50
+            WSH |         90       12.50       75.00
+      Nutrition |         90       12.50       87.50
+Nutrition + WSH |         90       12.50      100.00
+----------------+-----------------------------------
+          Total |        720      100.00
+
+. keep block clusterid tr
+
+. order block clusterid tr
+
+. sort block clusterid
+
+. 
+. label data "WASH Benefits Bangladesh cluster level treatment assignments"
+
+. saveold "/Volumes/0-Treatment-assignments/washb-bang-tr.dta", v(12) replace
+(saving in Stata 12 format, which can be read by Stata 11 or 12)
+(note: file /Volumes/0-Treatment-assignments/washb-bang-tr.dta not found)
+file /Volumes/0-Treatment-assignments/washb-bang-tr.dta saved
+
+. outsheet using "/Volumes/0-Treatment-assignments/washb-bang-tr.csv", comma rep
+> lace
+(note: file /Volumes/0-Treatment-assignments/washb-bang-tr.csv not found)
+
+. 
+. log close
+      name:  <unnamed>
+       log:  /Users/benarnold/WASHB-Bangladesh-primary-outcomes/src/dm/1-format-
+> tr-assignments.log
+  log type:  text
+ closed on:  17 Aug 2016, 13:24:23
+--------------------------------------------------------------------------------

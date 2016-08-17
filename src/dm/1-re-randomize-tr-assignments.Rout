@@ -1,0 +1,72 @@
+
+R version 3.2.3 (2015-12-10) -- "Wooden Christmas-Tree"
+Copyright (C) 2015 The R Foundation for Statistical Computing
+Platform: x86_64-apple-darwin13.4.0 (64-bit)
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+  Natural language support but running in an English locale
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+[Previously saved workspace restored]
+
+> 
+> 
+> #-------------------------------------
+> # 1-re-randomize-tr-assignments.R
+> #
+> # ben arnold
+> #
+> # scramble the treatment assignments
+> # to make a dataset that other team
+> # members can use for blinded analyses
+> # of the WASH Benefits Bangladesh trial
+> #
+> # this scrambled assignment will be
+> # included in the washb R package
+> #-------------------------------------
+> 
+> rm(list=ls())
+> library(foreign)
+> d <- read.dta('~/dropbox/wbb-primary-analysis/data/final/ben/washb-bang-tr.dta')
+> 
+> # randomly re-order treatment within each block
+> set.seed(6435345)
+> ru <- runif(nrow(d))
+> trr <- d$tr[order(d$block,ru)]
+> 
+> # ensure there is no correlation between actual treatment assignments and re-randomized ones
+> chisq.test(d$tr,trr)
+
+	Pearson's Chi-squared test
+
+data:  d$tr and trr
+X-squared = 36.267, df = 36, p-value = 0.4562
+
+> 
+> # make a re-randomized dataset
+> blind_tr <- d
+> blind_tr$tr <- trr
+> attr(blind_tr,'var.labels')[3] <- "Randomized treatment assignment (scrambled/blinded!!)"
+> attr(blind_tr,'datalabel') <- 'WASH Benefits Bangladesh cluster level treatment assignments (scrambled/blinded!!)'
+> 
+> # save R version of the TRUE tr assignments
+> save(d,file='/Volumes/0-Treatment-assignments/washb-bang-tr.RData')
+> 
+> # save a re-randomized dataset
+> save(blind_tr,file='~/dropbox/washb-bangladesh-data/1-primary-outcome-datasets/washb-bang-blind-tr.RData')
+> write.dta(blind_tr,file='~/dropbox/washb-bangladesh-data/1-primary-outcome-datasets/washb-bang-blind-tr.dta')
+> write.csv(blind_tr,file='~/dropbox/washb-bangladesh-data/1-primary-outcome-datasets/washb-bang-blind-tr.csv')
+> 
+> proc.time()
+   user  system elapsed 
+  0.287   0.050   0.697 

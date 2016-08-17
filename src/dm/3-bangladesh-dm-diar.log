@@ -1,0 +1,1341 @@
+--------------------------------------------------------------------------------
+      name:  <unnamed>
+       log:  /Users/benarnold/WASHB-Bangladesh-primary-outcomes/src/dm/3-banglad
+> esh-dm-diar.log
+  log type:  text
+ opened on:  17 Aug 2016, 13:46:20
+
+. 
+. *--------------------------------------------
+. * 3-bangladesh-dm-diar.do
+. *
+. * ben arnold (benarnold@berkeley.edu)
+. *
+. * process the Bangladesh trial datasets
+. * to create a diarrhea analysis dataset
+. * including data from enrollment, year 1 and year 2
+. *
+. * The diarrhea primary analysis includes all measurements
+. * for children <36 months at enrollment
+. *
+. * 
+. *--------------------------------------------
+. 
+. 
+. 
+. 
+. *--------------------------------------------
+. * input files:
+. *
+. *  Treatment assignments 
+. *       washb-bang-tr.dta (or washb-bang-blind-tr.dta if blinded)
+. *
+. *  ENROLLMENT
+. *  1. WASHB_Baseline_main_survey.dta
+. *  2. WASHB_Baseline_census.dta
+. *  3. WASHB_Baseline_childinfo.dta
+. *  4. WASHB_Baseline_childhealthinfo.dta
+. *
+. *  YEAR 1
+. *  1. WASHB_Midline_main_survey_cleaned.dta
+. *  3. WASHB_Midline_childinfo_cleaned.dta
+. *  4. WASHB_Midline_childhealthinfo_cleaned.dta
+. *
+. *  YEAR 2
+. *  04. WASHB_Endline_main_survey_cleaned.dta
+. *  07. WASHB_Endline_childinformation_cleaned.dta
+. *  08. WASHB_Endline_childhealthinfo_cleaned.dta
+. *
+. * output files:
+. *  final/washb-bangladesh-diar.dta / .csv
+. *
+. *--------------------------------------------
+. 
+. 
+. 
+. *--------------------------------------------
+. * grab the treatment assignments
+. *--------------------------------------------
+. * blinded treatment assignments:
+. use "~/dropbox/washb-bangladesh-data/1-primary-outcome-datasets/washb-bang-bli
+> nd-tr.dta", clear
+(WASH Benefits Bangladesh cluster level treatment assignments (scrambled/blinded
+> !)
+
+. 
+. * real treatment assignments (not used to keep data blinded)
+. * use "/Volumes/0-Treatment-assignments/washb-bang-tr.dta", clear
+. 
+. sort clusterid
+
+. tempfile trdata
+
+. save `trdata'
+file /var/folders/1g/dryqjv753dv7rgwhzs2lyl140000gp/T//S_03012.000001 saved
+
+. 
+. 
+. 
+. *--------------------------------------------
+. * ENROLLMENT
+. * merge the household and child data
+. *--------------------------------------------
+. 
+. 
+. use "~/dropbox/WASHB-Bangladesh-Data/0-Untouched-data/1-Main-survey/1_Baseline
+> /1. WASHB_Baseline_main_survey.dta", clear
+
+. sort dataid 
+
+. tempfile bmain
+
+. save `bmain'
+file /var/folders/1g/dryqjv753dv7rgwhzs2lyl140000gp/T//S_03012.000002 saved
+
+. 
+. use "~/dropbox/WASHB-Bangladesh-Data/0-Untouched-data/1-Main-survey/1_Baseline
+> /3. WASHB_Baseline_childinfo.dta", clear
+
+. sort dataid
+
+. tempfile bchildinfo
+
+. save `bchildinfo'
+file /var/folders/1g/dryqjv753dv7rgwhzs2lyl140000gp/T//S_03012.000003 saved
+
+. 
+. use "~/dropbox/WASHB-Bangladesh-Data/0-Untouched-data/1-Main-survey/1_Baseline
+> /4. WASHB_Baseline_childhealthinfo.dta", clear
+
+. sort dataid childid
+
+. tempfile bchildhealth
+
+. save `bchildhealth'
+file /var/folders/1g/dryqjv753dv7rgwhzs2lyl140000gp/T//S_03012.000004 saved
+
+. 
+. * merge child information to the household information
+. use `bmain', clear
+
+. merge 1:m dataid using `bchildinfo'
+
+    Result                           # of obs.
+    -----------------------------------------
+    not matched                         2,980
+        from master                     2,980  (_merge==1)
+        from using                          0  (_merge==2)
+
+    matched                             3,678  (_merge==3)
+    -----------------------------------------
+
+. assert _merge !=2
+
+. rename _merge _merge1
+
+. 
+. * merge child health information to the data
+. sort dataid childid
+
+. merge 1:1 dataid childid using `bchildhealth'
+
+    Result                           # of obs.
+    -----------------------------------------
+    not matched                         2,982
+        from master                     2,982  (_merge==1)
+        from using                          0  (_merge==2)
+
+    matched                             3,676  (_merge==3)
+    -----------------------------------------
+
+. assert _merge!=2
+
+. rename _merge _merge2
+
+. 
+. * list 2 siblings who were enrolled but do not have records in the child healt
+> h info dataset:
+. tab _merge1 _merge2
+
+                      |        _merge2
+              _merge1 | master on  matched ( |     Total
+----------------------+----------------------+----------
+      master only (1) |     2,980          0 |     2,980 
+          matched (3) |         2      3,676 |     3,678 
+----------------------+----------------------+----------
+                Total |     2,982      3,676 |     6,658 
+
+
+. list dataid childid dob if _merge1==3 & _merge2==1
+
+      +------------------------------+
+      | dataid   childid         dob |
+      |------------------------------|
+  35. |  00402        C1   06 Feb 12 |
+ 101. |  01107        C1   13 May 12 |
+      +------------------------------+
+
+. drop _merge1 _merge2
+
+. 
+. 
+. sort dataid childid
+
+. gen svy = 0
+
+. tempfile enrol
+
+. save `enrol'
+file /var/folders/1g/dryqjv753dv7rgwhzs2lyl140000gp/T//S_03012.000005 saved
+
+. 
+. 
+. 
+. *--------------------------------------------
+. * YEAR 1
+. * merge the household and child data
+. *--------------------------------------------
+. 
+. 
+. use "~/dropbox/WASHB-Bangladesh-Data/0-Untouched-data/1-Main-survey/2_Midline/
+> 1. WASHB_Midline_main_survey_cleaned.dta", clear
+
+. sort dataid 
+
+. tempfile main
+
+. save `main'
+file /var/folders/1g/dryqjv753dv7rgwhzs2lyl140000gp/T//S_03012.000006 saved
+
+. 
+. use "~/dropbox/WASHB-Bangladesh-Data/0-Untouched-data/1-Main-survey/2_Midline/
+> 3. WASHB_Midline_childinfo_cleaned.dta", clear
+
+. sort dataid hhid
+
+. tempfile childinfo
+
+. save `childinfo'
+file /var/folders/1g/dryqjv753dv7rgwhzs2lyl140000gp/T//S_03012.000007 saved
+
+. 
+. use "~/dropbox/WASHB-Bangladesh-Data/0-Untouched-data/1-Main-survey/2_Midline/
+> 4. WASHB_Midline_childhealthinfo_cleaned.dta", clear
+
+. sort dataid childid
+
+. tempfile childhealth
+
+. save `childhealth'
+file /var/folders/1g/dryqjv753dv7rgwhzs2lyl140000gp/T//S_03012.000008 saved
+
+. 
+. 
+. use `main', clear
+
+. merge 1:m dataid using `childinfo'
+
+    Result                           # of obs.
+    -----------------------------------------
+    not matched                           833
+        from master                         0  (_merge==1)
+        from using                        833  (_merge==2)
+
+    matched                             8,952  (_merge==3)
+    -----------------------------------------
+
+. assert _merge!=1
+
+. drop if _merge==2
+(833 observations deleted)
+
+. drop _merge
+
+. 
+. * merge in the child health information
+. sort dataid childid
+
+. merge 1:1 dataid childid using `childhealth'
+
+    Result                           # of obs.
+    -----------------------------------------
+    not matched                            10
+        from master                         9  (_merge==1)
+        from using                          1  (_merge==2)
+
+    matched                             8,943  (_merge==3)
+    -----------------------------------------
+
+. 
+. * list 9 children who are not matching, keep the empty illness records for the
+>  missing data tally
+. list dataid hhid childid dob if _merge==1
+
+      +-------------------------------------+
+      | dataid   hhid   childid         dob |
+      |-------------------------------------|
+ 103. |  00808     H4        C2   15oct2012 |
+ 238. |  02201     H4        C3   28jun2013 |
+ 332. |  03003     H1        C1   14jul2010 |
+ 748. |  06705     H2        C1   25jan2011 |
+ 835. |  07402     H2        C1   30sep2009 |
+      |-------------------------------------|
+ 845. |  07503     H1        T1   07dec2012 |
+4243. |  35701     H2        C1   18sep2013 |
+6064. |  49203     H8        C4   13apr2012 |
+7225. |  57407     H7        C4   04jan2014 |
+      +-------------------------------------+
+
+. 
+. * there is one child in the illness records file that has no child info. drop 
+> him/her
+. list dataid hhid childid dob if _merge==2
+
+      +-------------------------------+
+      | dataid   hhid   childid   dob |
+      |-------------------------------|
+8953. |  07503                      . |
+      +-------------------------------+
+
+. drop if _merge==2
+(1 observation deleted)
+
+. drop _merge
+
+. 
+. sort dataid childid
+
+. gen svy = 1
+
+. tempfile year1
+
+. save `year1'
+file /var/folders/1g/dryqjv753dv7rgwhzs2lyl140000gp/T//S_03012.000009 saved
+
+. 
+. 
+. 
+. *--------------------------------------------
+. * YEAR 2
+. * merge the household and child data
+. *--------------------------------------------
+. 
+. use "~/dropbox/WASHB-Bangladesh-Data/0-Untouched-data/1-Main-survey/3_Endline/
+> 04. WASHB_Endline_main_survey_cleaned.dta", clear
+
+. sort dataid 
+
+. tempfile main
+
+. save `main'
+file /var/folders/1g/dryqjv753dv7rgwhzs2lyl140000gp/T//S_03012.00000a saved
+
+. 
+. use "~/dropbox/WASHB-Bangladesh-Data/0-Untouched-data/1-Main-survey/3_Endline/
+> 07. WASHB_Endline_childinformation_cleaned.dta", clear
+
+. sort dataid hhid
+
+. tempfile childinfo
+
+. save `childinfo'
+file /var/folders/1g/dryqjv753dv7rgwhzs2lyl140000gp/T//S_03012.00000b saved
+
+. 
+. use "~/dropbox/WASHB-Bangladesh-Data/0-Untouched-data/1-Main-survey/3_Endline/
+> 08. WASHB_Endline_childhealthinfo_cleaned.dta", clear
+
+. sort dataid childid
+
+. tempfile childhealth
+
+. save `childhealth'
+file /var/folders/1g/dryqjv753dv7rgwhzs2lyl140000gp/T//S_03012.00000c saved
+
+. 
+. 
+. use `main', clear
+
+. merge 1:m dataid using `childinfo'
+
+    Result                           # of obs.
+    -----------------------------------------
+    not matched                             0
+    matched                             9,964  (_merge==3)
+    -----------------------------------------
+
+. assert _merge==3
+
+. drop _merge
+
+. 
+. * merge in the child health information
+. sort dataid childid
+
+. merge 1:1 dataid childid using `childhealth'
+
+    Result                           # of obs.
+    -----------------------------------------
+    not matched                             3
+        from master                         3  (_merge==1)
+        from using                          0  (_merge==2)
+
+    matched                             9,961  (_merge==3)
+    -----------------------------------------
+
+. 
+. * list 3 children who are not matching, keep the empty illness records for the
+>  missing data tally
+. list dataid hhid childid dob if _merge==1
+
+      +-------------------------------------+
+      | dataid   hhid   childid         dob |
+      |-------------------------------------|
+ 116. |  00807     h6        C4   07 Nov 12 |
+1064. |  08407     h1        C1   31 Oct 09 |
+1112. |  08808     h2        C3   14 May 14 |
+      +-------------------------------------+
+
+. drop _merge
+
+. 
+. 
+. *--------------------------------------------
+. * Year 2 data formats differ for many variables, 
+. * which creates problems in the append. 
+. * standardize to earlier year formats
+. *--------------------------------------------
+. 
+. * convert survey date to date format
+. gen rq4002 = date(q4002,"DMY")
+
+. drop q4002
+
+. rename rq4002 q4002
+
+. 
+. * numeric to string
+. local rtoslist "q4014 q4015 q4016 q4017 q105years q105months q105days q716mins
+>  q716secs q721mins q721secs q817years q817months q905adays q905ahours q905amin
+> s q912adays q912ahours q912amins q1004days q1004hours q1004mins q1011mins q101
+> 5mins q807cahours q807camins q807cbhours q807cbmins q807cchours q807ccmins q80
+> 7cdhours q807cdmins q807cehours q807cemins"
+
+. foreach var of local rtoslist {
+  2.         gen r`var' = string(`var')
+  3.         drop `var'
+  4.         rename r`var' `var'
+  5. }
+
+. 
+. * string to numeric
+. local storlist "q102 q1303 q1307 q1308 q1310 q1311"
+
+. foreach var of local storlist {
+  2.         gen r`var' = real(`var')
+  3.         drop `var'
+  4.         rename r`var' `var'
+  5. }
+
+. 
+. *--------------------------------------------
+. * APPEND ENROLLMENT, YEAR 1, YEAR 2
+. *--------------------------------------------
+. gen svy = 2
+
+.         label var svy "Survey round (0,1,2)"
+
+.         
+. append using `enrol'
+(note: variable q4015 was str1, now str2 to accommodate using data's values)
+(note: variable q4017 was str1, now str5 to accommodate using data's values)
+(note: variable q105months was str2, now str3 to accommodate using data's
+       values)
+(note: variable q105days was str2, now str3 to accommodate using data's
+       values)
+(note: variable q701b was byte, now int to accommodate using data's values)
+(note: variable q701c was byte, now int to accommodate using data's values)
+(note: variable q701e was byte, now int to accommodate using data's values)
+(note: variable q701f was byte, now int to accommodate using data's values)
+(note: variable q702a was byte, now int to accommodate using data's values)
+(note: variable q702b was byte, now int to accommodate using data's values)
+(note: variable q702c was byte, now int to accommodate using data's values)
+(note: variable q702d was byte, now int to accommodate using data's values)
+(note: variable q702e was byte, now int to accommodate using data's values)
+(note: variable q702f was byte, now int to accommodate using data's values)
+(note: variable q809_1 was byte, now int to accommodate using data's values)
+(note: variable q809_2 was byte, now int to accommodate using data's values)
+(note: variable q809_4 was byte, now int to accommodate using data's values)
+(note: variable q809_5 was byte, now int to accommodate using data's values)
+(note: variable q809_6 was byte, now int to accommodate using data's values)
+(note: variable q809_7 was byte, now int to accommodate using data's values)
+(note: variable q809_9a was byte, now int to accommodate using data's values)
+(note: variable q809_12 was byte, now int to accommodate using data's values)
+(note: variable q817months was str2, now str3 to accommodate using data's
+       values)
+(note: variable q913 was byte, now int to accommodate using data's values)
+(note: variable q1010 was byte, now int to accommodate using data's values)
+(note: variable q1301 was str78, now str81 to accommodate using data's values)
+(note: variable q1305 was str52, now str54 to accommodate using data's values)
+(note: variable q1306 was str35, now str40 to accommodate using data's values)
+(note: variable q1309 was str63, now str64 to accommodate using data's values)
+(note: variable dob was float, now double to accommodate using data's values)
+(note: variable q201b was byte, now int to accommodate using data's values)
+(note: variable q201c was byte, now int to accommodate using data's values)
+(note: variable q202b was byte, now int to accommodate using data's values)
+(note: variable q202c was byte, now int to accommodate using data's values)
+(note: variable q203b was byte, now int to accommodate using data's values)
+(note: variable q203d was byte, now int to accommodate using data's values)
+(note: variable q204a was byte, now int to accommodate using data's values)
+(note: variable q204b was byte, now int to accommodate using data's values)
+(note: variable q205a was byte, now int to accommodate using data's values)
+(note: variable q205b was byte, now int to accommodate using data's values)
+(note: variable q205c was byte, now int to accommodate using data's values)
+(note: variable q206a was byte, now int to accommodate using data's values)
+(note: variable q206b was byte, now int to accommodate using data's values)
+(note: variable q206c was byte, now int to accommodate using data's values)
+(note: variable q206d was byte, now int to accommodate using data's values)
+(note: variable q207a was byte, now int to accommodate using data's values)
+(note: variable q207c was byte, now int to accommodate using data's values)
+(note: variable q207d was byte, now int to accommodate using data's values)
+(note: variable q208a was byte, now int to accommodate using data's values)
+(note: variable q208b was byte, now int to accommodate using data's values)
+(note: variable q208c was byte, now int to accommodate using data's values)
+(note: variable q208d was byte, now int to accommodate using data's values)
+(note: variable q209b was byte, now int to accommodate using data's values)
+(note: variable q209c was byte, now int to accommodate using data's values)
+(note: variable q210a was byte, now int to accommodate using data's values)
+(note: variable q210c was byte, now int to accommodate using data's values)
+(note: variable q211a was byte, now int to accommodate using data's values)
+(note: variable q211b was byte, now int to accommodate using data's values)
+(note: variable q211c was byte, now int to accommodate using data's values)
+(note: variable q211d was byte, now int to accommodate using data's values)
+(note: variable q212a was byte, now int to accommodate using data's values)
+(note: variable q212c was byte, now int to accommodate using data's values)
+(label q4008_lbl already defined)
+
+. append using `year1'
+(note: variable q103a was byte, now int to accommodate using data's values)
+(note: variable q106months was str1, now str3 to accommodate using data's
+       values)
+(note: variable q109 was byte, now double to accommodate using data's values)
+(note: variable q011other was str26, now str35 to accommodate using data's
+       values)
+(note: variable q701a was byte, now int to accommodate using data's values)
+(note: variable q701d was byte, now int to accommodate using data's values)
+(note: variable q704other was str25, now str26 to accommodate using data's
+       values)
+(note: variable q715reason was str45, now str74 to accommodate using data's
+       values)
+(note: variable q718other was str13, now str16 to accommodate using data's
+       values)
+(note: variable q723aother was str36, now str39 to accommodate using data's
+       values)
+(note: variable q807ab_5 was byte, now int to accommodate using data's values)
+(note: variable q807ab_7 was byte, now int to accommodate using data's values)
+(note: variable q807cahours was str2, now str3 to accommodate using data's
+       values)
+(note: variable q807camins was str2, now str3 to accommodate using data's
+       values)
+(note: variable q807cbhours was str2, now str3 to accommodate using data's
+       values)
+(note: variable q807cbmins was str2, now str3 to accommodate using data's
+       values)
+(note: variable q807cchours was str2, now str3 to accommodate using data's
+       values)
+(note: variable q807ccmins was str2, now str3 to accommodate using data's
+       values)
+(note: variable q807cdhours was str2, now str3 to accommodate using data's
+       values)
+(note: variable q807cdmins was str2, now str3 to accommodate using data's
+       values)
+(note: variable q807cehours was str2, now str3 to accommodate using data's
+       values)
+(note: variable q807cemins was str2, now str3 to accommodate using data's
+       values)
+(note: variable q809_13 was byte, now int to accommodate using data's values)
+(note: variable q809_18 was byte, now int to accommodate using data's values)
+(note: variable q903other was str1, now str13 to accommodate using data's
+       values)
+(note: variable q904other was str27, now str51 to accommodate using data's
+       values)
+(note: variable q905other was str22, now str52 to accommodate using data's
+       values)
+(note: variable q905ahours was str2, now str3 to accommodate using data's
+       values)
+(note: variable q905amins was str2, now str3 to accommodate using data's
+       values)
+(note: variable q905adays was str2, now str3 to accommodate using data's
+       values)
+(note: variable q912ahours was str2, now str3 to accommodate using data's
+       values)
+(note: variable q912amins was str2, now str3 to accommodate using data's
+       values)
+(note: variable q912adays was str2, now str3 to accommodate using data's
+       values)
+(note: variable q1010other was str19, now str33 to accommodate using data's
+       values)
+(note: variable q1017aother was str24, now str32 to accommodate using data's
+       values)
+(note: variable q1305 was str54, now str63 to accommodate using data's values)
+(note: variable q4204other was str2, now str7 to accommodate using data's
+       values)
+(label q4008_lbl already defined)
+
+. 
+. 
+. *--------------------------------------------
+. * merge in the treatment assignment information 
+. *--------------------------------------------
+. 
+. * drop clusterid and block variables to 
+. * ensure we get a complete set
+. 
+. * merge in the treatment assignment info (keep only matching obs)
+. gen clusterid = substr(dataid,1,3)
+
+. sort clusterid
+
+. capture drop  block tr
+
+. merge m:1 clusterid using `trdata'
+
+    Result                           # of obs.
+    -----------------------------------------
+    not matched                             0
+    matched                            25,574  (_merge==3)
+    -----------------------------------------
+
+. assert _merge == 3
+
+. drop _merge
+
+. 
+. 
+. *--------------------------------------------
+. * identify target children
+. *--------------------------------------------
+. gen byte tchild = strpos(childid,"T")>0
+
+.         label var tchild "Target child in birth cohort"
+
+.         label define tchild 0 "Sibling" 1 "Target child"
+
+.         label values tchild tchild
+
+.         tab tchild, m
+
+Target child |
+    in birth |
+      cohort |      Freq.     Percent        Cum.
+-------------+-----------------------------------
+     Sibling |     16,160       63.19       63.19
+Target child |      9,414       36.81      100.00
+-------------+-----------------------------------
+       Total |     25,574      100.00
+
+. 
+. * cross-tab of child observations by round
+. tab svy tchild, m
+
+    Survey | Target child in birth
+     round |        cohort
+   (0,1,2) |   Sibling  Target ch |     Total
+-----------+----------------------+----------
+         0 |     6,658          0 |     6,658 
+         1 |     4,205      4,747 |     8,952 
+         2 |     5,297      4,667 |     9,964 
+-----------+----------------------+----------
+     Total |    16,160      9,414 |    25,574 
+
+
+. 
+. 
+. *--------------------------------------------
+. * Age, using survey date and birth date
+. *--------------------------------------------
+. label var dob "Date of birth"
+
+. format dob %d
+
+. 
+. gen svydate = q4002
+
+.         format svydate %d
+
+.         label var svydate "Survey date"
+
+.         
+.         * replace svydate using the entrydt variable for enrollment and year 1
+>  surveys
+.         * the entrydt variable is more accurate, but is not in the year 2 data
+> set
+.         replace svydate = entrydt if inlist(svy,0,1) & (entrydt!=.)
+(30 real changes made)
+
+.         codebook svydate
+
+--------------------------------------------------------------------------------
+svydate                                                              Survey date
+--------------------------------------------------------------------------------
+
+                  type:  numeric daily date (float)
+
+                 range:  [19144,20392]                units:  1
+       or equivalently:  [31may2012,31oct2015]        units:  days
+         unique values:  613                      missing .:  0/25,574
+
+                  mean:   19870.3 = 27may2014 (+ 8 hours)
+              std. dev:   339.667
+
+           percentiles:        10%       25%       50%       75%       90%
+                             19410     19541     19869     20191     20295
+                         21feb2013 02jul2013 26may2014 13apr2015 26jul2015
+
+.         
+. * Month of measurement
+. gen month = month(svydate)
+
+.         label var month "Month of measurement"
+
+. 
+. * Age in days and years
+. gen agedays = svydate-dob
+(2,980 missing values generated)
+
+.         label var agedays "Age in days"
+
+. gen ageyrs = agedays/365.25
+(2,980 missing values generated)
+
+.         label var ageyrs "Age in years"
+
+. codebook ageyrs
+
+--------------------------------------------------------------------------------
+ageyrs                                                              Age in years
+--------------------------------------------------------------------------------
+
+                  type:  numeric (float)
+
+                 range:  [-.11498974,5.5112934]       units:  1.000e-10
+         unique values:  1,906                    missing .:  2,980/25,574
+
+                  mean:   1.86027
+              std. dev:   1.18834
+
+           percentiles:        10%       25%       50%       75%       90%
+                           .572211   .810404   1.77139   2.48049   3.67693
+
+. bysort tchild svy: sum ageyrs, d
+
+--------------------------------------------------------------------------------
+-> tchild = Sibling, svy = 0
+
+                        Age in years
+-------------------------------------------------------------
+      Percentiles      Smallest
+ 1%      .054757              0
+ 5%     .2108145       .0054757
+10%     .4134155       .0082136       Obs               3,678
+25%     .9609856       .0082136       Sum of Wgt.       3,678
+
+50%     1.657769                      Mean           1.622287
+                        Largest       Std. Dev.      .8276926
+75%     2.340863       2.997947
+90%     2.699521       2.997947       Variance        .685075
+95%     2.844627       2.997947       Skewness       -.192705
+99%     2.970568       3.000684       Kurtosis       1.927919
+
+--------------------------------------------------------------------------------
+-> tchild = Sibling, svy = 1
+
+                        Age in years
+-------------------------------------------------------------
+      Percentiles      Smallest
+ 1%     .0602327       .0027379
+ 5%     .2546201       .0027379
+10%     .5065024       .0027379       Obs               4,205
+25%     1.201916       .0054757       Sum of Wgt.       4,205
+
+50%     2.340863                      Mean           2.204936
+                        Largest       Std. Dev.      1.167282
+75%      3.19781        4.22998
+90%     3.701574       4.251882       Variance       1.362546
+95%      3.88501       4.262834       Skewness      -.2142007
+99%     4.087611       4.364134       Kurtosis       1.860849
+
+--------------------------------------------------------------------------------
+-> tchild = Sibling, svy = 2
+
+                        Age in years
+-------------------------------------------------------------
+      Percentiles      Smallest
+ 1%     .0657084       .0027379
+ 5%     .2600958       .0054757
+10%     .5119781       .0054757       Obs               5,297
+25%     1.456537       .0082136       Sum of Wgt.       5,297
+
+50%      2.90486                      Mean           2.759997
+                        Largest       Std. Dev.      1.526777
+75%     4.098563       5.478439
+90%     4.747433       5.494866       Variance       2.331048
+95%     4.960986       5.494866       Skewness      -.1592383
+99%     5.182752       5.511293       Kurtosis       1.783698
+
+--------------------------------------------------------------------------------
+-> tchild = Target child, svy = 1
+
+                        Age in years
+-------------------------------------------------------------
+      Percentiles      Smallest
+ 1%     .4106776      -.1149897
+ 5%      .495551       .1122519
+10%     .5420945       .2217659       Obs               4,747
+25%     .6269678       .2847365       Sum of Wgt.       4,747
+
+50%     .7282683                      Mean            .727928
+                        Largest       Std. Dev.      .1429264
+75%     .8295688         1.1718
+90%     .9144422         1.1718       Variance       .0204279
+95%     .9582478       1.190965       Skewness      -.0180465
+99%     1.043121       1.379877       Kurtosis       3.053651
+
+--------------------------------------------------------------------------------
+-> tchild = Target child, svy = 2
+
+                        Age in years
+-------------------------------------------------------------
+      Percentiles      Smallest
+ 1%     1.555099       1.169062
+ 5%     1.620808       1.327858
+10%     1.664613       1.371663       Obs               4,667
+25%     1.749487       1.409993       Sum of Wgt.       4,667
+
+50%     1.856263                      Mean           1.867853
+                        Largest       Std. Dev.      .1685194
+75%     1.968515       2.833676
+90%     2.080767       3.033539       Variance       .0283988
+95%     2.173854       3.036277       Skewness         .73346
+99%      2.30527       3.173169       Kurtosis       5.294863
+
+
+. 
+. 
+. 
+. *--------------------------------------------
+. * Identify new births using the time between
+. * survey date and enrollment
+. *--------------------------------------------
+. 
+. gen svydate0 = svydate if svy==0
+(18,916 missing values generated)
+
+. gen svydate1 = svydate if svy==1
+(16,622 missing values generated)
+
+. 
+. sort dataid
+
+. by dataid: egen _date0 = min(svydate0)
+
+. by dataid: egen _date1 = min(svydate1)
+(1300 missing values generated)
+
+. 
+. gen double enrolage = (_date0 - dob)/365.25
+(2,980 missing values generated)
+
+. label var enrolage "Age at enrollment, years"
+
+. 
+. gen byte newbirth = enrolage<0
+
+.         label var newbirth "New birth"
+
+. 
+. * create an indicator for non-target new births for easy identification
+. gen byte sibnewbirth = (tchild==0) & (newbirth==1)
+
+.         label var sibnewbirth "Sibling (non-index child) new birth"
+
+. 
+. 
+. *--------------------------------------------
+. * Identify children who were >36 months 
+. * at enrollment
+. *--------------------------------------------
+.         
+. * there was one child where enrollment was on his/her birthday, 
+. * and was exactly 3 years old, so screen >3.01 to retain this child
+. gen byte gt36mos = enrolage>3.01 & enrolage<.
+
+.         label var gt36mos "Older than 36 mos at enrollment"
+
+. tab svy gt36mos
+
+           | Older than
+    Survey | 36 mos at
+     round | enrollment
+   (0,1,2) |         0 |     Total
+-----------+-----------+----------
+         0 |     6,658 |     6,658 
+         1 |     8,952 |     8,952 
+         2 |     9,964 |     9,964 
+-----------+-----------+----------
+     Total |    25,574 |    25,574 
+
+
+. sort dataid childid svy
+
+. * list dataid childid svy svydate dob enrolage gt36mos if enrolage>3 & enrolag
+> e<.
+. 
+. *--------------------------------------------
+. * Diarrhea, defined as 3+ loose/watery stools in 24 hours or 1+ stool with blo
+> od
+. * calculate separate 2-day recall window and 7-day recall window
+. * include the (partial) interview day in the 2-day recall window
+. * to be consistent with the 7-day recall window
+. *
+. * assume for 7d prevalence, that if the child had
+. * prevalent symptoms in the past 2 days that they had symptoms
+. * within the past 7 days (there are a few inconsistent responses)
+. *
+. * likewise, assume that for 2d prevalence if
+. * the child a measurement for the 7d recall
+. * but had missing info for the past 2d
+. * then impute with the 7d recall value
+. *--------------------------------------------
+. 
+. gen byte d3plus2d = (q203a==1) | (q203b==1) | (q203c==1)
+
+.         replace d3plus2d = . if (q203a==.) & (q203b==.) & (q203c==.)
+(5,725 real changes made, 5,725 to missing)
+
+. gen byte d3plus7d = (q203d==1)
+
+.         replace d3plus7d = . if (q203d==.)
+(5,724 real changes made, 5,724 to missing)
+
+.         label var d3plus2d "3+ stools in 24 hr, 2d recall"
+
+.         label var d3plus7d "3+ stools in 24 hr, 7d recall"
+
+. 
+. gen byte dloose2d = (q205a==1) | (q205b==1) | (q205c==1)
+
+.         replace dloose2d = . if (q205a==.) & (q205b==.) & (q205c==.)
+(5,729 real changes made, 5,729 to missing)
+
+. gen byte dloose7d =  (q205d==1)
+
+.         replace dloose7d = . if (q205d==.) 
+(5,735 real changes made, 5,735 to missing)
+
+.         label var dloose2d "loose or watery stool, 2d recall"
+
+.         label var dloose7d "loose or watery stool, 7d recall"
+
+. 
+. gen byte dblood2d = (q206a==1) | (q206b==1) | (q206c==1)
+
+.         replace dblood2d = . if (q206a==.) & (q206b==.) & (q206c==.)
+(5,754 real changes made, 5,754 to missing)
+
+. gen byte dblood7d =  (q206d==1)
+
+.         replace dblood7d = . if (q206d==.) 
+(5,754 real changes made, 5,754 to missing)
+
+.         label var dblood2d "blood in stool, 2d recall"
+
+.         label var dblood7d "blood in stool, 7d recall"
+
+. 
+. gen byte diar2d = (d3plus2d==1 & dloose2d==1) | (dblood2d==1)
+
+.         label var diar2d "Diarrhea case, 2d recall"
+
+.         notes diar2d: Defined as 3+ stools in 24 hrs or 1+ stool w/ blood; inc
+> ludes interview day
+
+.         replace diar2d = . if (d3plus2d==.) & (dloose2d==.) & (dblood2d==.)
+(5,725 real changes made, 5,725 to missing)
+
+.         replace diar2d = . if (d3plus2d==. | dloose2d==.) & (dblood2d==.)     
+>   
+(0 real changes made)
+
+.         
+.         
+. gen byte diar7d = (d3plus7d==1 & dloose7d==1) | (dblood7d==1)
+
+.         label var diar7d "Diarrhea case, 7d recall"
+
+.         notes diar7d: Defined as 3+ stools in 24 hrs or 1+ stool w/ blood; inc
+> ludes interview day
+
+.         replace diar7d = 1 if (diar2d==1) & (diar7d==0 | diar7d==.)
+(35 real changes made)
+
+.         replace diar7d = . if (d3plus7d==.) & (dloose7d==.) & (dblood7d==.) & 
+> (diar2d==.)
+(5,723 real changes made, 5,723 to missing)
+
+.         replace diar7d = . if (d3plus7d==. | dloose7d==.) & (dblood7d==.) & (d
+> iar2d==.) 
+(2 real changes made, 2 to missing)
+
+.         
+.         *drop d3plus* dloose* dblood*
+. 
+.                 
+. tab1 diar2d diar7d, m
+
+-> tabulation of diar2d  
+
+   Diarrhea |
+   case, 2d |
+     recall |      Freq.     Percent        Cum.
+------------+-----------------------------------
+          0 |     19,099       74.68       74.68
+          1 |        750        2.93       77.61
+          . |      5,725       22.39      100.00
+------------+-----------------------------------
+      Total |     25,574      100.00
+
+-> tabulation of diar7d  
+
+   Diarrhea |
+   case, 7d |
+     recall |      Freq.     Percent        Cum.
+------------+-----------------------------------
+          0 |     18,865       73.77       73.77
+          1 |        984        3.85       77.61
+          . |      5,725       22.39      100.00
+------------+-----------------------------------
+      Total |     25,574      100.00
+
+. tab diar2d diar7d, m
+
+  Diarrhea |
+  case, 2d |     Diarrhea case, 7d recall
+    recall |         0          1          . |     Total
+-----------+---------------------------------+----------
+         0 |    18,865        234          0 |    19,099 
+         1 |         0        750          0 |       750 
+         . |         0          0      5,725 |     5,725 
+-----------+---------------------------------+----------
+     Total |    18,865        984      5,725 |    25,574 
+
+
+. 
+. 
+. bysort tchild: tab svy diar7d, row
+
+--------------------------------------------------------------------------------
+-> tchild = Sibling
+
++----------------+
+| Key            |
+|----------------|
+|   frequency    |
+| row percentage |
++----------------+
+
+    Survey |   Diarrhea case, 7d
+     round |        recall
+   (0,1,2) |         0          1 |     Total
+-----------+----------------------+----------
+         0 |     2,899        223 |     3,122 
+           |     92.86       7.14 |    100.00 
+-----------+----------------------+----------
+         1 |     3,153        120 |     3,273 
+           |     96.33       3.67 |    100.00 
+-----------+----------------------+----------
+         2 |     3,866        204 |     4,070 
+           |     94.99       5.01 |    100.00 
+-----------+----------------------+----------
+     Total |     9,918        547 |    10,465 
+           |     94.77       5.23 |    100.00 
+
+
+--------------------------------------------------------------------------------
+-> tchild = Target child
+
++----------------+
+| Key            |
+|----------------|
+|   frequency    |
+| row percentage |
++----------------+
+
+    Survey |   Diarrhea case, 7d
+     round |        recall
+   (0,1,2) |         0          1 |     Total
+-----------+----------------------+----------
+         1 |     4,512        231 |     4,743 
+           |     95.13       4.87 |    100.00 
+-----------+----------------------+----------
+         2 |     4,435        206 |     4,641 
+           |     95.56       4.44 |    100.00 
+-----------+----------------------+----------
+     Total |     8,947        437 |     9,384 
+           |     95.34       4.66 |    100.00 
+
+
+
+. 
+. *--------------------------------------------
+. * do some diagnostics on children missing
+. * diarrhea outcome measurements
+. *--------------------------------------------
+. 
+. * by sibling status
+. tab tchild diar7d, m
+
+Target child |
+    in birth |     Diarrhea case, 7d recall
+      cohort |         0          1          . |     Total
+-------------+---------------------------------+----------
+     Sibling |     9,918        547      5,695 |    16,160 
+Target child |     8,947        437         30 |     9,414 
+-------------+---------------------------------+----------
+       Total |    18,865        984      5,725 |    25,574 
+
+
+. 
+. * by randomization block
+. tab block diar7d, m
+
+Randomizat |     Diarrhea case, 7d recall
+ ion block |         0          1          . |     Total
+-----------+---------------------------------+----------
+         1 |       218         10         72 |       300 
+         2 |       167         15         70 |       252 
+         3 |       156          8         61 |       225 
+         4 |       171          9         68 |       248 
+         5 |       171          6         63 |       240 
+         6 |       202          4         53 |       259 
+         7 |       196          6         62 |       264 
+         8 |       210         13         72 |       295 
+         9 |       193          4         69 |       266 
+        10 |       200          5         71 |       276 
+        11 |       207          5         70 |       282 
+        12 |       189          6         49 |       244 
+        13 |       173          6         56 |       235 
+        14 |       160          2         64 |       226 
+        15 |       162          3         55 |       220 
+        16 |       146          6         55 |       207 
+        17 |       189          6         63 |       258 
+        18 |       187          7         66 |       260 
+        19 |       158          9         59 |       226 
+        20 |       157          4         66 |       227 
+        21 |       154          7         56 |       217 
+        22 |       147          2         56 |       205 
+        23 |       155          6         69 |       230 
+        24 |       172         10         59 |       241 
+        25 |       226          6         47 |       279 
+        26 |       201          7         59 |       267 
+        27 |       242          5         60 |       307 
+        28 |       228          9         51 |       288 
+        29 |       240         14         81 |       335 
+        30 |       186         14         71 |       271 
+        31 |       252         16         73 |       341 
+        32 |       186          9         75 |       270 
+        33 |       213         12         66 |       291 
+        34 |       245         16         70 |       331 
+        35 |       223          6         63 |       292 
+        36 |       273          5         67 |       345 
+        37 |       201          8         62 |       271 
+        38 |       197          5         71 |       273 
+        39 |       261         16         67 |       344 
+        40 |       227         19         67 |       313 
+        41 |       225         15         73 |       313 
+        42 |       235          6         68 |       309 
+        43 |       224         14         71 |       309 
+        44 |       231         16         85 |       332 
+        45 |       225         15         67 |       307 
+        46 |       206         15         65 |       286 
+        47 |       196          9         60 |       265 
+        48 |       268         21         58 |       347 
+        49 |       244         14         54 |       312 
+        50 |       227          8         67 |       302 
+        51 |       213          9         66 |       288 
+        52 |       214         21         56 |       291 
+        53 |       245         10         73 |       328 
+        54 |       219         24         67 |       310 
+        55 |       217         11         66 |       294 
+        56 |       248         10         68 |       326 
+        57 |       193          8         57 |       258 
+        58 |       250         22         52 |       324 
+        59 |       226         21         81 |       328 
+        60 |       260         22         74 |       356 
+        61 |       237         13         63 |       313 
+        62 |       245         23         75 |       343 
+        63 |       230         20         64 |       314 
+        64 |       206         10         49 |       265 
+        65 |       242         11         70 |       323 
+        66 |       269         18         62 |       349 
+        67 |       223          9         49 |       281 
+        68 |       217         22         54 |       293 
+        69 |       267         14         59 |       340 
+        70 |       270         17         73 |       360 
+        71 |       222         12         60 |       294 
+        72 |       178         16         55 |       249 
+        73 |       194         12         57 |       263 
+        74 |       183         16         52 |       251 
+        75 |       144         15         62 |       221 
+        76 |       183         14         52 |       249 
+        77 |       160          7         59 |       226 
+        78 |       150          4         60 |       214 
+        79 |       170         11         56 |       237 
+        80 |       175          7         70 |       252 
+        81 |       255         11         77 |       343 
+        82 |       252         12         77 |       341 
+        83 |       248         10         55 |       313 
+        84 |       223          3         77 |       303 
+        85 |       223          3         56 |       282 
+        86 |       210         12         63 |       285 
+        87 |       222         18         49 |       289 
+        88 |       224          7         61 |       292 
+        89 |       222          4         60 |       286 
+        90 |       214         16         67 |       297 
+-----------+---------------------------------+----------
+     Total |    18,865        984      5,725 |    25,574 
+
+
+. 
+. * by tr status (useful after unblinding)
+. tab tr diar7d, m
+
+     Randomized |
+      treatment |
+     assignment |
+(scrambled/blin |     Diarrhea case, 7d recall
+         ded!!) |         0          1          . |     Total
+----------------+---------------------------------+----------
+        Control |     4,780        227      1,399 |     6,406 
+          Water |     2,249         98        709 |     3,056 
+     Sanitation |     2,355        136        719 |     3,210 
+    Handwashing |     2,370        139        739 |     3,248 
+            WSH |     2,293        105        728 |     3,126 
+      Nutrition |     2,361        117        738 |     3,216 
+Nutrition + WSH |     2,457        162        693 |     3,312 
+----------------+---------------------------------+----------
+          Total |    18,865        984      5,725 |    25,574 
+
+
+. 
+. *--------------------------------------------
+. * create negative control symptom variables
+. *--------------------------------------------
+. gen byte bruise2d = (q211a==1) | (q211b==1) | (q211c==1)
+
+.         replace bruise2d = . if (q211a==.) & (q211b==.) & (q211c==.)
+(5,736 real changes made, 5,736 to missing)
+
+.         label var bruise2d "Bruising, 2d recall"
+
+. gen byte bruise7d = (q211d==1)
+
+.         replace bruise7d = . if (q211d==.)
+(5,743 real changes made, 5,743 to missing)
+
+.         replace bruise7d = 1 if (bruise2d==1) & (bruise7d==0 | bruise7d==.)
+(27 real changes made)
+
+.         label var bruise7d "Bruising, 7d recall"
+
+. gen byte tooth2d = (q212a==1) | (q212b==1) | (q212c==1)
+
+.         replace tooth2d = . if (q212a==.) & (q212b==.) & (q212c==.)
+(5,738 real changes made, 5,738 to missing)
+
+.         label var tooth2d "Toothache, 2d recall"
+
+. gen byte tooth7d = (q212d==1)
+
+.         replace tooth7d = . if (q212d==.)
+(5,740 real changes made, 5,740 to missing)
+
+.         replace tooth7d = 1 if (tooth2d==1) & (tooth7d==0 | tooth7d==.)
+(1 real change made)
+
+.         label var tooth7d "Toothache, 7d recall"
+
+.         
+. *--------------------------------------------
+. * Save a diarrhea dataset
+. *--------------------------------------------
+. 
+. label var dataid "Unique compound ID"
+
+. label var hhid "Household ID"
+
+. label var childid "Child ID"
+
+. label var clusterid "Cluster ID"
+
+. label var block "Randomization block ID"
+
+. 
+. 
+. label define sex 0 "female" 1 "male"
+
+. label values sex sex
+
+. label var sex "Sex (1=male)"
+
+. 
+. 
+. * restrict to identifying vars and child level variables
+. keep dataid childid tchild clusterid block tr svy svydate month sex dob ageday
+> s ageyrs enrolage newbirth sibnewbirth gt36mos  d3plus* dloose* dblood* diar2d
+>  diar7d bruise* tooth*
+
+. order  dataid childid tchild clusterid block tr svy svydate month sex dob aged
+> ays ageyrs enrolage newbirth sibnewbirth gt36mos d3plus* dloose* dblood* diar2
+> d diar7d bruise* tooth*
+
+. 
+. * drop households at enrollment with no target children and no siblings
+. assert svy==0 if childid==""
+
+. keep if childid!=""
+(2,980 observations deleted)
+
+. compress
+  variable block was long now byte
+  variable tr was long now byte
+  variable svy was float now byte
+  variable svydate was float now int
+  variable month was float now byte
+  variable agedays was float now int
+  variable dob was double now int
+  (497,068 bytes saved)
+
+. sort dataid childid 
+
+. label data "Bangladesh diarrhea dataset, created by 3-bangladesh-dm-diar.do"
+
+. saveold "~/dropbox/WASHB-Bangladesh-Data/1-primary-outcome-datasets/washb-bang
+> ladesh-diar.dta", replace version(12)
+(saving in Stata 12 format, which can be read by Stata 11 or 12)
+file ~/dropbox/WASHB-Bangladesh-Data/1-primary-outcome-datasets/washb-bangladesh
+> -diar.dta saved
+
+. outsheet using "~/dropbox/WASHB-Bangladesh-Data/1-primary-outcome-datasets/was
+> hb-bangladesh-diar.csv", comma replace
+
+. 
+. 
+. * write a codebook for the dataset
+. log close
+      name:  <unnamed>
+       log:  /Users/benarnold/WASHB-Bangladesh-primary-outcomes/src/dm/3-banglad
+> esh-dm-diar.log
+  log type:  text
+ closed on:  17 Aug 2016, 13:46:26
+--------------------------------------------------------------------------------
