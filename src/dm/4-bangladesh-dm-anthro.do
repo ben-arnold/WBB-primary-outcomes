@@ -598,8 +598,8 @@ label var clusterid "Cluster ID"
 label var block "Randomization block ID"
 
 * restrict to variables used in the analysis
-keep dataid childid motherid tchild clusterid block tr svy anthrodate month c404-c406 c408-c410 c411-c413 c414-c416 c418-c420 sex birthord aged agem agey weight length headcir laz* waz* whz* bmiz* hcz* 
-order dataid childid motherid tchild clusterid block tr svy anthrodate month c404-c406 c408-c410 c411-c413 c414-c416 c418-c420 sex birthord aged agem agey weight length headcir laz* waz* whz* bmiz* hcz*
+keep dataid childid motherid tchild clusterid block tr svy anthrodate month c404-c406 c408-c410 c411-c413 c414-c416 c418-c420 sex birthord dob aged agem agey weight length headcir laz* waz* whz* bmiz* hcz* 
+order dataid childid motherid tchild clusterid block tr svy anthrodate month c404-c406 c408-c410 c411-c413 c414-c416 c418-c420 sex birthord dob aged agem agey weight length headcir laz* waz* whz* bmiz* hcz*
 
 *** DROP TREATMENT ASSIGNMENTS to keep the data fully blinded (analyses can merge in treatement)
 drop tr

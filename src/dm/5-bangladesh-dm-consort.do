@@ -106,7 +106,7 @@ drop _merge
 compress
 sort dataid
 
-*** DROP TREATMENT ASSIGNMENTS just to keep this easier
+*** DROP TREATMENT ASSIGNMENTS to keep the data fully blinded (analyses can merge in treatement)
 drop tr
 
 label data "WASH Benefits Bangladesh tracking file, compounds"
