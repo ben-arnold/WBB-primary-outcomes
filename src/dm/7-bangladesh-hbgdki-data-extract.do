@@ -3,7 +3,7 @@ set more off
 clear all
 
 
-log using "~/WBBpa/src/dm/7-bangladesh-hbgdki-data-extract.log", text replace
+log using "~/WASHB-Bangladesh-primary-outcomes/src/dm/7-bangladesh-hbgdki-data-extract.log", text replace
 
 *--------------------------------------------
 * 7-bangladesh-hbgdki-data-extract.do
@@ -21,15 +21,21 @@ log using "~/WBBpa/src/dm/7-bangladesh-hbgdki-data-extract.log", text replace
 *--------------------------------------------
 * input files:
 *  final/washb-bangladesh-enrol.dta
+*  final/washb-bangladesh-anthro.dta
+*  final/washb-bangladesh-diar.dta
+*  final/washb-bangladesh-tr.dta
 *
 * output files:
 *  HBGDki-extract/washb-bangladesh-hbgdki-enrol.dta / .csv
+*  HBGDki-extract/washb-bangladesh-hbgdki-anthro.dta / .csv
+*  HBGDki-extract/washb-bangladesh-hbgdki-diar.dta / .csv
+*  HBGDki-extract/washb-bangladesh-hbgdki-tr.dta / .csv
 *--------------------------------------------
 
 *--------------------------------------------
 * loss to follow-up dataset
 *--------------------------------------------
-use "~/dropbox/wbb-primary-analysis/data/final/ben/washb-bangladesh-track-compound.dta", clear
+use "~/dropbox/WASHB-Bangladesh-Data/1-primary-outcome-datasets/washb-bangladesh-track-compound.dta", clear
 
 keep dataid miss1* miss2*
 sort dataid
@@ -41,7 +47,7 @@ save `track'
 * enrollment dataset
 *--------------------------------------------
 
-use "~/dropbox/wbb-primary-analysis/data/final/ben/washb-bangladesh-enrol.dta", clear
+use "~/dropbox/WASHB-Bangladesh-Data/1-primary-outcome-datasets/washb-bangladesh-enrol.dta", clear
 
 * drop union names
 label drop q4008_lbl
@@ -79,7 +85,7 @@ codebook
 log close
 
 
-log using "~/WBBpa/src/dm/7-bangladesh-hbgdki-data-extract.log", text append
+log using "~/WASHB-Bangladesh-primary-outcomes/src/dm/7-bangladesh-hbgdki-data-extract.log", text append
 *--------------------------------------------
 * anthropometry dataset
 *--------------------------------------------
@@ -110,7 +116,7 @@ codebook
 log close
 
 
-log using "~/WBBpa/src/dm/7-bangladesh-hbgdki-data-extract.log", text append
+log using "~/WASHB-Bangladesh-primary-outcomes/src/dm/7-bangladesh-hbgdki-data-extract.log", text append
 *--------------------------------------------
 * diarrhea dataset
 *--------------------------------------------
@@ -130,6 +136,32 @@ codebook, c
 * write a codebook for the dataset
 log close
 log using "~/dropbox/WBB-primary-analysis/data/HBGDki-extract/washb-bangladesh-hbgdki-diar-codebook.txt", text replace
+desc
+notes
+codebook, c
+codebook
+log close
+
+
+log using "~/WASHB-Bangladesh-primary-outcomes/src/dm/7-bangladesh-hbgdki-data-extract.log", text append
+*--------------------------------------------
+* unblinded treatment assignment dataset
+* (password protected - must mount disc img)
+*--------------------------------------------
+use "/Volumes/0-Treatment-assignments/washb-bangladesh-tr.dta", clear
+
+drop tr
+order clusterid block
+sort clusterid
+
+saveold "~/dropbox/WBB-primary-analysis/data/HBGDki-extract/washb-bangladesh-hbgdki-tr.dta", replace version(12)
+outsheet using "~/dropbox/WBB-primary-analysis/data/HBGDki-extract/washb-bangladesh-hbgdki-tr.csv", comma replace
+desc
+codebook, c
+
+* write a codebook for the dataset
+log close
+log using "~/dropbox/WBB-primary-analysis/data/HBGDki-extract/washb-bangladesh-hbgdki-tr-codebook.txt", text replace
 desc
 notes
 codebook, c

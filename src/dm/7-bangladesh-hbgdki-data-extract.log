@@ -1,8 +1,9 @@
-----------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
       name:  <unnamed>
-       log:  /Users/benarnold/WBBpa/src/dm/7-bangladesh-hbgdki-data-extract.log
+       log:  /Users/benarnold/WASHB-Bangladesh-primary-outcomes/src/dm/7-banglad
+> esh-hbgdki-data-extract.log
   log type:  text
- opened on:  20 Jul 2016, 06:47:33
+ opened on:   8 Sep 2016, 13:19:05
 
 . 
 . *--------------------------------------------
@@ -21,16 +22,22 @@
 . *--------------------------------------------
 . * input files:
 . *  final/washb-bangladesh-enrol.dta
+. *  final/washb-bangladesh-anthro.dta
+. *  final/washb-bangladesh-diar.dta
+. *  final/washb-bangladesh-tr.dta
 . *
 . * output files:
 . *  HBGDki-extract/washb-bangladesh-hbgdki-enrol.dta / .csv
+. *  HBGDki-extract/washb-bangladesh-hbgdki-anthro.dta / .csv
+. *  HBGDki-extract/washb-bangladesh-hbgdki-diar.dta / .csv
+. *  HBGDki-extract/washb-bangladesh-hbgdki-tr.dta / .csv
 . *--------------------------------------------
 . 
 . *--------------------------------------------
 . * loss to follow-up dataset
 . *--------------------------------------------
-. use "~/dropbox/wbb-primary-analysis/data/final/ben/washb-bangladesh-track-compound.dta
-> ", clear
+. use "~/dropbox/WASHB-Bangladesh-Data/1-primary-outcome-datasets/washb-banglade
+> sh-track-compound.dta", clear
 (WASH Benefits Bangladesh tracking file, compounds)
 
 . 
@@ -41,7 +48,7 @@
 . tempfile track
 
 . save `track'
-file /var/folders/bp/zslz_kn157v3zs98sv57pflc0000gn/T//S_57358.000001 saved
+file /var/folders/1g/dryqjv753dv7rgwhzs2lyl140000gp/T//S_21532.000001 saved
 
 . 
 . 
@@ -49,8 +56,10 @@ file /var/folders/bp/zslz_kn157v3zs98sv57pflc0000gn/T//S_57358.000001 saved
 . * enrollment dataset
 . *--------------------------------------------
 . 
-. use "~/dropbox/wbb-primary-analysis/data/final/ben/washb-bangladesh-enrol.dta", clear
-(Bangladesh enrollment analysis dataset (HH obs), created by 2-bangladesh-dm-enro)
+. use "~/dropbox/WASHB-Bangladesh-Data/1-primary-outcome-datasets/washb-banglade
+> sh-enrol.dta", clear
+(Bangladesh enrollment analysis dataset (HH obs), created by 2-bangladesh-dm-enr
+> o)
 
 . 
 . * drop union names
@@ -82,47 +91,48 @@ file /var/folders/bp/zslz_kn157v3zs98sv57pflc0000gn/T//S_57358.000001 saved
 
 . 
 . * add some additional notes
-. notes odch815 : Open defecation among children missing if no children in that age rang
-> e in household
+. notes odch815 : Open defecation among children missing if no children in that 
+> age range in household
 
-. notes odch38 : Open defecation among children missing if no children in that age range
->  in household
+. notes odch38 : Open defecation among children missing if no children in that a
+> ge range in household
 
-. notes odchu3 : Open defecation among children missing if no children in that age range
->  in household
+. notes odchu3 : Open defecation among children missing if no children in that a
+> ge range in household
 
 . notes asset_clock : Clock measurement missing in 2,859 households
 
 . 
-. saveold "~/dropbox/WBB-primary-analysis/data/HBGDki-extract/washb-bangladesh-hbgdki-en
-> rol.dta", replace version(12)
+. saveold "~/dropbox/WBB-primary-analysis/data/HBGDki-extract/washb-bangladesh-h
+> bgdki-enrol.dta", replace version(12)
 (saving in Stata 12 format, which can be read by Stata 11 or 12)
-file ~/dropbox/WBB-primary-analysis/data/HBGDki-extract/washb-bangladesh-hbgdki-enrol.dt
-> a saved
+file ~/dropbox/WBB-primary-analysis/data/HBGDki-extract/washb-bangladesh-hbgdki-
+> enrol.dta saved
 
-. outsheet using "~/dropbox/WBB-primary-analysis/data/HBGDki-extract/washb-bangladesh-hb
-> gdki-enrol.csv", comma replace
+. outsheet using "~/dropbox/WBB-primary-analysis/data/HBGDki-extract/washb-bangl
+> adesh-hbgdki-enrol.csv", comma replace
 
 . desc
 
-Contains data from ~/dropbox/WBB-primary-analysis/data/HBGDki-extract/washb-bangladesh-h
-> bgdki-enrol.dta
-  obs:         5,551                          Bangladesh enrollment analysis dataset
-                                                (HH obs), created by
+Contains data from ~/dropbox/WBB-primary-analysis/data/HBGDki-extract/washb-bang
+> ladesh-hbgdki-enrol.dta
+  obs:         5,551                          Bangladesh enrollment analysis
+                                                dataset (HH obs), created by
                                                 2-bangladesh-dm-enro
- vars:            74                          20 Jul 2016 06:47
- size:       521,794                          
-----------------------------------------------------------------------------------------
+ vars:            73                          8 Sep 2016 13:19
+ size:       516,243                          
+--------------------------------------------------------------------------------
               storage   display    value
 variable name   type    format     label      variable label
-----------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
 dataid          str5    %5s                   dataid
 clusterid       str3    %9s                   Cluster ID
 union           int     %18.0g     q4008_lbl
                                               Administrative union (q4008)
 fracode         str6    %6s                   FRA code (q4001)
 svydate         int     %d                    Survey date
-Nhh             byte    %9.0g                 Number of persons in household (q012)
+Nhh             byte    %9.0g                 Number of persons in household
+                                                (q012)
 Nlt18           byte    %9.0g                 N indivs in HH <=18y
 Ncomp           byte    %9.0g                 Total indivs in compound
 momage          byte    %9.0g                 Mother's age, years
@@ -134,45 +144,50 @@ dadagri         byte    %9.0g                 Father works in agriculture (q011)
 landacre        float   %9.0g                 Acres of land owned (q4110)
 hfias           byte    %8.0g                 HFIAs food insecurity score (0-27)
 hfiacat         byte    %24.0g     hfiacat    HFIAS food insecurity category
-tubewell        byte    %8.0g                 Primary water source: shallow tubewell
-                                                (q1010)
-watmin          int     %9.0g                 Dist (mins) to primary water source
+tubewell        byte    %8.0g                 Primary water source: shallow
+                                                tubewell (q1010)
+watmin          int     %9.0g                 Dist (mins) to primary water
+                                                source
 storewat        byte    %8.0g                 Store drinking water (q1003)
-treatwat        byte    %8.0g                 Reported treating water today or yesterday
-                                                (q1008)
 odmen           byte    %8.0g                 Daily OD, adult men (q801a)
 odwom           byte    %8.0g                 Daily OD, adult women (q801b)
 odch815         byte    %8.0g               * Daily OD, children 8-15 (q801e)
 odch38          byte    %8.0g               * Daily OD, children 3-8 (q801d)
 odchu3          byte    %8.0g               * Daily OD, children <3 (q801c)
-latown          byte    %8.0g                 Own their latrine (not shared) (q816)
+latown          byte    %8.0g                 Own their latrine (not shared)
+                                                (q816)
 latslab         byte    %8.0g                 Latrine has concrete slab (q809_7)
 latseal         byte    %8.0g                 Latrine has functional water seal
                                                 (q809_9a)
-latfeces        byte    %8.0g                 No visible feces on slab/floor of latrine
-potty           byte    %8.0g                 Has a potty for child defecation
-humfeces        byte    %8.0g                 Human feces observed in house/compound
-                                                (q4201,4203,4205)
-humfecesch      byte    %8.0g                 Human feces obs in loc where child spends
-                                                most time (q4203)
-hwlat           byte    %8.0g                 Has handwashing loc w/in 6 steps of
+latfeces        byte    %8.0g                 No visible feces on slab/floor of
                                                 latrine
-hwlatwat        byte    %8.0g                 Has handwashing loc w/in 6 steps of
-                                                latrine w/ water
-hwlatsoap       byte    %8.0g                 Has handwashing loc w/in 6 steps of
-                                                latrine w/ soap
-hwkit           byte    %8.0g                 Has handwashing loc w/in 6 steps of
-                                                kitchen
-hwkitwat        byte    %8.0g                 Has handwashing loc w/in 6 steps of
-                                                kitchen w/ water
-hwkitsoap       byte    %8.0g                 Has handwashing loc w/in 6 steps of
-                                                kitchen w/ soap
-hwsw            byte    %8.0g                 Prim handwashing loc has water (q704_1)
-hwss            byte    %8.0g                 Prim handwashing loc has soap (q704_2-6)
-hwsws           byte    %8.0g                 Prim handwashing loc has water+soap
-                                                (q704_1-6)
-roof            byte    %8.0g                 Improved roof material (tin, cement)
-walls           byte    %8.0g                 Improved wall material (wood, brick, tin)
+potty           byte    %8.0g                 Has a potty for child defecation
+humfeces        byte    %8.0g                 Human feces observed in
+                                                house/compound (q4201,4203,4205)
+humfecesch      byte    %8.0g                 Human feces obs in loc where child
+                                                spends most time (q4203)
+hwlat           byte    %8.0g                 Has handwashing loc w/in 6 steps
+                                                of latrine
+hwlatwat        byte    %8.0g                 Has handwashing loc w/in 6 steps
+                                                of latrine w/ water
+hwlatsoap       byte    %8.0g                 Has handwashing loc w/in 6 steps
+                                                of latrine w/ soap
+hwkit           byte    %8.0g                 Has handwashing loc w/in 6 steps
+                                                of kitchen
+hwkitwat        byte    %8.0g                 Has handwashing loc w/in 6 steps
+                                                of kitchen w/ water
+hwkitsoap       byte    %8.0g                 Has handwashing loc w/in 6 steps
+                                                of kitchen w/ soap
+hwsw            byte    %8.0g                 Prim handwashing loc has water
+                                                (q704_1)
+hwss            byte    %8.0g                 Prim handwashing loc has soap
+                                                (q704_2-6)
+hwsws           byte    %8.0g                 Prim handwashing loc has
+                                                water+soap (q704_1-6)
+roof            byte    %8.0g                 Improved roof material (tin,
+                                                cement)
+walls           byte    %8.0g                 Improved wall material (wood,
+                                                brick, tin)
 floor           byte    %8.0g                 Improved floor (wood, concrete)
 cement          byte    %8.0g                 Has cement floor (q4103)
 elec            byte    %8.0g                 Household has electricity
@@ -201,72 +216,73 @@ n_asset_chouki  byte    %8.0g                 number of chouki
 n_asset_mobile  byte    %8.0g                 number of mobile phone
 miss1           byte    %9.0g                 Not measured at year 1
 miss1reason     byte    %13.0g     missreason
-                                              Reason for no measurement in year 1
+                                              Reason for no measurement in year
+                                                1
 miss2           byte    %9.0g                 Not measured at year 2
 miss2reason     byte    %13.0g     missreason
-                                              Reason for no measurement in year 2
+                                              Reason for no measurement in year
+                                                2
                                             * indicated variables have notes
-----------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
 Sorted by: dataid
 
 . codebook, c
 
 Variable       Obs Unique      Mean     Min    Max  Label
-----------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
 dataid        5551   5551         .       .      .  dataid
 clusterid     5551    720         .       .      .  Cluster ID
 union         5551    139  66.74851       1    139  Administrative union (q4008)
 fracode       5551     28         .       .      .  FRA code (q4001)
 svydate       5551    209  19410.03   19144  19546  Survey date
-Nhh           5551     21  4.680958       1     23  Number of persons in household (q...
+Nhh           5551     21  4.680958       1     23  Number of persons in hous...
 Nlt18         5551     11  1.593046       0     10  N indivs in HH <=18y
 Ncomp         5551     44  10.99784       2     52  Total indivs in compound
 momage        5531     33  23.76749      14     60  Mother's age, years
 momheight     4811    702  150.5354  120.65    168  Maternal height (median)
-momedu        5551      3  1.373086       0      2  Mother's education (category)
-momeduy       5551     18  5.815889       0     17  Mother, years of education (q009)
-dadeduy       5539     18  4.854306       0     17  Father, years of education (q010)
-dadagri       5549      2  .3146513       0      1  Father works in agriculture (q011)
+momedu        5551      3  1.373086       0      2  Mother's education (categ...
+momeduy       5551     18  5.815889       0     17  Mother, years of educatio...
+dadeduy       5539     18  4.854306       0     17  Father, years of educatio...
+dadagri       5549      2  .3146513       0      1  Father works in agricultu...
 landacre      5258    105  .1455725       0   8.88  Acres of land owned (q4110)
-hfias         5551     24  1.901099       0     24  HFIAs food insecurity score (0-27)
-hfiacat       5551      4  1.569267       1      4  HFIAS food insecurity category
-tubewell      5551      2  .7400468       0      1  Primary water source: shallow tub...
-watmin        5551     22  .9351468       0    600  Dist (mins) to primary water source
+hfias         5551     24  1.901099       0     24  HFIAs food insecurity sco...
+hfiacat       5551      4  1.569267       1      4  HFIAS food insecurity cat...
+tubewell      5551      2  .7400468       0      1  Primary water source: sha...
+watmin        5551     22  .9351468       0    600  Dist (mins) to primary wa...
 storewat      5551      2  .4761304       0      1  Store drinking water (q1003)
-treatwat      5551      2  .0014412       0      1  Reported treating water today or ...
 odmen         5446      2  .0762027       0      1  Daily OD, adult men (q801a)
-odwom         5547      2  .0425455       0      1  Daily OD, adult women (q801b)
-odch815       2295      2  .1002179       0      1  Daily OD, children 8-15 (q801e)
-odch38        2854      2   .379117       0      1  Daily OD, children 3-8 (q801d)
-odchu3        1158      2   .835924       0      1  Daily OD, children <3 (q801c)
-latown        5551      2  .5361196       0      1  Own their latrine (not shared) (q...
-latslab       5313      2  .9371353       0      1  Latrine has concrete slab (q809_7)
-latseal       4671      2  .2932991       0      1  Latrine has functional water seal...
-latfeces      5202      2  .4921184       0      1  No visible feces on slab/floor of...
-potty         5549      2  .0439719       0      1  Has a potty for child defecation
-humfeces      5545      2  .0829576       0      1  Human feces observed in house/com...
-humfecesch    5542      2  .0113677       0      1  Human feces obs in loc where chil...
-hwlat         5551      2  .1138534       0      1  Has handwashing loc w/in 6 steps ...
-hwlatwat      5069      2  .1195502       0      1  Has handwashing loc w/in 6 steps ...
-hwlatsoap     5069      2  .0654962       0      1  Has handwashing loc w/in 6 steps ...
-hwkit         5551      2  .0990812       0      1  Has handwashing loc w/in 6 steps ...
-hwkitwat      5069      2  .0877885       0      1  Has handwashing loc w/in 6 steps ...
-hwkitsoap     5069      2  .0260406       0      1  Has handwashing loc w/in 6 steps ...
-hwsw          5069      2  .9420004       0      1  Prim handwashing loc has water (q...
-hwss          5069      2  .2351549       0      1  Prim handwashing loc has soap (q7...
-hwsws         5069      2  .2337739       0      1  Prim handwashing loc has water+so...
-roof          5551      2  .9855882       0      1  Improved roof material (tin, cement)
-walls         5551      2  .7191497       0      1  Improved wall material (wood, bri...
-floor         5551      2  .1050261       0      1  Improved floor (wood, concrete)
+odwom         5547      2  .0425455       0      1  Daily OD, adult women (q8...
+odch815       2295      2  .1002179       0      1  Daily OD, children 8-15 (...
+odch38        2854      2   .379117       0      1  Daily OD, children 3-8 (q...
+odchu3        1158      2   .835924       0      1  Daily OD, children <3 (q8...
+latown        5551      2  .5361196       0      1  Own their latrine (not sh...
+latslab       5313      2  .9371353       0      1  Latrine has concrete slab...
+latseal       4671      2  .2932991       0      1  Latrine has functional wa...
+latfeces      5202      2  .4921184       0      1  No visible feces on slab/...
+potty         5549      2  .0439719       0      1  Has a potty for child def...
+humfeces      5545      2  .0829576       0      1  Human feces observed in h...
+humfecesch    5542      2  .0113677       0      1  Human feces obs in loc wh...
+hwlat         5551      2  .1138534       0      1  Has handwashing loc w/in ...
+hwlatwat      5069      2  .1195502       0      1  Has handwashing loc w/in ...
+hwlatsoap     5069      2  .0654962       0      1  Has handwashing loc w/in ...
+hwkit         5551      2  .0990812       0      1  Has handwashing loc w/in ...
+hwkitwat      5069      2  .0877885       0      1  Has handwashing loc w/in ...
+hwkitsoap     5069      2  .0260406       0      1  Has handwashing loc w/in ...
+hwsw          5069      2  .9420004       0      1  Prim handwashing loc has ...
+hwss          5069      2  .2351549       0      1  Prim handwashing loc has ...
+hwsws         5069      2  .2337739       0      1  Prim handwashing loc has ...
+roof          5551      2  .9855882       0      1  Improved roof material (t...
+walls         5551      2  .7191497       0      1  Improved wall material (w...
+floor         5551      2  .1050261       0      1  Improved floor (wood, con...
 cement        5551      2  .1050261       0      1  Has cement floor (q4103)
 elec          5551      2  .5883625       0      1  Household has electricity
 asset_radio   5551      2  .0407134       0      1  households have radio
-asset_tvbw    5551      2  .0816069       0      1  households have B/W television
-asset_tvcol   5551      2  .2277067       0      1  households have color television
+asset_tvbw    5551      2  .0816069       0      1  households have B/W telev...
+asset_tvcol   5551      2  .2277067       0      1  households have color tel...
 asset_refrig  5551      2  .0787246       0      1  households have Refrigerator
 asset_bike    5551      2  .3107548       0      1  households have bicycle
 asset_moto    5551      2  .0652135       0      1  households have motorcycle
-asset_sewm~h  5551      2  .0641326       0      1  households have sewing machine
+asset_sewm~h  5551      2  .0641326       0      1  households have sewing ma...
 asset_phone   5551      3  .0045037       0      9  number of land phone
 asset_tv      5551      2  .2992254       0      1  Has bw or color TV
 asset_ward~e  5551      2  .1650153       0      1  Has >=1 wardrobe
@@ -284,31 +300,35 @@ n_asset_khat  5551     11  1.032066       0     10  number of Khat
 n_asset_ch~i  5551      7  1.239596       0      6  number of chouki
 n_asset_mo~e  5551     12  1.556656       0     13  number of mobile phone
 miss1         5551      2  .1500631       0      1  Not measured at year 1
-miss1reason   5551      6  .4168618       0      5  Reason for no measurement in year 1
+miss1reason   5551      6  .4168618       0      5  Reason for no measurement...
 miss2         5551      2  .1642947       0      1  Not measured at year 2
-miss2reason   5551      6  .4570348       0      5  Reason for no measurement in year 2
-----------------------------------------------------------------------------------------
+miss2reason   5551      6  .4570348       0      5  Reason for no measurement...
+--------------------------------------------------------------------------------
 
 . 
 . * write a codebook for the dataset
 . log close
       name:  <unnamed>
-       log:  /Users/benarnold/WBBpa/src/dm/7-bangladesh-hbgdki-data-extract.log
+       log:  /Users/benarnold/WASHB-Bangladesh-primary-outcomes/src/dm/7-banglad
+> esh-hbgdki-data-extract.log
   log type:  text
- closed on:  20 Jul 2016, 06:47:34
-----------------------------------------------------------------------------------------
-----------------------------------------------------------------------------------------
+ closed on:   8 Sep 2016, 13:19:06
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
       name:  <unnamed>
-       log:  /Users/benarnold/WBBpa/src/dm/7-bangladesh-hbgdki-data-extract.log
+       log:  /Users/benarnold/WASHB-Bangladesh-primary-outcomes/src/dm/7-banglad
+> esh-hbgdki-data-extract.log
   log type:  text
- opened on:  20 Jul 2016, 06:47:35
+ opened on:   8 Sep 2016, 13:19:07
 
 . *--------------------------------------------
 . * anthropometry dataset
 . *--------------------------------------------
 . 
-. use "~/dropbox/wbb-primary-analysis/data/final/ben/washb-bangladesh-anthro.dta", clear
-(Bangladesh anthropometry analysis dataset, created by 4-bangladesh-dm-anthro.do)
+. use "~/dropbox/wbb-primary-analysis/data/final/ben/washb-bangladesh-anthro.dta
+> ", clear
+(Bangladesh anthropometry analysis dataset, created by 4-bangladesh-dm-anthro.do
+> )
 
 . 
 . 
@@ -317,38 +337,38 @@ miss2reason   5551      6  .4570348       0      5  Reason for no measurement in
 
 . 
 . * add some additional notes
-. note: Anthropometry measurements collected at approximately 1 and 2 years after interv
-> ention (svy=1|2)
+. note: Anthropometry measurements collected at approximately 1 and 2 years afte
+> r intervention (svy=1|2)
 
-. note: Anthropometry Z-scores calculated using the zscore06 Stata macro (laz, waz, whz,
->  bmiz) and the WHO igrowup Stata macro (hcz)
+. note: Anthropometry Z-scores calculated using the zscore06 Stata macro (laz, w
+> az, whz, bmiz) and the WHO igrowup Stata macro (hcz)
 
-. note birthord: Birth order measured at year 2 and is missing for children not present 
-> at year 2
+. note birthord: Birth order measured at year 2 and is missing for children not 
+> present at year 2
 
 . 
-. saveold "~/dropbox/WBB-primary-analysis/data/HBGDki-extract/washb-bangladesh-hbgdki-an
-> thro.dta", replace version(12)
+. saveold "~/dropbox/WBB-primary-analysis/data/HBGDki-extract/washb-bangladesh-h
+> bgdki-anthro.dta", replace version(12)
 (saving in Stata 12 format, which can be read by Stata 11 or 12)
-file ~/dropbox/WBB-primary-analysis/data/HBGDki-extract/washb-bangladesh-hbgdki-anthro.d
-> ta saved
+file ~/dropbox/WBB-primary-analysis/data/HBGDki-extract/washb-bangladesh-hbgdki-
+> anthro.dta saved
 
-. outsheet using "~/dropbox/WBB-primary-analysis/data/HBGDki-extract/washb-bangladesh-hb
-> gdki-anthro.csv", comma replace
+. outsheet using "~/dropbox/WBB-primary-analysis/data/HBGDki-extract/washb-bangl
+> adesh-hbgdki-anthro.csv", comma replace
 
 . desc
 
-Contains data from ~/dropbox/WBB-primary-analysis/data/HBGDki-extract/washb-bangladesh-h
-> bgdki-anthro.dta
-  obs:         9,341                          Bangladesh anthropometry analysis
-                                                dataset, created by
+Contains data from ~/dropbox/WBB-primary-analysis/data/HBGDki-extract/washb-bang
+> ladesh-hbgdki-anthro.dta
+  obs:         9,341                          Bangladesh anthropometry
+                                                analysis dataset, created by
                                                 4-bangladesh-dm-anthro.do
- vars:            47                          20 Jul 2016 06:47
+ vars:            47                          8 Sep 2016 13:19
  size:     2,055,020                          (_dta has notes)
-----------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
               storage   display    value
 variable name   type    format     label      variable label
-----------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
 dataid          str5    %5s                   Compound ID
 childid         str2    %9s                   Child ID
 motherid        str2    %2s                   Mother ID
@@ -379,13 +399,15 @@ agem            double  %10.0g                Age in months (anthro meas)
 agey            double  %10.0g                Age in years (anthro meas)
 weight          float   %9.0g               * Child weight (median), kg
 length          float   %9.0g               * Child length (median), cm
-headcir         float   %9.0g               * Child head circumference (median), cm
+headcir         float   %9.0g               * Child head circumference (median),
+                                                cm
 laz             double  %10.0g                Length/height-for-age Z-score
 laz_x           byte    %9.0g                 abs(LAZ)>6, set to missing
 lazminus2       byte    %8.0g                 Stunted (LAZ<-2)
 lazminus3       byte    %8.0g                 Severely Stunted (LAZ<-3)
 waz             double  %10.0g                Weight-for-age Z-score
-waz_x           byte    %9.0g                 WAZ < -6 or WAZ > 5, set to missing
+waz_x           byte    %9.0g                 WAZ < -6 or WAZ > 5, set to
+                                                missing
 wazminus2       byte    %8.0g                 Underweight (WAZ<-2)
 wazminus3       byte    %8.0g                 Severely Underweight (WAZ<-3)
 whz             double  %10.0g                Weight-for-length/height Z-score
@@ -397,81 +419,84 @@ bmiz_x          byte    %9.0g                 abs(BMIZ)>5, set to missing
 hcz             double  %10.0g                Head circumference-for-age z-score
 hcz_x           byte    %9.0g                 abs(HCZ)>5, set to missing
                                             * indicated variables have notes
-----------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
 Sorted by: dataid  childid  svy
 
 . codebook, c
 
 Variable     Obs Unique       Mean       Min       Max  Label
-----------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
 dataid      9341   4845          .         .         .  Compound ID
 childid     9341      2          .         .         .  Child ID
 motherid    4708      8          .         .         .  Mother ID
-tchild      9341      1          1         1         1  Target child in birth cohort
+tchild      9341      1          1         1         1  Target child in birth...
 clusterid   9341    720          .         .         .  Cluster ID
 svy         9341      2   1.495985         1         2  Survey round (0,1,2)
-anthrodate  9341    432   20014.88     19616     20416  Date of anthro measurement
+anthrodate  9341    432   20014.88     19616     20416  Date of anthro measur...
 month       9341     12   6.083289         1        12  Month of measurement
 c404        9326    853   46.13421     26.15        90  Maternal weight meas 1
 c405        9325    849   46.13752      26.2        90  Maternal weight meas 2
 c406        1909    614    46.9841      27.7     82.65  Maternal weight meas 3
-c408        7242    850     54.083     33.25     92.95  Child weight w/ mother meas 1
-c409        7242    858   54.08475     33.05     92.75  Child weight w/ mother meas 2
-c410        2127    670   54.66467     33.15     92.95  Child weight w/ mother meas 3
+c408        7242    850     54.083     33.25     92.95  Child weight w/ mothe...
+c409        7242    858   54.08475     33.05     92.75  Child weight w/ mothe...
+c410        2127    670   54.66467     33.15     92.95  Child weight w/ mothe...
 c411        2099    152   9.862292       5.2        19  Child weight meas 1
 c412        2099    149   9.864845       5.2        19  Child weight meas 2
 c413          66     46   10.54015      8.25     14.35  Child weight meas 3
 c414        9341    351   78.84865      42.1     999.9  Child length meas 1
 c415        9341    351   81.54569      42.2     999.9  Child length meas 2
 c416         500    197   187.1126         0     999.9  Child length meas 3
-c418        9341    145   43.88806      34.9      99.9  Head circumference meas 1
-c419        9341    148   43.92715        35      99.9  Head circumference meas 2
-c420         120     60    48.2225      37.5     442.4  Head circumference meas 3
+c418        9341    145   43.88806      34.9      99.9  Head circumference me...
+c419        9341    148   43.92715        35      99.9  Head circumference me...
+c420         120     60    48.2225      37.5     442.4  Head circumference me...
 sex         9341      2   .4978054         0         1  Sex
-birthord    9098     11   2.270719         1        11  Birth order (target child)
-aged        9341    636   472.9363        42      1159  Age in days (anthro meas)
-agem        9341    636   15.54857   1.38082  38.10407  Age in months (anthro meas)
-agey        9341    636   1.294829  .1149897  3.173169  Age in years (anthro meas)
-weight      9341    403   8.586539     3.275        19  Child weight (median), kg
-length      9291    652   73.90887     42.15     99.65  Child length (median), cm
-headcir     9334    260   43.85804     34.95     69.15  Child head circumference (med...
-laz         9277    645  -1.471444     -5.68      5.18  Length/height-for-age Z-score
-laz_x       9305      2   .0030091         0         1  abs(LAZ)>6, set to missing
+birthord    9098     11   2.270719         1        11  Birth order (target c...
+aged        9341    636   472.9363        42      1159  Age in days (anthro m...
+agem        9341    636   15.54857   1.38082  38.10407  Age in months (anthro...
+agey        9341    636   1.294829  .1149897  3.173169  Age in years (anthro ...
+weight      9341    403   8.586539     3.275        19  Child weight (median)...
+length      9291    652   73.90887     42.15     99.65  Child length (median)...
+headcir     9334    260   43.85804     34.95     69.15  Child head circumfere...
+laz         9277    645  -1.471444     -5.68      5.18  Length/height-for-age...
+laz_x       9305      2   .0030091         0         1  abs(LAZ)>6, set to mi...
 lazminus2   9277      2   .3089361         0         1  Stunted (LAZ<-2)
-lazminus3   9277      2   .0807373         0         1  Severely Stunted (LAZ<-3)
+lazminus3   9277      2   .0807373         0         1  Severely Stunted (LAZ...
 waz         9336    656    -1.3215     -5.48      4.28  Weight-for-age Z-score
-waz_x       9341      2   .0005353         0         1  WAZ < -6 or WAZ > 5, set to m...
+waz_x       9341      2   .0005353         0         1  WAZ < -6 or WAZ > 5, ...
 wazminus2   9336      2   .2572836         0         1  Underweight (WAZ<-2)
-wazminus3   9336      2   .0595544         0         1  Severely Underweight (WAZ<-3)
-whz         9283    605  -.7139998     -4.91      4.97  Weight-for-length/height Z-score
-whz_x       9305      2   .0023643         0         1  abs(WHZ)>5, set to missing
+wazminus3   9336      2   .0595544         0         1  Severely Underweight ...
+whz         9283    605  -.7139998     -4.91      4.97  Weight-for-length/hei...
+whz_x       9305      2   .0023643         0         1  abs(WHZ)>5, set to mi...
 whzminus2   9283      2   .0929656         0         1  Wasted (WHZ<-2)
 whzminus3   9283      2   .0087256         0         1  Severely Wasted (WHZ<-3)
 bmiz        9280    589  -.5955172     -4.57      4.67  BMI-for-age Z-score
-bmiz_x      9305      2   .0026867         0         1  abs(BMIZ)>5, set to missing
-hcz         9302    582  -1.470372     -4.96      3.33  Head circumference-for-age z-...
-hcz_x       9334      2   .0034283         0         1  abs(HCZ)>5, set to missing
-----------------------------------------------------------------------------------------
+bmiz_x      9305      2   .0026867         0         1  abs(BMIZ)>5, set to m...
+hcz         9302    582  -1.470372     -4.96      3.33  Head circumference-fo...
+hcz_x       9334      2   .0034283         0         1  abs(HCZ)>5, set to mi...
+--------------------------------------------------------------------------------
 
 . 
 . * write a codebook for the dataset
 . log close
       name:  <unnamed>
-       log:  /Users/benarnold/WBBpa/src/dm/7-bangladesh-hbgdki-data-extract.log
+       log:  /Users/benarnold/WASHB-Bangladesh-primary-outcomes/src/dm/7-banglad
+> esh-hbgdki-data-extract.log
   log type:  text
- closed on:  20 Jul 2016, 06:47:36
-----------------------------------------------------------------------------------------
-----------------------------------------------------------------------------------------
+ closed on:   8 Sep 2016, 13:19:08
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
       name:  <unnamed>
-       log:  /Users/benarnold/WBBpa/src/dm/7-bangladesh-hbgdki-data-extract.log
+       log:  /Users/benarnold/WASHB-Bangladesh-primary-outcomes/src/dm/7-banglad
+> esh-hbgdki-data-extract.log
   log type:  text
- opened on:  20 Jul 2016, 06:47:37
+ opened on:   8 Sep 2016, 13:19:10
 
 . *--------------------------------------------
 . * diarrhea dataset
 . *--------------------------------------------
 . 
-. use "~/dropbox/wbb-primary-analysis/data/final/ben/washb-bangladesh-diar.dta", clear
+. use "~/dropbox/wbb-primary-analysis/data/final/ben/washb-bangladesh-diar.dta",
+>  clear
 (Bangladesh diarrhea dataset, created by 3-bangladesh-dm-diar.do)
 
 . 
@@ -481,27 +506,28 @@ hcz_x       9334      2   .0034283         0         1  abs(HCZ)>5, set to missi
 . 
 . 
 . 
-. saveold "~/dropbox/WBB-primary-analysis/data/HBGDki-extract/washb-bangladesh-hbgdki-di
-> ar.dta", replace version(12)
+. saveold "~/dropbox/WBB-primary-analysis/data/HBGDki-extract/washb-bangladesh-h
+> bgdki-diar.dta", replace version(12)
 (saving in Stata 12 format, which can be read by Stata 11 or 12)
-file ~/dropbox/WBB-primary-analysis/data/HBGDki-extract/washb-bangladesh-hbgdki-diar.dta
->  saved
+file ~/dropbox/WBB-primary-analysis/data/HBGDki-extract/washb-bangladesh-hbgdki-
+> diar.dta saved
 
-. outsheet using "~/dropbox/WBB-primary-analysis/data/HBGDki-extract/washb-bangladesh-hb
-> gdki-diar.csv", comma replace
+. outsheet using "~/dropbox/WBB-primary-analysis/data/HBGDki-extract/washb-bangl
+> adesh-hbgdki-diar.csv", comma replace
 
 . desc
 
-Contains data from ~/dropbox/WBB-primary-analysis/data/HBGDki-extract/washb-bangladesh-h
-> bgdki-diar.dta
-  obs:        22,594                          Bangladesh diarrhea dataset, created by
+Contains data from ~/dropbox/WBB-primary-analysis/data/HBGDki-extract/washb-bang
+> ladesh-hbgdki-diar.dta
+  obs:        22,594                          Bangladesh diarrhea dataset,
+                                                created by
                                                 3-bangladesh-dm-diar.do
- vars:            27                          20 Jul 2016 06:47
+ vars:            27                          8 Sep 2016 13:19
  size:     1,084,512                          
-----------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
               storage   display    value
 variable name   type    format     label      variable label
-----------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
 dataid          str5    %5s                   Unique compound ID
 childid         str3    %3s                   Child ID
 tchild          byte    %12.0g     tchild     Target child in birth cohort
@@ -515,7 +541,8 @@ agedays         int     %9.0g                 Age in days
 ageyrs          float   %9.0g                 Age in years
 enrolage        double  %10.0g                Age at enrollment, years
 newbirth        byte    %8.0g                 New birth
-sibnewbirth     byte    %8.0g                 Sibling (non-index child) new birth
+sibnewbirth     byte    %8.0g                 Sibling (non-index child) new
+                                                birth
 gt36mos         byte    %8.0g                 Older than 36 mos at enrollment
 d3plus2d        byte    %8.0g                 3+ stools in 24 hr, 2d recall
 d3plus7d        byte    %8.0g                 3+ stools in 24 hr, 7d recall
@@ -530,16 +557,16 @@ bruise7d        byte    %8.0g                 Bruising, 7d recall
 tooth2d         byte    %8.0g                 Toothache, 2d recall
 tooth7d         byte    %8.0g                 Toothache, 7d recall
                                             * indicated variables have notes
-----------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
 Sorted by: dataid  childid
 
 . codebook, c
 
 Variable       Obs Unique      Mean        Min       Max  Label
-----------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
 dataid       22594   5197         .          .         .  Unique compound ID
 childid      22594     13         .          .         .  Child ID
-tchild       22594      2  .4166593          0         1  Target child in birth cohort
+tchild       22594      2  .4166593          0         1  Target child in bir...
 clusterid    22594    720         .          .         .  Cluster ID
 svy          22594      3  1.278215          0         2  Survey round (0,1,2)
 svydate      22594    610  19932.19      19144     20392  Survey date
@@ -548,29 +575,99 @@ sex          22594      2  .4973887          0         1  Sex (1=male)
 dob          22594   1934  19252.73      18069     20369  Date of birth
 agedays      22594   1906  679.4641        -42      2013  Age in days
 ageyrs       22594   1906  1.860271  -.1149897  5.511293  Age in years
-enrolage     22594   1833  .4476507  -2.683094  3.000684  Age at enrollment, years
+enrolage     22594   1833  .4476507  -2.683094  3.000684  Age at enrollment, ...
 newbirth     22594      2  .5492609          0         1  New birth
-sibnewbirth  22594      2  .1326016          0         1  Sibling (non-index child) n...
-gt36mos      22594      1         0          0         0  Older than 36 mos at enroll...
-d3plus2d     19849      2  .0925991          0         1  3+ stools in 24 hr, 2d recall
-d3plus7d     19850      2  .1068514          0         1  3+ stools in 24 hr, 7d recall
-dloose2d     19845      2  .0426304          0         1  loose or watery stool, 2d r...
-dloose7d     19839      2  .0503554          0         1  loose or watery stool, 7d r...
-dblood2d     19820      2  .0059031          0         1  blood in stool, 2d recall
-dblood7d     19820      2  .0079213          0         1  blood in stool, 7d recall
-diar2d       19849      2  .0377853          0         1  Diarrhea case, 2d recall
-diar7d       19849      2  .0495743          0         1  Diarrhea case, 7d recall
+sibnewbirth  22594      2  .1326016          0         1  Sibling (non-index ...
+gt36mos      22594      1         0          0         0  Older than 36 mos a...
+d3plus2d     19849      2  .0925991          0         1  3+ stools in 24 hr,...
+d3plus7d     19850      2  .1068514          0         1  3+ stools in 24 hr,...
+dloose2d     19845      2  .0426304          0         1  loose or watery sto...
+dloose7d     19839      2  .0503554          0         1  loose or watery sto...
+dblood2d     19820      2  .0059031          0         1  blood in stool, 2d ...
+dblood7d     19820      2  .0079213          0         1  blood in stool, 7d ...
+diar2d       19849      2  .0377853          0         1  Diarrhea case, 2d r...
+diar7d       19849      2  .0495743          0         1  Diarrhea case, 7d r...
 bruise2d     19838      2  .0218268          0         1  Bruising, 2d recall
 bruise7d     19831      2  .0282386          0         1  Bruising, 7d recall
 tooth2d      19836      2  .0017645          0         1  Toothache, 2d recall
 tooth7d      19834      2  .0023192          0         1  Toothache, 7d recall
-----------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
 
 . 
 . * write a codebook for the dataset
 . log close
       name:  <unnamed>
-       log:  /Users/benarnold/WBBpa/src/dm/7-bangladesh-hbgdki-data-extract.log
+       log:  /Users/benarnold/WASHB-Bangladesh-primary-outcomes/src/dm/7-banglad
+> esh-hbgdki-data-extract.log
   log type:  text
- closed on:  20 Jul 2016, 06:47:38
-----------------------------------------------------------------------------------------
+ closed on:   8 Sep 2016, 13:19:12
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+      name:  <unnamed>
+       log:  /Users/benarnold/WASHB-Bangladesh-primary-outcomes/src/dm/7-banglad
+> esh-hbgdki-data-extract.log
+  log type:  text
+ opened on:   8 Sep 2016, 13:19:15
+
+. *--------------------------------------------
+. * unblinded treatment assignment dataset
+. * (password protected - must mount disc img)
+. *--------------------------------------------
+. use "/Volumes/0-Treatment-assignments/washb-bangladesh-tr.dta", clear
+(WASH Benefits Bangladesh cluster level treatment assignments)
+
+. 
+. drop tr
+
+. order clusterid block
+
+. sort clusterid
+
+. 
+. saveold "~/dropbox/WBB-primary-analysis/data/HBGDki-extract/washb-bangladesh-h
+> bgdki-tr.dta", replace version(12)
+(saving in Stata 12 format, which can be read by Stata 11 or 12)
+(note: file /Users/benarnold/dropbox/WBB-primary-analysis/data/HBGDki-extract/wa
+> shb-bangladesh-hbgdki-tr.dta not found)
+file ~/dropbox/WBB-primary-analysis/data/HBGDki-extract/washb-bangladesh-hbgdki-
+> tr.dta saved
+
+. outsheet using "~/dropbox/WBB-primary-analysis/data/HBGDki-extract/washb-bangl
+> adesh-hbgdki-tr.csv", comma replace
+(note: file /Users/benarnold/dropbox/WBB-primary-analysis/data/HBGDki-extract/wa
+> shb-bangladesh-hbgdki-tr.csv not found)
+
+. desc
+
+Contains data from ~/dropbox/WBB-primary-analysis/data/HBGDki-extract/washb-bang
+> ladesh-hbgdki-tr.dta
+  obs:           720                          WASH Benefits Bangladesh cluster
+                                                level treatment assignments
+ vars:             2                          8 Sep 2016 13:19
+ size:         2,880                          
+--------------------------------------------------------------------------------
+              storage   display    value
+variable name   type    format     label      variable label
+--------------------------------------------------------------------------------
+clusterid       str3    %9s                   Cluster ID
+block           byte    %8.0g                 Randomization block
+--------------------------------------------------------------------------------
+Sorted by: clusterid
+
+. codebook, c
+
+Variable   Obs Unique  Mean  Min  Max  Label
+--------------------------------------------------------------------------------
+clusterid  720    720     .    .    .  Cluster ID
+block      720     90  45.5    1   90  Randomization block
+--------------------------------------------------------------------------------
+
+. 
+. * write a codebook for the dataset
+. log close
+      name:  <unnamed>
+       log:  /Users/benarnold/WASHB-Bangladesh-primary-outcomes/src/dm/7-banglad
+> esh-hbgdki-data-extract.log
+  log type:  text
+ closed on:   8 Sep 2016, 13:19:15
+--------------------------------------------------------------------------------
