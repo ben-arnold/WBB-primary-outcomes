@@ -243,9 +243,9 @@ gen byte storewat = (q1003_6==1 | q1003_7==1 | q1003_8==1)
 	label var storewat "Store drinking water (q10001)"
 	
 * store water with detectable free chlorine (not at baseline)
-gen byte freechl = q1027level>0 & q1027level<.
+gen byte freechl = q1027level>0.1 & q1027level<.
 	replace freechl = . if (svy==0) | (q1027==999)
-	label var freechl "Free chlorine detected in stored water (>0 mg/L)"
+	label var freechl "Free chlorine detected in stored water (>0.1 mg/L)"
 	
 * latrine with a functional water seal
 gen byte latseal = (q809_9a==1)
