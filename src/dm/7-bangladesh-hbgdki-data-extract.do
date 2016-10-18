@@ -86,15 +86,51 @@ log close
 
 
 log using "~/WASHB-Bangladesh-primary-outcomes/src/dm/7-bangladesh-hbgdki-data-extract.log", text append
+
+
+*--------------------------------------------
+* uptake dataset
+*--------------------------------------------
+
+use "~/dropbox/WASHB-Bangladesh-Data/1-primary-outcome-datasets/washb-bangladesh-uptake.dta", clear
+
+* drop randomiation block
+drop block
+label var clusterid "Cluster ID"
+
+sort clusterid
+
+* add some notes
+note: The lnsn and rlnsn variables measure LNS consumption based on empty sachets collected (lnsn) and reported consumed (rlnsn) over the past week. These indicators were not measured at enrollment. Unlike other uptake measures, they were only collected in arms that received the nutrition intervention. The lnsn variable is more often missing than the reported version, and so we recommend using reported values.
+note lnsn: "Estimated from sachets collected (missing in many cases)"
+note lnsp: "Proportion of 14 sachets (2 per day) consumed over the past week by index child"
+note rlnsp: "Proportion of 14 sachets (2 per day) consumed over the past week  by index child"
+note freechl: "Free chlorine in stored water was not measured at enrollment"
+
+saveold "~/dropbox/WBB-primary-analysis/data/HBGDki-extract/washb-bangladesh-hbgdki-uptake.dta", replace version(12)
+outsheet using "~/dropbox/WBB-primary-analysis/data/HBGDki-extract/washb-bangladesh-hbgdki-uptake.csv", comma replace
+desc
+codebook, c
+
+* write a codebook for the dataset
+log close
+log using "~/dropbox/WBB-primary-analysis/data/HBGDki-extract/washb-bangladesh-hbgdki-uptake-codebook.txt", text replace
+desc
+notes
+codebook, c
+codebook
+log close
+
+log using "~/WASHB-Bangladesh-primary-outcomes/src/dm/7-bangladesh-hbgdki-data-extract.log", text append
 *--------------------------------------------
 * anthropometry dataset
 *--------------------------------------------
 
-use "~/dropbox/wbb-primary-analysis/data/final/ben/washb-bangladesh-anthro.dta", clear
+use "~/dropbox/WASHB-Bangladesh-Data/1-primary-outcome-datasets/washb-bangladesh-anthro.dta", clear
 
 
-* drop randomiation and treatment assignments
-drop block tr
+* drop randomiation block
+drop block
 
 * add some additional notes
 note: Anthropometry measurements collected at approximately 1 and 2 years after intervention (svy=1|2)
@@ -121,10 +157,10 @@ log using "~/WASHB-Bangladesh-primary-outcomes/src/dm/7-bangladesh-hbgdki-data-e
 * diarrhea dataset
 *--------------------------------------------
 
-use "~/dropbox/wbb-primary-analysis/data/final/ben/washb-bangladesh-diar.dta", clear
+use "~/dropbox/WASHB-Bangladesh-Data/1-primary-outcome-datasets/washb-bangladesh-diar.dta", clear
 
-* drop randomiation and treatment assignments
-drop block tr
+* drop randomiation block
+drop block
 
 
 
@@ -150,7 +186,6 @@ log using "~/WASHB-Bangladesh-primary-outcomes/src/dm/7-bangladesh-hbgdki-data-e
 *--------------------------------------------
 use "/Volumes/0-Treatment-assignments/washb-bangladesh-tr.dta", clear
 
-drop tr
 order clusterid block
 sort clusterid
 

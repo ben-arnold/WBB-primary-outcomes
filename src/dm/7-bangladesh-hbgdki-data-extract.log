@@ -3,7 +3,7 @@
        log:  /Users/benarnold/WASHB-Bangladesh-primary-outcomes/src/dm/7-banglad
 > esh-hbgdki-data-extract.log
   log type:  text
- opened on:   8 Sep 2016, 13:19:05
+ opened on:  18 Oct 2016, 09:37:58
 
 . 
 . *--------------------------------------------
@@ -48,7 +48,7 @@
 . tempfile track
 
 . save `track'
-file /var/folders/1g/dryqjv753dv7rgwhzs2lyl140000gp/T//S_21532.000001 saved
+file /var/folders/1g/dryqjv753dv7rgwhzs2lyl140000gp/T//S_00643.000001 saved
 
 . 
 . 
@@ -119,7 +119,7 @@ Contains data from ~/dropbox/WBB-primary-analysis/data/HBGDki-extract/washb-bang
   obs:         5,551                          Bangladesh enrollment analysis
                                                 dataset (HH obs), created by
                                                 2-bangladesh-dm-enro
- vars:            73                          8 Sep 2016 13:19
+ vars:            73                          18 Oct 2016 09:37
  size:       516,243                          
 --------------------------------------------------------------------------------
               storage   display    value
@@ -312,28 +312,158 @@ miss2reason   5551      6  .4570348       0      5  Reason for no measurement...
        log:  /Users/benarnold/WASHB-Bangladesh-primary-outcomes/src/dm/7-banglad
 > esh-hbgdki-data-extract.log
   log type:  text
- closed on:   8 Sep 2016, 13:19:06
+ closed on:  18 Oct 2016, 09:37:59
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
       name:  <unnamed>
        log:  /Users/benarnold/WASHB-Bangladesh-primary-outcomes/src/dm/7-banglad
 > esh-hbgdki-data-extract.log
   log type:  text
- opened on:   8 Sep 2016, 13:19:07
+ opened on:  18 Oct 2016, 09:38:00
+
+. 
+. 
+. *--------------------------------------------
+. * uptake dataset
+. *--------------------------------------------
+. 
+. use "~/dropbox/WASHB-Bangladesh-Data/1-primary-outcome-datasets/washb-banglade
+> sh-uptake.dta", clear
+(Bangladesh uptake analysis dataset (compound-svy obs), created by 6-bangladesh-
+> d)
+
+. 
+. * drop randomiation block
+. drop block
+
+. label var clusterid "Cluster ID"
+
+. 
+. sort clusterid
+
+. 
+. * add some notes
+. note: The lnsn and rlnsn variables measure LNS consumption based on empty sach
+> ets collected (lnsn) and reported consumed (rlnsn) over the past week. These i
+> ndicators were not measured at enrollment. Unlike other uptake measures, they 
+> were only collected in arms that received the nutrition intervention. The lnsn
+>  variable is more often missing than the reported version, and so we recommend
+>  using reported values.
+
+. note lnsn: "Estimated from sachets collected (missing in many cases)"
+
+. note lnsp: "Proportion of 14 sachets (2 per day) consumed over the past week b
+> y index child"
+
+. note rlnsp: "Proportion of 14 sachets (2 per day) consumed over the past week 
+>  by index child"
+
+. note freechl: "Free chlorine in stored water was not measured at enrollment"
+
+. 
+. saveold "~/dropbox/WBB-primary-analysis/data/HBGDki-extract/washb-bangladesh-h
+> bgdki-uptake.dta", replace version(12)
+(saving in Stata 12 format, which can be read by Stata 11 or 12)
+file ~/dropbox/WBB-primary-analysis/data/HBGDki-extract/washb-bangladesh-hbgdki-
+> uptake.dta saved
+
+. outsheet using "~/dropbox/WBB-primary-analysis/data/HBGDki-extract/washb-bangl
+> adesh-hbgdki-uptake.csv", comma replace
+
+. desc
+
+Contains data from ~/dropbox/WBB-primary-analysis/data/HBGDki-extract/washb-bang
+> ladesh-hbgdki-uptake.dta
+  obs:        14,906                          Bangladesh uptake analysis
+                                                dataset (compound-svy obs),
+                                                created by 6-bangladesh-d
+ vars:            16                          18 Oct 2016 09:38
+ size:       476,992                          (_dta has notes)
+--------------------------------------------------------------------------------
+              storage   display    value
+variable name   type    format     label      variable label
+--------------------------------------------------------------------------------
+dataid          str5    %5s                   Compound ID
+clusterid       str3    %9s                   Cluster ID
+svy             byte    %9.0g                 Survey round (0,1,2)
+svydate         int     %d                    Survey date
+storewat        byte    %8.0g                 Store drinking water (q10001)
+freechl         byte    %8.0g               * Free chlorine detected in stored
+                                                water (>0.1 mg/L)
+latseal         byte    %8.0g                 Latrine has functional water seal
+                                                (q809_9a)
+latfeces        byte    %8.0g                 No visible feces on slab/floor of
+                                                latrine
+humfeces        byte    %8.0g                 No human feces observed in
+                                                house/compound (q4201,4203,4205)
+hwsw            byte    %8.0g                 Prim handwashing loc has water
+                                                (q704_1)
+hwss            byte    %8.0g                 Prim handwashing loc has soap
+                                                (q704_2-6)
+hwsws           byte    %8.0g                 Prim handwashing loc has
+                                                water+soap (q704_1-6)
+lnsn            float   %9.0g               * LNS sachets consumed per week
+lnsp            float   %9.0g               * Percent of expected LNS sachets
+                                                consumed
+rlnsn           byte    %9.0g                 LNS sachets consumed per week
+                                                (reported)
+rlnsp           float   %9.0g               * Percent of expected LNS sachets
+                                                consumed (reported)
+                                            * indicated variables have notes
+--------------------------------------------------------------------------------
+Sorted by: clusterid
+
+. codebook, c
+
+Variable     Obs Unique      Mean    Min    Max  Label
+--------------------------------------------------------------------------------
+dataid     14906   5551         .      .      .  Compound ID
+clusterid  14906    720         .      .      .  Cluster ID
+svy        14906      3  .9388166      0      2  Survey round (0,1,2)
+svydate    14906    608  19789.14  19144  20392  Survey date
+storewat   14906      2  .5748692      0      1  Store drinking water (q10001)
+freechl     9283      2  .3088441      0      1  Free chlorine detected in st...
+latseal    13546      2   .468404      0      1  Latrine has functional water...
+latfeces   14281      2  .6208249      0      1  No visible feces on slab/flo...
+humfeces   14900      2  .9449664      0      1  No human feces observed in h...
+hwsw       14081      2     .9358      0      1  Prim handwashing loc has wat...
+hwss       14081      2  .4300121      0      1  Prim handwashing loc has soa...
+hwsws      14081      2  .4253249      0      1  Prim handwashing loc has wat...
+lnsn        1793    381  15.11812    -56    434  LNS sachets consumed per week
+lnsp        1793    381  1.079865     -4     31  Percent of expected LNS sach...
+rlnsn       1979     15  13.09096      0     49  LNS sachets consumed per wee...
+rlnsp       1979     15  .9350682      0    3.5  Percent of expected LNS sach...
+--------------------------------------------------------------------------------
+
+. 
+. * write a codebook for the dataset
+. log close
+      name:  <unnamed>
+       log:  /Users/benarnold/WASHB-Bangladesh-primary-outcomes/src/dm/7-banglad
+> esh-hbgdki-data-extract.log
+  log type:  text
+ closed on:  18 Oct 2016, 09:38:01
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+      name:  <unnamed>
+       log:  /Users/benarnold/WASHB-Bangladesh-primary-outcomes/src/dm/7-banglad
+> esh-hbgdki-data-extract.log
+  log type:  text
+ opened on:  18 Oct 2016, 09:38:02
 
 . *--------------------------------------------
 . * anthropometry dataset
 . *--------------------------------------------
 . 
-. use "~/dropbox/wbb-primary-analysis/data/final/ben/washb-bangladesh-anthro.dta
-> ", clear
+. use "~/dropbox/WASHB-Bangladesh-Data/1-primary-outcome-datasets/washb-banglade
+> sh-anthro.dta", clear
 (Bangladesh anthropometry analysis dataset, created by 4-bangladesh-dm-anthro.do
 > )
 
 . 
 . 
-. * drop randomiation and treatment assignments
-. drop block tr
+. * drop randomiation block
+. drop block
 
 . 
 . * add some additional notes
@@ -363,8 +493,8 @@ Contains data from ~/dropbox/WBB-primary-analysis/data/HBGDki-extract/washb-bang
   obs:         9,341                          Bangladesh anthropometry
                                                 analysis dataset, created by
                                                 4-bangladesh-dm-anthro.do
- vars:            47                          8 Sep 2016 13:19
- size:     2,055,020                          (_dta has notes)
+ vars:            48                          18 Oct 2016 09:38
+ size:     2,073,702                          (_dta has notes)
 --------------------------------------------------------------------------------
               storage   display    value
 variable name   type    format     label      variable label
@@ -394,6 +524,7 @@ c419            double  %10.0g                Head circumference meas 2
 c420            double  %10.0g                Head circumference meas 3
 sex             byte    %10.0g     sex        Sex
 birthord        byte    %8.0g               * Birth order (target child)
+dob             int     %d                    Date of birth
 aged            int     %9.0g                 Age in days (anthro meas)
 agem            double  %10.0g                Age in months (anthro meas)
 agey            double  %10.0g                Age in years (anthro meas)
@@ -451,6 +582,7 @@ c419        9341    148   43.92715        35      99.9  Head circumference me...
 c420         120     60    48.2225      37.5     442.4  Head circumference me...
 sex         9341      2   .4978054         0         1  Sex
 birthord    9098     11   2.270719         1        11  Birth order (target c...
+dob         9341    529   19541.95     19208     19845  Date of birth
 aged        9341    636   472.9363        42      1159  Age in days (anthro m...
 agem        9341    636   15.54857   1.38082  38.10407  Age in months (anthro...
 agey        9341    636   1.294829  .1149897  3.173169  Age in years (anthro ...
@@ -482,26 +614,26 @@ hcz_x       9334      2   .0034283         0         1  abs(HCZ)>5, set to mi...
        log:  /Users/benarnold/WASHB-Bangladesh-primary-outcomes/src/dm/7-banglad
 > esh-hbgdki-data-extract.log
   log type:  text
- closed on:   8 Sep 2016, 13:19:08
+ closed on:  18 Oct 2016, 09:38:03
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
       name:  <unnamed>
        log:  /Users/benarnold/WASHB-Bangladesh-primary-outcomes/src/dm/7-banglad
 > esh-hbgdki-data-extract.log
   log type:  text
- opened on:   8 Sep 2016, 13:19:10
+ opened on:  18 Oct 2016, 09:38:04
 
 . *--------------------------------------------
 . * diarrhea dataset
 . *--------------------------------------------
 . 
-. use "~/dropbox/wbb-primary-analysis/data/final/ben/washb-bangladesh-diar.dta",
->  clear
+. use "~/dropbox/WASHB-Bangladesh-Data/1-primary-outcome-datasets/washb-banglade
+> sh-diar.dta", clear
 (Bangladesh diarrhea dataset, created by 3-bangladesh-dm-diar.do)
 
 . 
-. * drop randomiation and treatment assignments
-. drop block tr
+. * drop randomiation block
+. drop block
 
 . 
 . 
@@ -522,7 +654,7 @@ Contains data from ~/dropbox/WBB-primary-analysis/data/HBGDki-extract/washb-bang
   obs:        22,594                          Bangladesh diarrhea dataset,
                                                 created by
                                                 3-bangladesh-dm-diar.do
- vars:            27                          8 Sep 2016 13:19
+ vars:            27                          18 Oct 2016 09:38
  size:     1,084,512                          
 --------------------------------------------------------------------------------
               storage   display    value
@@ -600,74 +732,25 @@ tooth7d      19834      2  .0023192          0         1  Toothache, 7d recall
        log:  /Users/benarnold/WASHB-Bangladesh-primary-outcomes/src/dm/7-banglad
 > esh-hbgdki-data-extract.log
   log type:  text
- closed on:   8 Sep 2016, 13:19:12
+ closed on:  18 Oct 2016, 09:38:06
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
       name:  <unnamed>
        log:  /Users/benarnold/WASHB-Bangladesh-primary-outcomes/src/dm/7-banglad
 > esh-hbgdki-data-extract.log
   log type:  text
- opened on:   8 Sep 2016, 13:19:15
+ opened on:  18 Oct 2016, 09:38:08
 
 . *--------------------------------------------
 . * unblinded treatment assignment dataset
 . * (password protected - must mount disc img)
 . *--------------------------------------------
 . use "/Volumes/0-Treatment-assignments/washb-bangladesh-tr.dta", clear
-(WASH Benefits Bangladesh cluster level treatment assignments)
+file /Volumes/0-Treatment-assignments/washb-bangladesh-tr.dta not found
+r(601);
 
-. 
-. drop tr
+end of do-file
 
-. order clusterid block
+r(601);
 
-. sort clusterid
-
-. 
-. saveold "~/dropbox/WBB-primary-analysis/data/HBGDki-extract/washb-bangladesh-h
-> bgdki-tr.dta", replace version(12)
-(saving in Stata 12 format, which can be read by Stata 11 or 12)
-(note: file /Users/benarnold/dropbox/WBB-primary-analysis/data/HBGDki-extract/wa
-> shb-bangladesh-hbgdki-tr.dta not found)
-file ~/dropbox/WBB-primary-analysis/data/HBGDki-extract/washb-bangladesh-hbgdki-
-> tr.dta saved
-
-. outsheet using "~/dropbox/WBB-primary-analysis/data/HBGDki-extract/washb-bangl
-> adesh-hbgdki-tr.csv", comma replace
-(note: file /Users/benarnold/dropbox/WBB-primary-analysis/data/HBGDki-extract/wa
-> shb-bangladesh-hbgdki-tr.csv not found)
-
-. desc
-
-Contains data from ~/dropbox/WBB-primary-analysis/data/HBGDki-extract/washb-bang
-> ladesh-hbgdki-tr.dta
-  obs:           720                          WASH Benefits Bangladesh cluster
-                                                level treatment assignments
- vars:             2                          8 Sep 2016 13:19
- size:         2,880                          
---------------------------------------------------------------------------------
-              storage   display    value
-variable name   type    format     label      variable label
---------------------------------------------------------------------------------
-clusterid       str3    %9s                   Cluster ID
-block           byte    %8.0g                 Randomization block
---------------------------------------------------------------------------------
-Sorted by: clusterid
-
-. codebook, c
-
-Variable   Obs Unique  Mean  Min  Max  Label
---------------------------------------------------------------------------------
-clusterid  720    720     .    .    .  Cluster ID
-block      720     90  45.5    1   90  Randomization block
---------------------------------------------------------------------------------
-
-. 
-. * write a codebook for the dataset
-. log close
-      name:  <unnamed>
-       log:  /Users/benarnold/WASHB-Bangladesh-primary-outcomes/src/dm/7-banglad
-> esh-hbgdki-data-extract.log
-  log type:  text
- closed on:   8 Sep 2016, 13:19:15
---------------------------------------------------------------------------------
+. exit
