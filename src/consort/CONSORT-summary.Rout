@@ -1,0 +1,230 @@
+
+R version 3.2.3 (2015-12-10) -- "Wooden Christmas-Tree"
+Copyright (C) 2015 The R Foundation for Statistical Computing
+Platform: x86_64-apple-darwin13.4.0 (64-bit)
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+  Natural language support but running in an English locale
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+[Previously saved workspace restored]
+
+> 
+> 
+> 
+> #---------------------------------------
+> # CONSORT-summary.R
+> #
+> # ben arnold (benarnold@berkeley.edu)
+> #
+> # summarize participant flow by 
+> # treatment arm
+> #---------------------------------------
+> 
+> #---------------------------------------
+> # input files:
+> #	washb-bangladesh-track-compound.csv
+> # washb-bangladesh-anthro.csv
+> # washb-bangladesh-diar.csv
+> #
+> # output files:
+> #	bangladesh-CONSORT-ben.RData
+> #
+> #---------------------------------------
+> 
+> 
+> #---------------------------------------
+> # preamble
+> #---------------------------------------
+> rm(list=ls())
+> 
+> 
+> #---------------------------------------
+> # CONSORT: compounds
+> #---------------------------------------
+> 
+> d <- read.csv("~/dropbox/WBB-primary-analysis/data/final/ben/washb-bangladesh-track-compound.csv")
+> 
+> # re-order the tr factor for convenience
+> d$tr <- factor(d$tr,levels=c("Control","Water","Sanitation","Handwashing","WSH","Nutrition","Nutrition + WSH"))
+> 
+> # re-order the miss2reason factor for convenience
+> #d$miss2reason <- factor(d$miss2reason,levels=c("Not lost","Moved away","Absent","Withdrew","No live birth","Child death"))
+> d$miss2reason <- factor(d$miss2reason,levels=c("Not lost","No live birth","Child death","Moved away","Withdrew","Absent"))
+> 
+> # summarize compounds by survey round
+> c.enrol <- table(d$tr)
+> c.year1 <- table(d$tr[d$miss1==0])
+> c.year2 <- table(d$tr[d$miss2==0])
+> compound_tracking <- rbind(c.enrol,c.year1,c.year2)
+> 
+> 
+> # summarize reasons for dropout by the year 2 measurment
+> c.lost <- table(d$miss2reason,d$tr)
+> compound_lost <- rbind(colSums(c.lost[2:6,]),c.lost[2:6,])
+> rownames(compound_lost)[1] <- "Compounds Lost"
+> 
+> # confirm that the reasons compounds were lost sum to the differences
+> (c.enrol - compound_lost[1,] ) == c.year2
+
+        Control           Water      Sanitation     Handwashing             WSH 
+           TRUE            TRUE            TRUE            TRUE            TRUE 
+      Nutrition Nutrition + WSH 
+           TRUE            TRUE 
+> 
+> 
+> 
+> #---------------------------------------
+> # CONSORT: index children
+> # based on anthropometry dataset
+> #---------------------------------------
+> chd <- read.csv("~/dropbox/WBB-primary-analysis/data/final/ben/washb-bangladesh-anthro.csv")
+> 
+> # re-order the tr factor for convenience
+> chd$tr <- factor(chd$tr,levels=c("Control","Water","Sanitation","Handwashing","WSH","Nutrition","Nutrition + WSH"))
+> 
+> # identify missing observations for anthro measurements
+> chd$miss.laz <- ifelse(is.na(chd$laz),1,0)
+> chd$miss.waz <- ifelse(is.na(chd$waz),1,0)
+> chd$miss.whz <- ifelse(is.na(chd$whz),1,0)
+> chd$miss.hcz <- ifelse(is.na(chd$hcz),1,0)
+> 
+> # Summary of analyzed and missing values by year of follow-up
+> ch.year1.laz <- table(chd$miss.laz[chd$svy==1],chd$tr[chd$svy==1])
+> ch.year2.laz <- table(chd$miss.laz[chd$svy==2],chd$tr[chd$svy==2])
+> 
+> # summary object
+> tchild_tracking <- rbind(ch.year1.laz[1,],
++                          ch.year2.laz[1,],
++                          ch.year1.laz[2,],
++                          ch.year2.laz[2,])
+> rownames(tchild_tracking) <- c("Year 1 analyzed", "Year 2 analyzed","Year 1 missing", "Year 2 missing")
+> 
+> 
+> #---------------------------------------
+> # CONSORT:  children <36 mos at enrollment
+> # based on diarrhea dataset
+> #---------------------------------------
+> 
+> d36 <- read.csv("~/dropbox/WBB-primary-analysis/data/final/ben/washb-bangladesh-diar.csv")
+> 
+> # re-order the tr factor for convenience
+> d36$tr <- factor(d36$tr,levels=c("Control","Water","Sanitation","Handwashing","WSH","Nutrition","Nutrition + WSH"))
+> 
+> # drop sibling newbirths
+> table(d$sibnewbirth)
+< table of extent 0 >
+> d36 <- subset(d36,sibnewbirth==0)
+> 
+> # drop any children over 36 mos at enrollment
+> table(d36$gt36mos)
+
+    0 
+19598 
+> d36 <- subset(d36,gt36mos==0)
+> 
+> # identify missing observations for diarrhea measurements
+> d36$miss.diar <- ifelse(is.na(d36$diar7d),1,0)
+> 
+> # Summary of analyzed and missing values by year of follow-up
+> ch36.year0.diar <- table(d36$miss.diar[d36$svy==0],d36$tr[d36$svy==0])
+> ch36.year1.diar <- table(d36$miss.diar[d36$svy==1],d36$tr[d36$svy==1])
+> ch36.year2.diar <- table(d36$miss.diar[d36$svy==2],d36$tr[d36$svy==2])
+> 
+> # summary object
+> ch36_tracking <- rbind(ch36.year0.diar[1,],
++                        ch36.year1.diar[1,],
++                        ch36.year2.diar[1,],
++                        ch36.year0.diar[2,],
++                        ch36.year1.diar[2,],
++                        ch36.year2.diar[2,])
+> rownames(ch36_tracking) <- c("Enroll analyzed","Year 1 analyzed", "Year 2 analyzed","Enroll missing","Year 1 missing", "Year 2 missing")
+> 
+> #---------------------------------------
+> # Print results
+> #---------------------------------------
+> compound_tracking
+        Control Water Sanitation Handwashing WSH Nutrition Nutrition + WSH
+c.enrol    1382   698        696         688 702       699             686
+c.year1    1151   611        583         586 605       582             600
+c.year2    1138   598        585         570 588       574             586
+> 
+> compound_lost
+               Control Water Sanitation Handwashing WSH Nutrition
+Compounds Lost     244   100        111         118 114       125
+No live birth       80    45         49          46  43        51
+Child death         62    27         27          29  31        25
+Moved away          28    11         15          19  12        18
+Withdrew            21     4          1           2   8         9
+Absent              53    13         19          22  20        22
+               Nutrition + WSH
+Compounds Lost             100
+No live birth               47
+Child death                 19
+Moved away                   6
+Withdrew                     2
+Absent                      26
+> 
+> tchild_tracking
+                Control Water Sanitation Handwashing WSH Nutrition
+Year 1 analyzed    1123   610        584         587 605       579
+Year 2 analyzed    1103   595        579         570 579       567
+Year 1 missing        7     2          1           1   1         2
+Year 2 missing       19     4          9           3   7         6
+                Nutrition + WSH
+Year 1 analyzed             605
+Year 2 analyzed             591
+Year 1 missing                1
+Year 2 missing                1
+> 
+> ch36_tracking
+                Control Water Sanitation Handwashing WSH Nutrition
+Enroll analyzed     773   369        355         392 429       398
+Year 1 analyzed    1779   939        880         914 981       885
+Year 2 analyzed    1738   885        880         881 921       881
+Enroll missing      145    57         77          76  70        77
+Year 1 missing      183    73         78          84  69       107
+Year 2 missing      206   101         93          97 109       108
+                Nutrition + WSH
+Enroll analyzed             406
+Year 1 analyzed             953
+Year 2 analyzed             908
+Enroll missing               54
+Year 1 missing               81
+Year 2 missing              106
+> 
+> #---------------------------------------
+> # add "_b" suffix to compare with jade
+> #---------------------------------------
+> compound_tracking_b <- compound_tracking
+> compound_lost_b     <- compound_lost
+> tchild_tracking_b   <- tchild_tracking
+> ch36_tracking_b     <- ch36_tracking
+> 
+> rm(compound_tracking,compound_lost,tchild_tracking,ch36_tracking)
+> 
+> 
+> #---------------------------------------
+> # save objects 
+> #(drop datasets to save space)
+> #---------------------------------------
+> rm(d,chd,d36)
+> save.image(file="~/dropbox/WBB-primary-analysis/results/raw/ben/bangladesh-CONSORT-ben.RData")
+> 
+> 
+> 
+> 
+> 
+> proc.time()
+   user  system elapsed 
+  2.100   0.100   2.758 
