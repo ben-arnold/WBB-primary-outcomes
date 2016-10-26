@@ -1,0 +1,209 @@
+
+R version 3.2.3 (2015-12-10) -- "Wooden Christmas-Tree"
+Copyright (C) 2015 The R Foundation for Statistical Computing
+Platform: x86_64-apple-darwin13.4.0 (64-bit)
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+  Natural language support but running in an English locale
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+> 
+> 
+> 
+> #---------------------------------------
+> # enrollment-characteristics.R
+> #
+> # ben arnold (benarnold@berkeley.edu)
+> #
+> # summarize enrollment characteristics
+> # by treatment arm
+> #---------------------------------------
+> 
+> #---------------------------------------
+> # input files:
+> #	washb-bangladesh-enrol.csv
+> #
+> # output files:
+> #	bangladesh-enrol-characteristics-ben.RData
+> #
+> #---------------------------------------
+> 
+> 
+> #---------------------------------------
+> # preamble
+> #---------------------------------------
+> rm(list=ls())
+> library(dplyr)
+
+Attaching package: ‘dplyr’
+
+The following objects are masked from ‘package:stats’:
+
+    filter, lag
+
+The following objects are masked from ‘package:base’:
+
+    intersect, setdiff, setequal, union
+
+> 
+> #---------------------------------------
+> # CONSORT: compounds
+> #---------------------------------------
+> 
+> d <- read.csv("~/dropbox/WBB-primary-analysis/data/final/ben/washb-bangladesh-enrol.csv")
+> 
+> # re-order the tr factor for convenience
+> d$tr <- factor(d$tr,levels=c("Control","Water","Sanitation","Handwashing","WSH","Nutrition","Nutrition + WSH"))
+> 
+> # number of observations
+> d.tr <- group_by(d, tr)
+> ncompounds <- summarise(d.tr,n=n())
+> 
+> # calculate N obs and means for each variable
+> vlist <- c("momage","momeduy","dadeduy","dadagri","Nhh","elec","cement","landacre","tubewell","storewat","treatwat","odmen","odwom","odch815","odch38","odchu3","latown","latslab","latseal","latfeces","potty","humfeces","humfecesch","hwlatwat","hwlatsoap","hwkitwat","hwkitsoap")
+> 
+> ns <- sapply(d[vlist],function(x) tapply(x,d$tr,function(y) length(y[!is.na(y)])))
+> mus <- sapply(d[vlist],function(x) tapply(x,d$tr,function(y) mean(y,na.rm=T)))
+> 
+> #---------------------------------------
+> # combine results into a single dataframe
+> #---------------------------------------
+> balance.tab.n <- t(ns)
+> 
+> balance.tab.mu <- t(mus)
+> 
+> 
+> table1 <- data.frame(
++    variable=rownames(balance.tab.n),
++    balance.tab.n[,1],
++     balance.tab.mu[,1],
++     balance.tab.n[,2],
++     balance.tab.mu[,2],
++     balance.tab.n[,3],
++     balance.tab.mu[,3],
++     balance.tab.n[,4],
++     balance.tab.mu[,4],
++     balance.tab.n[,5],
++     balance.tab.mu[,5],
++     balance.tab.n[,6],
++     balance.tab.mu[,6],
++     balance.tab.n[,7],
++     balance.tab.mu[,7],
++    stringsAsFactors = F
++ )
+> names(table1) <- c("variable",paste(rep(colnames(balance.tab.n),rep(2,7)),rep(c(".n",".mu"),7),sep=""))
+> 
+> # print table
+> table1
+             variable Control.n   Control.mu Water.n     Water.mu Sanitation.n
+momage         momage      1378 23.569666183     694 23.693083573          696
+momeduy       momeduy      1382  5.863241679     698  5.795128940          696
+dadeduy       dadeduy      1378  4.905660377     697  4.902439024          695
+dadagri       dadagri      1382  0.299565847     698  0.320916905          696
+Nhh               Nhh      1382  4.695369030     698  4.618911175          696
+elec             elec      1382  0.567293777     698  0.604584527          696
+cement         cement      1382  0.104920405     698  0.117478510          696
+landacre     landacre      1303  0.146185725     670  0.142835821          674
+tubewell     tubewell      1382  0.751085384     698  0.716332378          696
+storewat     storewat      1382  0.481910275     698  0.505730659          696
+treatwat     treatwat      1382  0.002894356     698  0.001432665          696
+odmen           odmen      1354  0.071639586     680  0.057352941          684
+odwom           odwom      1380  0.044927536     698  0.025787966          696
+odch815       odch815       546  0.097069597     275  0.090909091          302
+odch38         odch38       703  0.379800853     381  0.370078740          357
+odchu3         odchu3       299  0.819397993     132  0.848484848          139
+latown         latown      1382  0.542691751     698  0.520057307          696
+latslab       latslab      1321  0.947009841     679  0.948453608          664
+latseal       latseal      1171  0.305721605     598  0.306020067          585
+latfeces     latfeces      1307  0.478194338     666  0.525525526          642
+potty           potty      1382  0.044138929     697  0.038737446          696
+humfeces     humfeces      1382  0.082489146     696  0.093390805          696
+humfecesch humfecesch      1382  0.015195369     695  0.008633094          696
+hwlatwat     hwlatwat      1256  0.141719745     630  0.131746032          631
+hwlatsoap   hwlatsoap      1256  0.070063694     630  0.079365079          631
+hwkitwat     hwkitwat      1256  0.093949045     630  0.079365079          631
+hwkitsoap   hwkitsoap      1256  0.026273885     630  0.026984127          631
+           Sanitation.mu Handwashing.n Handwashing.mu WSH.n      WSH.mu
+momage       23.71839080           687   23.772925764   696 24.28879310
+momeduy       5.82471264           688    5.765988372   702  5.93874644
+dadeduy       5.01007194           687    4.614264920   699  4.95422031
+dadagri       0.29310345           688    0.361918605   701  0.30813124
+Nhh           4.68534483           688    4.675872093   702  4.65099715
+elec          0.58620690           688    0.588662791   702  0.60683761
+cement        0.12212644           688    0.079941860   702  0.10968661
+landacre      0.13979228           650    0.139707692   656  0.15126524
+tubewell      0.74568966           688    0.700581395   702  0.77777778
+storewat      0.48994253           688    0.504360465   702  0.43304843
+treatwat      0.00000000           688    0.001453488   702  0.00000000
+odmen         0.07602339           680    0.094117647   687  0.07860262
+odwom         0.04741379           688    0.045058140   702  0.04131054
+odch815       0.09271523           296    0.145270270   306  0.09803922
+odch38        0.38375350           352    0.389204545   362  0.37845304
+odchu3        0.84172662           142    0.845070423   156  0.78846154
+latown        0.53735632           688    0.540697674   702  0.53133903
+latslab       0.91867470           656    0.934451220   670  0.92537313
+latseal       0.30256410           575    0.281739130   582  0.26116838
+latfeces      0.51713396           642    0.521806854   653  0.44257274
+potty         0.04022989           688    0.050872093   701  0.03851641
+humfeces      0.08045977           688    0.101744186   700  0.06857143
+humfecesch    0.00862069           688    0.011627907   699  0.01001431
+hwlatwat      0.12836767           622    0.101286174   646  0.10371517
+hwlatsoap     0.07765452           622    0.054662379   646  0.06501548
+hwkitwat      0.08082409           622    0.072347267   646  0.09442724
+hwkitsoap     0.02218700           622    0.020900322   646  0.02321981
+           Nutrition.n Nutrition.mu Nutrition + WSH.n Nutrition + WSH.mu
+momage             696  23.68534483               684       23.839181287
+momeduy            699   5.84406295               686        5.628279883
+dadeduy            698   4.81661891               685        4.721167883
+dadagri            699   0.33190272               685        0.302189781
+Nhh                699   4.68097282               686        4.746355685
+elec               699   0.58512160               686        0.600583090
+cement             699   0.09585122               686        0.104956268
+landacre           653   0.15660031               652        0.142208589
+tubewell           699   0.74248927               686        0.734693878
+storewat           699   0.43061516               686        0.482507289
+treatwat           699   0.00000000               686        0.002915452
+odmen              685   0.08613139               676        0.073964497
+odwom              699   0.05579399               684        0.035087719
+odch815            277   0.08303249               293        0.095563140
+odch38             335   0.38507463               364        0.368131868
+odchu3             150   0.85333333               140        0.878571429
+latown             699   0.53934192               686        0.534985423
+latslab            661   0.93797277               662        0.938066465
+latseal            587   0.31175468               573        0.270506108
+latfeces           649   0.51001541               643        0.463452566
+potty              699   0.05150215               686        0.043731778
+humfeces           699   0.08297568               684        0.071637427
+humfecesch         699   0.01144492               683        0.010248902
+hwlatwat           644   0.09627329               640        0.112500000
+hwlatsoap          644   0.05124224               640        0.056250000
+hwkitwat           644   0.09316770               640        0.093750000
+hwkitsoap          644   0.03416149               640        0.028125000
+> 
+> table1_b <- table1
+> rm(table1)
+> 
+> #---------------------------------------
+> # save objects 
+> #(drop datasets to save space)
+> #---------------------------------------
+> rm(d)
+> save(table1_b,file="~/dropbox/WBB-primary-analysis/results/raw/ben/bangladesh-enrol-characteristics-ben.RData")
+> 
+> 
+> 
+> 
+> 
+> proc.time()
+   user  system elapsed 
+  1.152   0.080   2.165 
