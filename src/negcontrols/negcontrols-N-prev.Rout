@@ -1,0 +1,334 @@
+
+R version 3.2.3 (2015-12-10) -- "Wooden Christmas-Tree"
+Copyright (C) 2015 The R Foundation for Statistical Computing
+Platform: x86_64-apple-darwin13.4.0 (64-bit)
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+  Natural language support but running in an English locale
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+> 
+> #---------------------------------------
+> # negcontrols-N-prev.R
+> #
+> # ben arnold (benarnold@berkeley.edu)
+> #
+> # calculate the number of bruise
+> # cases and the prevalence by
+> # survey round and treatment arm
+> #---------------------------------------
+> 
+> #---------------------------------------
+> # input files:
+> #	washb-bangladesh-diar.csv
+> #
+> # output files:
+> #	bangladesh-negcontrols-N-prev-ben.RData
+> #
+> #---------------------------------------
+> 
+> 
+> #---------------------------------------
+> # preamble
+> #---------------------------------------
+> rm(list=ls())
+> library(tmle)
+Loading required package: SuperLearner
+Loading required package: nnls
+Super Learner
+Version: 2.0-19
+Package created on 2016-02-02
+
+Welcome to the tmle package, version 1.2.0-2
+
+Use tmleNews() to see details on changes and bug fixes
+
+Attaching package: ‘tmle’
+
+The following object is masked from ‘package:SuperLearner’:
+
+    SL.glm.interaction
+
+> 
+> # source the base functions
+> source("~/WBBpa/src/basefns/washb-base-functions.R")
+> 
+> 
+> #---------------------------------------
+> # Load the analysis dataset
+> #---------------------------------------
+> 
+> d <- read.csv("~/dropbox/wbb-primary-analysis/data/final/ben/washb-bangladesh-diar.csv")
+> 
+> #---------------------------------------
+> # Exclude:
+> # * siblings who were born after enrollment
+> # * siblings who were >36 mos at enrollment
+> # * children with missing outcome data
+> #---------------------------------------
+> 
+> table(d$svy,d$sibnewbirth)
+   
+       0    1
+  0 3678    0
+  1 8006  946
+  2 7914 2050
+> table(d$svy,d$gt36mos)
+   
+       0
+  0 3678
+  1 8952
+  2 9964
+> table(d$svy,is.na(d$bruise7d))
+   
+    FALSE TRUE
+  0  3105  573
+  1  8015  937
+  2  8711 1253
+> 
+> 
+> table(d$sibnewbirth)
+
+    0     1 
+19598  2996 
+> ad <- subset(d,sibnewbirth==0)
+> dim(ad)
+[1] 19598    29
+> 
+> table(ad$gt36mos)
+
+    0 
+19598 
+> ad <- subset(ad,gt36mos==0)
+> dim(ad)
+[1] 19598    29
+> 
+> table(is.na(ad$bruise7d))
+
+FALSE  TRUE 
+17529  2069 
+> ad <- subset(ad,!is.na(ad$bruise7d))
+> 
+> 
+> # re-order the tr factor for convenience
+> ad$tr <- factor(ad$tr,levels=c("Control","Water","Sanitation","Handwashing","WSH","Nutrition","Nutrition + WSH"))
+> 
+> #---------------------------------------
+> # Calculate N and 7-day diarrhea cases
+> # by survey round and by treatment arm
+> #---------------------------------------
+> 
+> Nchild <- tapply(ad$bruise7d,list(ad$svy,ad$tr),function(x) length(x))
+> bruise7d <- tapply(ad$bruise7d,list(ad$svy,ad$tr),function(x) sum(x))
+> 
+> #---------------------------------------
+> # calculate Ns and prevalence for
+> # all of follow-up (surveys 1 and 2)
+> #---------------------------------------
+> Nchildfu <- tapply(ad$bruise7d[ad$svy==1|ad$svy==2],ad$tr[ad$svy==1|ad$svy==2],function(x) length(x))
+> bruise7dfu <- tapply(ad$bruise7d[ad$svy==1|ad$svy==2],ad$tr[ad$svy==1|ad$svy==2],function(x) sum(x))
+> 
+> 
+> #---------------------------------------
+> # Create randomization block indicators
+> # (need to condition on these for 
+> # clusters to be indepdent)  The tmle()
+> # function can't handle factors, so this
+> # is necessary
+> #
+> # NOTE: tmle() returns identical CIs
+> # irrespective of whether we include
+> # these indicators
+> # might want to double-check the
+> # estimates using Stata as well?
+> #---------------------------------------
+> 
+> # create indicators for the randomization strata
+> blocks <- model.matrix(~as.factor(ad$block))[,-c(1)]
+> colnames(blocks) <- paste("block",2:90,sep="")
+> 
+> #---------------------------------------
+> # Calculate unadjusted prevalences
+> # and 95% CIs by arm
+> #---------------------------------------
+> 
+> # Calculate means and influence-curve based 95% CIs by survey round
+> set.seed(12345)
+> arms <- levels(ad$tr)
+> mu0 <- sapply(arms,tmle.mean.est,Y=ad$bruise7d,tr=ad$tr,svy=ad$svy,id=ad$clusterid,s=0)
+> mu1 <- sapply(arms,tmle.mean.est,Y=ad$bruise7d,tr=ad$tr,svy=ad$svy,id=ad$clusterid,s=1)
+> mu2 <- sapply(arms,tmle.mean.est,Y=ad$bruise7d,tr=ad$tr,svy=ad$svy,id=ad$clusterid,s=2)
+> 
+> # compute means by all follow-up rounds
+> ad$svy2 <- ifelse(ad$svy==1|ad$svy==2,1,0)
+> mu12 <- sapply(arms,tmle.mean.est,Y=ad$bruise7d,tr=ad$tr,svy=ad$svy2,id=ad$clusterid,s=1)
+> 
+> #---------------------------------------
+> # Create final objects
+> #---------------------------------------
+> 
+> # condense results into pre-specfied objects
+> bruise_t0_n <- cbind(Nchild[1,],bruise7d[1,])
+> bruise_t1_n <- cbind(Nchild[2,],bruise7d[2,])
+> bruise_t2_n <- cbind(Nchild[3,],bruise7d[3,])
+> bruise_t12_n <- cbind(Nchildfu,bruise7dfu)
+> colnames(bruise_t0_n) <- colnames(bruise_t1_n) <-  colnames(bruise_t2_n) <- colnames(bruise_t12_n) <- c("N","n")
+> 
+> bruise_t0_prev <- t(mu0)
+> bruise_t1_prev <- t(mu1)
+> bruise_t2_prev <- t(mu2)
+> bruise_t12_prev <- t(mu12)
+> 
+> 
+> 
+> #---------------------------------------
+> # Internal consistency check:
+> # the n/N and tmle prevalence estimates
+> # should be the same
+> #---------------------------------------
+> round(cbind(bruise_t0_n[,2]/bruise_t0_n[,1],bruise_t0_prev[,1]),4)
+                  [,1]   [,2]
+Control         0.0352 0.0352
+Water           0.0379 0.0379
+Sanitation      0.0340 0.0340
+Handwashing     0.0386 0.0386
+WSH             0.0210 0.0210
+Nutrition       0.0305 0.0305
+Nutrition + WSH 0.0421 0.0421
+> round(cbind(bruise_t1_n[,2]/bruise_t1_n[,1],bruise_t1_prev[,1]),4)
+                  [,1]   [,2]
+Control         0.0197 0.0197
+Water           0.0181 0.0181
+Sanitation      0.0205 0.0205
+Handwashing     0.0219 0.0219
+WSH             0.0265 0.0265
+Nutrition       0.0090 0.0090
+Nutrition + WSH 0.0136 0.0136
+> round(cbind(bruise_t2_n[,2]/bruise_t2_n[,1],bruise_t2_prev[,1]),4)
+                  [,1]   [,2]
+Control         0.0380 0.0380
+Water           0.0249 0.0249
+Sanitation      0.0352 0.0352
+Handwashing     0.0341 0.0341
+WSH             0.0489 0.0489
+Nutrition       0.0375 0.0375
+Nutrition + WSH 0.0518 0.0518
+> 
+> round(cbind(bruise_t12_n[,2]/bruise_t12_n[,1],bruise_t12_prev[,1]),4)
+                  [,1]   [,2]
+Control         0.0287 0.0287
+Water           0.0214 0.0214
+Sanitation      0.0278 0.0278
+Handwashing     0.0279 0.0279
+WSH             0.0373 0.0373
+Nutrition       0.0232 0.0232
+Nutrition + WSH 0.0322 0.0322
+> 
+> #---------------------------------------
+> # Print and save results
+> #---------------------------------------
+> bruise_t0_n
+                  N  n
+Control         768 27
+Water           369 14
+Sanitation      353 12
+Handwashing     389 15
+WSH             429  9
+Nutrition       393 12
+Nutrition + WSH 404 17
+> bruise_t1_n
+                   N  n
+Control         1779 35
+Water            939 17
+Sanitation       880 18
+Handwashing      914 20
+WSH              980 26
+Nutrition        885  8
+Nutrition + WSH  953 13
+> bruise_t2_n
+                   N  n
+Control         1738 66
+Water            885 22
+Sanitation       880 31
+Handwashing      881 30
+WSH              921 45
+Nutrition        881 33
+Nutrition + WSH  908 47
+> bruise_t12_n
+                   N   n
+Control         3517 101
+Water           1824  39
+Sanitation      1760  49
+Handwashing     1795  50
+WSH             1901  71
+Nutrition       1766  41
+Nutrition + WSH 1861  60
+> round(bruise_t0_prev,4)
+                  mean   ci.lb  ci.ub
+Control         0.0352  0.0160 0.0544
+Water           0.0379 -0.0035 0.0794
+Sanitation      0.0340  0.0091 0.0589
+Handwashing     0.0386  0.0141 0.0630
+WSH             0.0210  0.0074 0.0346
+Nutrition       0.0305  0.0088 0.0522
+Nutrition + WSH 0.0421  0.0201 0.0641
+> round(bruise_t1_prev,4)
+                  mean  ci.lb  ci.ub
+Control         0.0197 0.0134 0.0260
+Water           0.0181 0.0090 0.0272
+Sanitation      0.0205 0.0115 0.0294
+Handwashing     0.0219 0.0097 0.0340
+WSH             0.0265 0.0150 0.0381
+Nutrition       0.0090 0.0023 0.0158
+Nutrition + WSH 0.0136 0.0045 0.0228
+> round(bruise_t2_prev,4)
+                  mean  ci.lb  ci.ub
+Control         0.0380 0.0278 0.0482
+Water           0.0249 0.0115 0.0383
+Sanitation      0.0352 0.0206 0.0498
+Handwashing     0.0341 0.0196 0.0485
+WSH             0.0489 0.0359 0.0618
+Nutrition       0.0375 0.0242 0.0507
+Nutrition + WSH 0.0518 0.0349 0.0686
+> round(bruise_t12_prev,4)
+                  mean  ci.lb  ci.ub
+Control         0.0287 0.0227 0.0348
+Water           0.0214 0.0137 0.0290
+Sanitation      0.0278 0.0192 0.0365
+Handwashing     0.0279 0.0180 0.0377
+WSH             0.0373 0.0282 0.0465
+Nutrition       0.0232 0.0155 0.0310
+Nutrition + WSH 0.0322 0.0226 0.0419
+> 
+> # add 'b' suffix for comparison w/ jade
+> bruise_t0_n_b <- bruise_t0_n
+> bruise_t1_n_b <- bruise_t1_n
+> bruise_t2_n_b <- bruise_t2_n
+> bruise_t12_n_b <- bruise_t12_n
+> bruise_t0_prev_b <- bruise_t0_prev
+> bruise_t1_prev_b <- bruise_t1_prev
+> bruise_t2_prev_b <- bruise_t2_prev
+> bruise_t12_prev_b <- bruise_t12_prev
+> 
+> 
+> save(bruise_t0_n_b,bruise_t1_n_b,bruise_t2_n_b,bruise_t12_n_b,bruise_t0_prev_b,bruise_t1_prev_b,bruise_t2_prev_b,bruise_t12_prev_b,file="~/dropbox/wbb-primary-analysis/results/raw/ben/bangladesh-bruise-N-prev-ben.RData")
+> 
+> 
+> 
+> 
+> 
+> 	
+> 
+> proc.time()
+   user  system elapsed 
+  2.601   0.133   3.111 
