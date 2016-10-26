@@ -1,0 +1,298 @@
+
+R version 3.2.3 (2015-12-10) -- "Wooden Christmas-Tree"
+Copyright (C) 2015 The R Foundation for Statistical Computing
+Platform: x86_64-apple-darwin13.4.0 (64-bit)
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+  Natural language support but running in an English locale
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+[Previously saved workspace restored]
+
+> 
+> #---------------------------------------
+> # uptake.R
+> #
+> # ben arnold (benarnold@berkeley.edu)
+> #
+> # summarize measures of uptake / compliance
+> # by study arm and measurement round
+> # (enrollment, year 1, year 2)
+> #---------------------------------------
+> 
+> #---------------------------------------
+> # input files:
+> #	washb-bangladesh-uptake.csv
+> #
+> # output files:
+> # bangladesh-uptake.RData
+> #
+> #---------------------------------------
+> 
+> 
+> #---------------------------------------
+> # preamble
+> #---------------------------------------
+> rm(list=ls())
+> library(dplyr)
+
+Attaching package: ‘dplyr’
+
+The following objects are masked from ‘package:stats’:
+
+    filter, lag
+
+The following objects are masked from ‘package:base’:
+
+    intersect, setdiff, setequal, union
+
+> 
+> # source the base functions
+> source("~/WBBpa/src/basefns/washb-base-functions.R")
+> 
+> #---------------------------------------
+> # load the uptake analysis dataset
+> #---------------------------------------
+> d <- read.csv("~/dropbox/wbb-primary-analysis/data/final/ben/washb-bangladesh-uptake.csv")
+> 
+> # re-order the treatment factor for convenience
+> d$tr <- factor(d$tr,levels=c("Control","Water","Sanitation","Handwashing","WSH","Nutrition","Nutrition + WSH"))
+> 
+> #---------------------------------------
+> # for each uptake indicator, summarize
+> # the number of obs and the % at each
+> # measurement round
+> #---------------------------------------
+> 
+> d.svy <- group_by(d, tr,svy)
+> 
+> # number of observations
+> ncompounds <- summarise(d.svy,n=n())
+> 
+> # store water
+> storewat <- summarise(d.svy,mean=mean(storewat,na.rm=T))
+> 
+> # store water with detectable chlorine
+> freechl <- summarise(d.svy,mean=mean(freechl,na.rm=T))
+> 
+> # Latrine w/ a functional water seal
+> latseal <- summarise(d.svy,mean=mean(latseal,na.rm=T))
+> 
+> # No visible feces on the latrine slab or floor
+> latfeces <- summarise(d.svy,mean=mean(latfeces,na.rm=T))
+> 
+> # No human feces in the compound
+> humfeces <- summarise(d.svy,mean=mean(humfeces,na.rm=T))
+> 
+> # Primary handwashing station has water
+> hwsw <- summarise(d.svy,mean=mean(hwsw,na.rm=T))
+> 
+> # Primary handwashing station has soap
+> hwss <- summarise(d.svy,mean=mean(hwss,na.rm=T))
+> 
+> # Primary handwashing station has soap & water
+> hwsws <- summarise(d.svy,mean=mean(hwsws,na.rm=T))
+> 
+> # Mean sachets of LNS fed in prior week to index child 6-24 mos
+> rlnsp <- summarise(d.svy,mean=mean(rlnsp,na.rm=T))
+> 
+> #---------------------------------------
+> # combine estimates into a single matrix
+> #---------------------------------------
+> uptake.tab <- as.data.frame(
++   rbind(
++   ncompounds$n,
++   storewat$mean,
++   freechl$mean,
++   latseal$mean,
++   latfeces$mean,
++   humfeces$mean,
++   hwsw$mean,
++   hwss$mean,
++   hwsws$mean,
++   rlnsp$mean
++ ))
+> names(uptake.tab) <- paste(rep(levels(d$tr),rep(3,7)),c("0","1","2"))
+> uptake.tab$label=c(
++   "N compounds",
++   "Store water",
++   "Store water with detectable free chlorine",
++   "Latrine with functional water seal",
++   "Visible feces on latrine slab or floor",
++   "Human feces in house or compound",
++   "Primary handwashing station has water",
++   "Primary handwashing station has soap",
++   "Primary handwashing station has soap & water",
++   "LNS sachet consumption"
++ )
+> # reorder label
+> uptake_table_b <- uptake.tab[,c(ncol(uptake.tab),1:(ncol(uptake.tab)-1))]
+> 
+> # print table
+> uptake_table_b
+                                          label    Control 0    Control 1
+1                                   N compounds 1382.0000000 1151.0000000
+2                                   Store water    0.4819103    0.4370113
+3     Store water with detectable free chlorine           NA    0.0000000
+4            Latrine with functional water seal    0.3057216    0.2938931
+5        Visible feces on latrine slab or floor    0.4781943    0.6042241
+6              Human feces in house or compound    0.9175109    0.9504778
+7         Primary handwashing station has water    0.9418790    0.9591633
+8          Primary handwashing station has soap    0.2340764    0.2818725
+9  Primary handwashing station has soap & water    0.2316879    0.2808765
+10                       LNS sachet consumption           NA           NA
+      Control 2     Water 0     Water 1     Water 2 Sanitation 0 Sanitation 1
+1  1138.0000000 698.0000000 611.0000000 598.0000000  696.0000000  583.0000000
+2     0.4261863   0.5057307   0.9607201   0.9481605    0.4899425    0.4202401
+3     0.0000000         NaN   0.7770383   0.8399312          NaN    0.0000000
+4     0.3076923   0.3060201   0.2706093   0.3291592    0.3025641    0.9535284
+5     0.5640553   0.5255255   0.6098807   0.5837651    0.5171340    0.8881239
+6     0.9420035   0.9066092   0.9525368   0.9464883    0.9195402    0.9759863
+7     0.8242531   0.9222222   0.9526412   0.8628763    0.9492868    0.9635317
+8     0.2811951   0.2428571   0.3005464   0.2959866    0.2456418    0.3032630
+9     0.2803163   0.2396825   0.2932605   0.2943144    0.2456418    0.2994242
+10           NA          NA          NA          NA           NA           NA
+   Sanitation 2 Handwashing 0 Handwashing 1 Handwashing 2       WSH 0
+1   585.0000000   688.0000000  5.850000e+02   570.0000000 702.0000000
+2     0.4444444     0.5043605  4.547009e-01     0.4684211   0.4330484
+3     0.0000000           NaN  1.709402e-03     0.0000000         NaN
+4     0.9726027     0.2817391  2.666667e-01     0.3154876   0.2611684
+5     0.8581197     0.5218069  5.765125e-01     0.5966851   0.4425727
+6     0.9777778     0.8982558  9.504274e-01     0.9456140   0.9314286
+7     0.8632479     0.9517685  9.726027e-01     0.9771930   0.9380805
+8     0.3076923     0.2154341  9.126712e-01     0.9245614   0.2399381
+9     0.3042735     0.2138264  8.869863e-01     0.9122807   0.2399381
+10           NA            NA            NA            NA          NA
+         WSH 1       WSH 2 Nutrition 0 Nutrition 1 Nutrition 2
+1  605.0000000 588.0000000 699.0000000 581.0000000 574.0000000
+2    0.9719008   0.9489796   0.4306152   0.3941480   0.3919861
+3    0.7888514   0.8134715         NaN   0.0000000   0.0000000
+4    0.9502488   0.9659284   0.3117547   0.2806026   0.3098859
+5    0.8642384   0.8245315   0.5100154   0.6010830   0.5785582
+6    0.9818182   0.9829932   0.9170243   0.9586919   0.9651568
+7    0.9917219   0.9846939   0.9472050   0.9765166   0.8588850
+8    0.9039735   0.9030612   0.2360248   0.3365949   0.3397213
+9    0.9006623   0.8911565   0.2344720   0.3346380   0.3379791
+10          NA          NA          NA   0.9288405   0.9373799
+   Nutrition + WSH 0 Nutrition + WSH 1 Nutrition + WSH 2
+1        686.0000000       600.0000000       586.0000000
+2          0.4825073         0.9616667         0.9709898
+3                NaN         0.8027211         0.8667820
+4          0.2705061         0.9415693         0.9622642
+5          0.4634526         0.8797997         0.8490566
+6          0.9283626         0.9750000         0.9846416
+7          0.9437500         0.9750000         0.9812287
+8          0.2328125         0.8933333         0.9215017
+9          0.2328125         0.8800000         0.9095563
+10               NaN         0.9438306         0.9296608
+> 
+> #---------------------------------------
+> # Calculate means and influence-curve 
+> # based 95% CIs by survey round
+> #---------------------------------------
+> arms <- levels(d$tr)
+> 
+> # store water
+> storewat0 <- sapply(arms,tmle.mean.est,Y=d$storewat,tr=d$tr,svy=d$svy,id=d$clusterid,s=0)
+Loading required package: tmle
+Loading required package: SuperLearner
+Loading required package: nnls
+Super Learner
+Version: 2.0-19
+Package created on 2016-02-02
+
+Welcome to the tmle package, version 1.2.0-2
+
+Use tmleNews() to see details on changes and bug fixes
+
+Attaching package: ‘tmle’
+
+The following object is masked from ‘package:SuperLearner’:
+
+    SL.glm.interaction
+
+> storewat1 <- sapply(arms,tmle.mean.est,Y=d$storewat,tr=d$tr,svy=d$svy,id=d$clusterid,s=1)
+> storewat2 <- sapply(arms,tmle.mean.est,Y=d$storewat,tr=d$tr,svy=d$svy,id=d$clusterid,s=2)
+> 
+> # store water with detectable chlorine (not measured at enrollment)
+> # note: since there were no events in any of the non-water arms (actually, 1 in HW)
+> # we cannot estimate 95% CIs. Will pad the matrix with zeros and NAs
+> # freechl0 <- sapply(arms,tmle.mean.est,Y=d$freechl,tr=d$tr,svy=d$svy,id=d$clusterid,s=0)
+> warms <- c("Water","WSH","Nutrition + WSH")
+> freechl1 <- sapply(warms,tmle.mean.est,Y=d$freechl,tr=d$tr,svy=d$svy,id=d$clusterid,s=1)
+>   # pad with zeros and missings for other treatment arms
+>   freechl1 <- cbind(c(0,NA,NA),freechl1[,1],c(0,NA,NA),c(0,NA,NA),freechl1[,2],c(0,NA,NA),freechl1[,3])
+>   colnames(freechl1) <- colnames(storewat1)
+>   
+> freechl2 <- sapply(warms,tmle.mean.est,Y=d$freechl,tr=d$tr,svy=d$svy,id=d$clusterid,s=2)
+>   # pad with zeros and missings for other treatment arms
+>   freechl2 <- cbind(c(0,NA,NA),freechl2[,1],c(0,NA,NA),c(0,NA,NA),freechl2[,2],c(0,NA,NA),freechl2[,3])
+>   colnames(freechl2) <- colnames(storewat2)
+> 
+> # Latrine w/ a functional water seal
+> latseal0 <- sapply(arms,tmle.mean.est,Y=d$latseal,tr=d$tr,svy=d$svy,id=d$clusterid,s=0)
+> latseal1 <- sapply(arms,tmle.mean.est,Y=d$latseal,tr=d$tr,svy=d$svy,id=d$clusterid,s=1)
+> latseal2 <- sapply(arms,tmle.mean.est,Y=d$latseal,tr=d$tr,svy=d$svy,id=d$clusterid,s=2)
+> 
+> # Visible feces on the latrine slab or floor
+> latfeces0 <- sapply(arms,tmle.mean.est,Y=d$latfeces,tr=d$tr,svy=d$svy,id=d$clusterid,s=0)
+> latfeces1 <- sapply(arms,tmle.mean.est,Y=d$latfeces,tr=d$tr,svy=d$svy,id=d$clusterid,s=1)
+> latfeces2 <- sapply(arms,tmle.mean.est,Y=d$latfeces,tr=d$tr,svy=d$svy,id=d$clusterid,s=2)
+> 
+> # Human feces in the compound
+> humfeces0 <- sapply(arms,tmle.mean.est,Y=d$humfeces,tr=d$tr,svy=d$svy,id=d$clusterid,s=0)
+> humfeces1 <- sapply(arms,tmle.mean.est,Y=d$humfeces,tr=d$tr,svy=d$svy,id=d$clusterid,s=1)
+> humfeces2 <- sapply(arms,tmle.mean.est,Y=d$humfeces,tr=d$tr,svy=d$svy,id=d$clusterid,s=2)
+> 
+> # Primary handwashing station has water
+> hwsw0 <- sapply(arms,tmle.mean.est,Y=d$hwsw,tr=d$tr,svy=d$svy,id=d$clusterid,s=0)
+> hwsw1 <- sapply(arms,tmle.mean.est,Y=d$hwsw,tr=d$tr,svy=d$svy,id=d$clusterid,s=1)
+> hwsw2 <- sapply(arms,tmle.mean.est,Y=d$hwsw,tr=d$tr,svy=d$svy,id=d$clusterid,s=2)
+> 
+> # Primary handwashing station has soap
+> hwss0 <- sapply(arms,tmle.mean.est,Y=d$hwss,tr=d$tr,svy=d$svy,id=d$clusterid,s=0)
+> hwss1 <- sapply(arms,tmle.mean.est,Y=d$hwss,tr=d$tr,svy=d$svy,id=d$clusterid,s=1)
+> hwss2 <- sapply(arms,tmle.mean.est,Y=d$hwss,tr=d$tr,svy=d$svy,id=d$clusterid,s=2)
+> 
+> # Primary handwashing station has soap & water
+> hwsws0 <- sapply(arms,tmle.mean.est,Y=d$hwsws,tr=d$tr,svy=d$svy,id=d$clusterid,s=0)
+> hwsws1 <- sapply(arms,tmle.mean.est,Y=d$hwsws,tr=d$tr,svy=d$svy,id=d$clusterid,s=1)
+> hwsws2 <- sapply(arms,tmle.mean.est,Y=d$hwsws,tr=d$tr,svy=d$svy,id=d$clusterid,s=2)
+> 
+> # Mean sachets of LNS fed in prior week to index child 6-24 mos (not measured at enrollment, only measured in nutrition arms)
+> narms <- arms[grep("Nutrition",arms)]
+> rlnsp1 <- sapply(narms,tmle.mean.est,Y=d$rlnsp,tr=d$tr,svy=d$svy,id=d$clusterid,s=1,family="gaussian")
+>   # pad with missings for other treatment arms
+>   rlnsp1 <- cbind(matrix(NA,nrow=3,ncol=5),rlnsp1)
+>   colnames(rlnsp1) <- colnames(hwsws1)
+> 
+> rlnsp2 <- sapply(narms,tmle.mean.est,Y=d$rlnsp,tr=d$tr,svy=d$svy,id=d$clusterid,s=2,family="gaussian")
+>   # pad with missings for other treatment arms
+>   rlnsp2 <- cbind(matrix(NA,nrow=3,ncol=5),rlnsp2)
+>   colnames(rlnsp2) <- colnames(hwsws2)
+> 
+> 
+> 
+> #---------------------------------------
+> # save the objects
+> #---------------------------------------
+> rm(d)
+> save.image(file="~/dropbox/wbb-primary-analysis/results/raw/ben/bangladesh-uptake.RData")
+> 
+> 
+> 
+> 
+> 
+> proc.time()
+   user  system elapsed 
+  7.279   0.164  11.631 
