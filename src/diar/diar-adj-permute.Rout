@@ -1,0 +1,404 @@
+
+R version 3.3.1 (2016-06-21) -- "Bug in Your Hair"
+Copyright (C) 2016 The R Foundation for Statistical Computing
+Platform: x86_64-apple-darwin13.4.0 (64-bit)
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+  Natural language support but running in an English locale
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+[Previously saved workspace restored]
+
+> 
+> #---------------------------------------
+> # diar-adj-permute.R
+> #
+> # ben arnold (benarnold@berkeley.edu)
+> #
+> # adjusted permutation tests for
+> # differences in diarrhea prevalence
+> # for the year 1 and year 2 
+> # visits combined
+> #---------------------------------------
+> 
+> #---------------------------------------
+> # preamble
+> #---------------------------------------
+> rm(list=ls())
+> library(plyr)
+> library(coin)
+Loading required package: survival
+> library(SuperLearner)
+Loading required package: nnls
+Super Learner
+Version: 2.0-19
+Package created on 2016-02-02
+
+> 
+> # source the base functions
+> # which includes the permutation test function used below
+> source("~/WBBpa/src/basefns/washb-base-functions.R")
+> 
+> 
+> #---------------------------------------
+> # Load the analysis dataset,
+> # the baseline covariate dataset
+> #---------------------------------------
+> 
+> bd <- read.csv("~/dropbox/WBB-primary-analysis/data/final/ben/washb-bangladesh-enrol.csv")
+> 
+> d <- read.csv("~/dropbox/WBB-primary-analysis/data/final/ben/washb-bangladesh-diar.csv")
+> 
+> # merge the baseline dataset to the follow-up dataset
+> ad <- merge(bd,d,by=c("dataid","clusterid","block","tr"),all.x=F,all.y=T)
+> dim(d)
+[1] 22594    29
+> dim(ad)
+[1] 22594    98
+> 
+> ad$block <- as.factor(ad$block)
+> 
+> # ensure that month is coded as a factor
+> ad$month <- factor(ad$month)
+> 
+> #---------------------------------------
+> # Subset the Data to Follow-up data only
+> #---------------------------------------
+> table(ad$svy)
+
+   0    1    2 
+3678 8952 9964 
+> ad <- subset(ad,svy>0)
+> 
+> #---------------------------------------
+> # Exclude:
+> # * siblings who were born after enrollment
+> # * siblings who were >36 mos at enrollment
+> # * children with missing outcome data
+> #---------------------------------------
+> table(ad$sibnewbirth)
+
+    0     1 
+15920  2996 
+> table(ad$gt36mos)
+
+    0 
+18916 
+> table(is.na(ad$diar7d))
+
+FALSE  TRUE 
+16727  2189 
+> 
+> ad <- subset(ad,sibnewbirth==0)
+> dim(ad)
+[1] 15920    98
+> 
+> table(ad$gt36mos)
+
+    0 
+15920 
+> ad <- subset(ad,gt36mos==0)
+> dim(ad)
+[1] 15920    98
+> 
+> table(is.na(ad$diar7d))
+
+FALSE  TRUE 
+14425  1495 
+> ad <- subset(ad,!is.na(ad$diar7d))
+> dim(ad)
+[1] 14425    98
+> 
+> # ensure that month is coded as a factor
+> ad$month <- factor(ad$month)
+> 
+> # lump field investigators with <100 measurements into a single code (arbitrarily choosing N08002 from the list). This FRA code list with N<100 is the same for years 1 and 2.
+> ad$fracode[ad$fracode=="20"    ] <- "N08002"
+> ad$fracode[ad$fracode=="D03538"] <- "N08002"
+> ad$fracode[ad$fracode=="N00436"] <- "N08002"
+> ad$fracode[ad$fracode=="N05267"] <- "N08002"
+> ad$fracode[ad$fracode=="N05268"] <- "N08002"
+> ad$fracode[ad$fracode=="N05271"] <- "N08002"
+> ad$fracode[ad$fracode=="N06485"] <- "N08002"
+> ad$fracode[ad$fracode=="N08000"] <- "N08002"
+> ad$fracode <- factor(ad$fracode)
+> 
+> # re-order the tr factor for convenience
+> ad$tr <- factor(ad$tr,levels=c("Water","Sanitation","Handwashing","Nutrition","WSH","Nutrition + WSH","Control"))
+> 
+> # sort the data for perfect replication with jade on the V-fold cross-validation
+> ad <- ad[order(ad$block,ad$clusterid,ad$dataid,ad$childid),]
+> 
+> #---------------------------------------
+> # Permutation tests
+> #---------------------------------------
+> 
+> # excluding birthord (only measured in index children in year 2)
+> 
+> # pre-specified covariates (but not treatment)
+> Ws <- subset(ad,select=c("fracode","month","agedays","sex","momage","momedu","momheight","hfiacat","Nlt18","Ncomp","watmin","elec","floor","walls","roof","asset_wardrobe","asset_table","asset_chair","asset_khat","asset_chouki","asset_tv","asset_refrig","asset_bike","asset_moto","asset_sewmach","asset_mobile"))
+> 
+> # restrict to complete cases
+> SLd <- data.frame(id=ad$clusterid,block=ad$block,tr=ad$tr,Y=ad$diar7d,Ws)
+> dim(SLd)
+[1] 14425    30
+> SLd <- SLd[complete.cases(SLd),]
+> dim(SLd)
+[1] 14265    30
+> 
+> 
+> # pre-screen the covariates for those associated with the outcome (LR test P<0.2)
+> # see washb_prescreen() and design_matrix() in the base functions
+> Wscreen <- washb_prescreen(Y=SLd$Y,Ws=SLd[,5:ncol(SLd)],family="binomial",pval=0.2)
+Loading required package: lmtest
+Loading required package: zoo
+
+Attaching package: ‘zoo’
+
+The following objects are masked from ‘package:base’:
+
+    as.Date, as.Date.numeric
+
+
+Likelihood Ratio Test P-values:
+      [,1]             [,2]       
+ [1,] "fracode"        "P = 0.173"
+ [2,] "month"          "P = 0.000"
+ [3,] "agedays"        "P = 0.000"
+ [4,] "sex"            "P = 0.158"
+ [5,] "momage"         "P = 0.858"
+ [6,] "momedu"         "P = 0.001"
+ [7,] "momheight"      "P = 0.837"
+ [8,] "hfiacat"        "P = 0.000"
+ [9,] "Nlt18"          "P = 0.146"
+[10,] "Ncomp"          "P = 0.858"
+[11,] "watmin"         "P = 0.017"
+[12,] "elec"           "P = 0.002"
+[13,] "floor"          "P = 0.009"
+[14,] "walls"          "P = 0.173"
+[15,] "roof"           "P = 0.446"
+[16,] "asset_wardrobe" "P = 0.003"
+[17,] "asset_table"    "P = 0.278"
+[18,] "asset_chair"    "P = 0.264"
+[19,] "asset_khat"     "P = 0.054"
+[20,] "asset_chouki"   "P = 0.883"
+[21,] "asset_tv"       "P = 0.109"
+[22,] "asset_refrig"   "P = 0.015"
+[23,] "asset_bike"     "P = 0.005"
+[24,] "asset_moto"     "P = 0.233"
+[25,] "asset_sewmach"  "P = 0.004"
+[26,] "asset_mobile"   "P = 0.713"
+
+
+Covariates selected (P<0.2):
+      [,1]             [,2]       
+ [1,] "fracode"        "P = 0.173"
+ [2,] "month"          "P = 0.000"
+ [3,] "agedays"        "P = 0.000"
+ [4,] "sex"            "P = 0.158"
+ [5,] "momedu"         "P = 0.001"
+ [6,] "hfiacat"        "P = 0.000"
+ [7,] "Nlt18"          "P = 0.146"
+ [8,] "watmin"         "P = 0.017"
+ [9,] "elec"           "P = 0.002"
+[10,] "floor"          "P = 0.009"
+[11,] "walls"          "P = 0.173"
+[12,] "asset_wardrobe" "P = 0.003"
+[13,] "asset_khat"     "P = 0.054"
+[14,] "asset_tv"       "P = 0.109"
+[15,] "asset_refrig"   "P = 0.015"
+[16,] "asset_bike"     "P = 0.005"
+[17,] "asset_sewmach"  "P = 0.004"
+Warning message:
+glm.fit: fitted probabilities numerically 0 or 1 occurred 
+> Wselect <- subset(SLd,select=Wscreen)
+> Wselect <- design_matrix(Wselect)
+> 
+> 
+> # algorithmic fit of the outcome as a function of selected covariates
+> set.seed(12345)
+> SLfit <- SuperLearner(Y=SLd$Y,X=Wselect,id=SLd$id,
++                        family="binomial",
++                        SL.library=c("SL.mean","SL.glm","SL.bayesglm","SL.gam","SL.glmnet")
++ )
+Loading required package: arm
+Loading required package: MASS
+Loading required package: Matrix
+Loading required package: lme4
+
+arm (Version 1.9-1, built: 2016-8-21)
+
+Working directory is /Users/benarnold/WBBpa/src/diar
+
+Loading required package: gam
+Loading required package: splines
+Loading required package: foreach
+Loaded gam 1.12
+
+Loading required package: glmnet
+Loaded glmnet 2.0-5
+
+There were 16 warnings (use warnings() to see them)
+> SLfit
+
+Call:  
+SuperLearner(Y = SLd$Y, X = Wselect, family = "binomial", SL.library = c("SL.mean",  
+    "SL.glm", "SL.bayesglm", "SL.gam", "SL.glmnet"), id = SLd$id) 
+
+
+                      Risk      Coef
+SL.mean_All     0.04074549 0.3233868
+SL.glm_All      0.04073110 0.0000000
+SL.bayesglm_All 0.04072377 0.2870676
+SL.gam_All      0.04074025 0.0000000
+SL.glmnet_All   0.04064054 0.3895456
+> SLd$pY <- as.vector(predict(SLfit)$pred)
+> SLd$r <- SLd$Y-SLd$pY
+> 
+> 
+> # Hypothesis 1 permutation tests
+> permute.C.W <- washb.permute(Y=SLd$r,tr=SLd$tr,block=SLd$block,contrast=c("Control","Water"),seed=12345)
+
+	Approximative Wilcoxon-Pratt Signed-Rank Test
+
+data:  y by x (pos, neg) 
+	 stratified by block
+Z = 1.0401, p-value = 0.3012
+alternative hypothesis: true mu is not equal to 0
+
+> permute.C.S <- washb.permute(Y=SLd$r,tr=SLd$tr,block=SLd$block,contrast=c("Control","Sanitation"),seed=12345)
+
+	Approximative Wilcoxon-Pratt Signed-Rank Test
+
+data:  y by x (pos, neg) 
+	 stratified by block
+Z = 3.559, p-value = 0.00047
+alternative hypothesis: true mu is not equal to 0
+
+> permute.C.H <- washb.permute(Y=SLd$r,tr=SLd$tr,block=SLd$block,contrast=c("Control","Handwashing"),seed=12345)
+
+	Approximative Wilcoxon-Pratt Signed-Rank Test
+
+data:  y by x (pos, neg) 
+	 stratified by block
+Z = 3.9412, p-value < 2.2e-16
+alternative hypothesis: true mu is not equal to 0
+
+> permute.C.WSH <- washb.permute(Y=SLd$r,tr=SLd$tr,block=SLd$block,contrast=c("Control","WSH"),seed=12345)
+
+	Approximative Wilcoxon-Pratt Signed-Rank Test
+
+data:  y by x (pos, neg) 
+	 stratified by block
+Z = 2.6214, p-value = 0.00853
+alternative hypothesis: true mu is not equal to 0
+
+> permute.C.N   <- washb.permute(Y=SLd$r,tr=SLd$tr,block=SLd$block,contrast=c("Control","Nutrition"),seed=12345)
+
+	Approximative Wilcoxon-Pratt Signed-Rank Test
+
+data:  y by x (pos, neg) 
+	 stratified by block
+Z = 2.9192, p-value = 0.00332
+alternative hypothesis: true mu is not equal to 0
+
+> permute.C.NWSH <- washb.permute(Y=SLd$r,tr=SLd$tr,block=SLd$block,contrast=c("Control","Nutrition + WSH"),seed=12345)
+
+	Approximative Wilcoxon-Pratt Signed-Rank Test
+
+data:  y by x (pos, neg) 
+	 stratified by block
+Z = 3.6636, p-value = 0.00028
+alternative hypothesis: true mu is not equal to 0
+
+> 
+> # Hypothesis 2 permutation tests
+> permute.W.WSH   <- washb.permute(Y=SLd$r,tr=SLd$tr,block=SLd$block,c("Water","WSH"),seed=12345)
+
+	Approximative Wilcoxon-Pratt Signed-Rank Test
+
+data:  y by x (pos, neg) 
+	 stratified by block
+Z = 1.1407, p-value = 0.2544
+alternative hypothesis: true mu is not equal to 0
+
+> permute.S.WSH   <- washb.permute(Y=SLd$r,tr=SLd$tr,block=SLd$block,c("Sanitation","WSH"),seed=12345)
+
+	Approximative Wilcoxon-Pratt Signed-Rank Test
+
+data:  y by x (pos, neg) 
+	 stratified by block
+Z = -1.1246, p-value = 0.2626
+alternative hypothesis: true mu is not equal to 0
+
+> permute.H.WSH   <- washb.permute(Y=SLd$r,tr=SLd$tr,block=SLd$block,c("Handwashing","WSH"),seed=12345)
+
+	Approximative Wilcoxon-Pratt Signed-Rank Test
+
+data:  y by x (pos, neg) 
+	 stratified by block
+Z = -0.93148, p-value = 0.352
+alternative hypothesis: true mu is not equal to 0
+
+> 
+> #---------------------------------------
+> # put objects in the standard format
+> #---------------------------------------
+> h1res <- list(permute.C.W,permute.C.S,permute.C.H,permute.C.WSH,permute.C.N,permute.C.NWSH)
+> diar_h1_pval_adj <- as.matrix(sapply(h1res,function(x) x$p.value),nrow=6)
+> rownames(diar_h1_pval_adj) <- c("Water v C","Sanitation v C","Handwashing v C","WSH v C","Nutrition v C","Nutrition + WSH v C")
+> 
+> h2res <- list(permute.W.WSH,permute.S.WSH,permute.H.WSH)
+> diar_h2_pval_adj <- as.matrix(sapply(h2res,function(x) x$p.value),nrow=3)
+> rownames(diar_h2_pval_adj) <- c("WSH v W","WSH v S","WSH v H")
+> 
+> 
+> #---------------------------------------
+> # print results
+> #---------------------------------------
+> diar_h1_pval_adj
+                       [,1]
+Water v C           0.30122
+Sanitation v C      0.00047
+Handwashing v C     0.00000
+WSH v C             0.00853
+Nutrition v C       0.00332
+Nutrition + WSH v C 0.00028
+> 
+> diar_h2_pval_adj
+           [,1]
+WSH v W 0.25443
+WSH v S 0.26263
+WSH v H 0.35198
+> 
+> 
+> #---------------------------------------
+> # add suffix for replication
+> #---------------------------------------
+> diar_h1_pval_adj_b <- diar_h1_pval_adj
+> diar_h2_pval_adj_b <- diar_h2_pval_adj
+> rm(diar_h1_pval_adj,diar_h2_pval_adj)
+> 
+> #---------------------------------------
+> # save all of the results
+> # excluding the datasets
+> #---------------------------------------
+> rm(bd,d,ad)
+> rm(SLfit,h1res,h2res)
+> save.image("~/dropbox/WBB-primary-analysis/results/raw/ben/bangladesh-diar-adj-permute.RData")
+> 
+> 
+> 
+> proc.time()
+   user  system elapsed 
+ 99.187   4.486 106.217 

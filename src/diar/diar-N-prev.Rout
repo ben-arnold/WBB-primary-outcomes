@@ -1,0 +1,336 @@
+
+R version 3.3.1 (2016-06-21) -- "Bug in Your Hair"
+Copyright (C) 2016 The R Foundation for Statistical Computing
+Platform: x86_64-apple-darwin13.4.0 (64-bit)
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+  Natural language support but running in an English locale
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+[Previously saved workspace restored]
+
+> 
+> #---------------------------------------
+> # diar-N-prev.R
+> #
+> # ben arnold (benarnold@berkeley.edu)
+> #
+> # calculate the number of diarrhea
+> # cases and the prevalence by
+> # survey round and treatment arm
+> #---------------------------------------
+> 
+> #---------------------------------------
+> # input files:
+> #	washb-bangladesh-diar.csv
+> #
+> # output files:
+> #	bangladesh-diar-N-prev-ben.RData
+> #
+> #---------------------------------------
+> 
+> 
+> #---------------------------------------
+> # preamble
+> #---------------------------------------
+> rm(list=ls())
+> library(tmle)
+Loading required package: SuperLearner
+Loading required package: nnls
+Super Learner
+Version: 2.0-19
+Package created on 2016-02-02
+
+Welcome to the tmle package, version 1.2.0-2
+
+Use tmleNews() to see details on changes and bug fixes
+
+Attaching package: ‘tmle’
+
+The following object is masked from ‘package:SuperLearner’:
+
+    SL.glm.interaction
+
+> 
+> # source the base functions
+> source("~/WBBpa/src/basefns/washb-base-functions.R")
+> 
+> 
+> #---------------------------------------
+> # Load the analysis dataset
+> #---------------------------------------
+> 
+> d <- read.csv("~/dropbox/wbb-primary-analysis/data/final/ben/washb-bangladesh-diar.csv")
+> 
+> #---------------------------------------
+> # Exclude:
+> # * siblings who were born after enrollment
+> # * siblings who were >36 mos at enrollment
+> # * children with missing outcome data
+> #---------------------------------------
+> 
+> table(d$svy,d$sibnewbirth)
+   
+       0    1
+  0 3678    0
+  1 8006  946
+  2 7914 2050
+> table(d$svy,d$gt36mos)
+   
+       0
+  0 3678
+  1 8952
+  2 9964
+> table(d$svy,is.na(d$diar7d))
+   
+    FALSE TRUE
+  0  3122  556
+  1  8016  936
+  2  8711 1253
+> 
+> 
+> table(d$sibnewbirth)
+
+    0     1 
+19598  2996 
+> ad <- subset(d,sibnewbirth==0)
+> dim(ad)
+[1] 19598    29
+> 
+> table(ad$gt36mos)
+
+    0 
+19598 
+> ad <- subset(ad,gt36mos==0)
+> dim(ad)
+[1] 19598    29
+> 
+> table(is.na(ad$diar7d))
+
+FALSE  TRUE 
+17547  2051 
+> ad <- subset(ad,!is.na(ad$diar7d))
+> 
+> 
+> # re-order the tr factor for convenience
+> ad$tr <- factor(ad$tr,levels=c("Control","Water","Sanitation","Handwashing","WSH","Nutrition","Nutrition + WSH"))
+> 
+> #---------------------------------------
+> # Calculate N and 7-day diarrhea cases
+> # by survey round and by treatment arm
+> #---------------------------------------
+> 
+> Nchild <- tapply(ad$diar7d,list(ad$svy,ad$tr),function(x) length(x))
+> diar7d <- tapply(ad$diar7d,list(ad$svy,ad$tr),function(x) sum(x))
+> 
+> #---------------------------------------
+> # calculate Ns and prevalence for
+> # all of follow-up (surveys 1 and 2)
+> #---------------------------------------
+> Nchildfu <- tapply(ad$diar7d[ad$svy==1|ad$svy==2],ad$tr[ad$svy==1|ad$svy==2],function(x) length(x))
+> diar7dfu <- tapply(ad$diar7d[ad$svy==1|ad$svy==2],ad$tr[ad$svy==1|ad$svy==2],function(x) sum(x))
+> 
+> 
+> #---------------------------------------
+> # Create randomization block indicators
+> # (need to condition on these for 
+> # clusters to be indepdent)  The tmle()
+> # function can't handle factors, so this
+> # is necessary
+> #
+> # NOTE: tmle() returns identical CIs
+> # irrespective of whether we include
+> # these indicators
+> # might want to double-check the
+> # estimates using Stata as well?
+> #---------------------------------------
+> 
+> # create indicators for the randomization strata
+> blocks <- model.matrix(~as.factor(ad$block))[,-c(1)]
+> colnames(blocks) <- paste("block",2:90,sep="")
+> 
+> #---------------------------------------
+> # Calculate unadjusted prevalences
+> # and 95% CIs by arm
+> #---------------------------------------
+> 
+> # Calculate means and influence-curve based 95% CIs by survey round
+> set.seed(12345)
+> arms <- levels(ad$tr)
+> mu0 <- sapply(arms,tmle.mean.est,Y=ad$diar7d,tr=ad$tr,svy=ad$svy,id=ad$clusterid,s=0)
+> mu1 <- sapply(arms,tmle.mean.est,Y=ad$diar7d,tr=ad$tr,svy=ad$svy,id=ad$clusterid,s=1)
+> mu2 <- sapply(arms,tmle.mean.est,Y=ad$diar7d,tr=ad$tr,svy=ad$svy,id=ad$clusterid,s=2)
+> 
+> # compute means by all follow-up rounds
+> ad$svy2 <- ifelse(ad$svy==1|ad$svy==2,1,0)
+> mu12 <- sapply(arms,tmle.mean.est,Y=ad$diar7d,tr=ad$tr,svy=ad$svy2,id=ad$clusterid,s=1)
+> 
+> #---------------------------------------
+> # Create final objects
+> #---------------------------------------
+> 
+> # condense results into pre-specfied objects
+> diar_t0_n <- cbind(Nchild[1,],diar7d[1,])
+> diar_t1_n <- cbind(Nchild[2,],diar7d[2,])
+> diar_t2_n <- cbind(Nchild[3,],diar7d[3,])
+> diar_t12_n <- cbind(Nchildfu,diar7dfu)
+> colnames(diar_t0_n) <- colnames(diar_t1_n) <-  colnames(diar_t2_n) <- colnames(diar_t12_n) <- c("N","n")
+> 
+> diar_t0_prev <- t(mu0)
+> diar_t1_prev <- t(mu1)
+> diar_t2_prev <- t(mu2)
+> diar_t12_prev <- t(mu12)
+> 
+> 
+> 
+> #---------------------------------------
+> # Internal consistency check:
+> # the n/N and tmle prevalence estimates
+> # should be the same
+> #---------------------------------------
+> round(cbind(diar_t0_n[,2]/diar_t0_n[,1],diar_t0_prev[,1]),4)
+                  [,1]   [,2]
+Control         0.0763 0.0763
+Water           0.0732 0.0732
+Sanitation      0.0648 0.0648
+Handwashing     0.0587 0.0587
+WSH             0.0676 0.0676
+Nutrition       0.0729 0.0729
+Nutrition + WSH 0.0813 0.0813
+> round(cbind(diar_t1_n[,2]/diar_t1_n[,1],diar_t1_prev[,1]),4)
+                  [,1]   [,2]
+Control         0.0585 0.0585
+Water           0.0522 0.0522
+Sanitation      0.0307 0.0307
+Handwashing     0.0372 0.0372
+WSH             0.0357 0.0357
+Nutrition       0.0407 0.0407
+Nutrition + WSH 0.0399 0.0399
+> round(cbind(diar_t2_n[,2]/diar_t2_n[,1],diar_t2_prev[,1]),4)
+                  [,1]   [,2]
+Control         0.0552 0.0552
+Water           0.0463 0.0463
+Sanitation      0.0386 0.0386
+Handwashing     0.0318 0.0318
+WSH             0.0423 0.0423
+Nutrition       0.0284 0.0284
+Nutrition + WSH 0.0308 0.0308
+> 
+> round(cbind(diar_t12_n[,2]/diar_t12_n[,1],diar_t12_prev[,1]),4)
+                  [,1]   [,2]
+Control         0.0569 0.0569
+Water           0.0493 0.0493
+Sanitation      0.0347 0.0347
+Handwashing     0.0345 0.0345
+WSH             0.0389 0.0389
+Nutrition       0.0345 0.0345
+Nutrition + WSH 0.0355 0.0355
+> 
+> #---------------------------------------
+> # Print and save results
+> #---------------------------------------
+> diar_t0_n
+                  N  n
+Control         773 59
+Water           369 27
+Sanitation      355 23
+Handwashing     392 23
+WSH             429 29
+Nutrition       398 29
+Nutrition + WSH 406 33
+> diar_t1_n
+                   N   n
+Control         1779 104
+Water            939  49
+Sanitation       880  27
+Handwashing      914  34
+WSH              981  35
+Nutrition        885  36
+Nutrition + WSH  953  38
+> diar_t2_n
+                   N  n
+Control         1738 96
+Water            885 41
+Sanitation       880 34
+Handwashing      881 28
+WSH              921 39
+Nutrition        881 25
+Nutrition + WSH  908 28
+> diar_t12_n
+                   N   n
+Control         3517 200
+Water           1824  90
+Sanitation      1760  61
+Handwashing     1795  62
+WSH             1902  74
+Nutrition       1766  61
+Nutrition + WSH 1861  66
+> round(diar_t0_prev,4)
+                  mean  ci.lb  ci.ub
+Control         0.0763 0.0529 0.0998
+Water           0.0732 0.0373 0.1090
+Sanitation      0.0648 0.0235 0.1061
+Handwashing     0.0587 0.0337 0.0837
+WSH             0.0676 0.0394 0.0958
+Nutrition       0.0729 0.0394 0.1063
+Nutrition + WSH 0.0813 0.0570 0.1056
+> round(diar_t1_prev,4)
+                  mean  ci.lb  ci.ub
+Control         0.0585 0.0460 0.0709
+Water           0.0522 0.0379 0.0665
+Sanitation      0.0307 0.0167 0.0447
+Handwashing     0.0372 0.0248 0.0496
+WSH             0.0357 0.0232 0.0482
+Nutrition       0.0407 0.0260 0.0553
+Nutrition + WSH 0.0399 0.0267 0.0531
+> round(diar_t2_prev,4)
+                  mean  ci.lb  ci.ub
+Control         0.0552 0.0417 0.0688
+Water           0.0463 0.0316 0.0611
+Sanitation      0.0386 0.0254 0.0519
+Handwashing     0.0318 0.0193 0.0442
+WSH             0.0423 0.0278 0.0569
+Nutrition       0.0284 0.0130 0.0437
+Nutrition + WSH 0.0308 0.0197 0.0420
+> round(diar_t12_prev,4)
+                  mean  ci.lb  ci.ub
+Control         0.0569 0.0475 0.0662
+Water           0.0493 0.0386 0.0601
+Sanitation      0.0347 0.0255 0.0438
+Handwashing     0.0345 0.0263 0.0428
+WSH             0.0389 0.0295 0.0484
+Nutrition       0.0345 0.0229 0.0461
+Nutrition + WSH 0.0355 0.0265 0.0444
+> 
+> # add 'b' suffix for comparison w/ jade
+> diar_t0_n_b <- diar_t0_n
+> diar_t1_n_b <- diar_t1_n
+> diar_t2_n_b <- diar_t2_n
+> diar_t12_n_b <- diar_t12_n
+> diar_t0_prev_b <- diar_t0_prev
+> diar_t1_prev_b <- diar_t1_prev
+> diar_t2_prev_b <- diar_t2_prev
+> diar_t12_prev_b <- diar_t12_prev
+> 
+> 
+> save(diar_t0_n_b,diar_t1_n_b,diar_t2_n_b,diar_t12_n_b,diar_t0_prev_b,diar_t1_prev_b,diar_t2_prev_b,diar_t12_prev_b,file="~/dropbox/wbb-primary-analysis/results/raw/ben/bangladesh-diar-N-prev-ben.RData")
+> 
+> 
+> 
+> 
+> 
+> 	
+> 
+> proc.time()
+   user  system elapsed 
+  3.277   0.214   3.675 
