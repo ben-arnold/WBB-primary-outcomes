@@ -1,0 +1,1341 @@
+
+R version 3.3.1 (2016-06-21) -- "Bug in Your Hair"
+Copyright (C) 2016 The R Foundation for Statistical Computing
+Platform: x86_64-apple-darwin13.4.0 (64-bit)
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+  Natural language support but running in an English locale
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+[Previously saved workspace restored]
+
+> 
+> #---------------------------------------
+> # whzminus2-adj-t1.R
+> #
+> # ben arnold (benarnold@berkeley.edu)
+> #
+> # calculate unadjusted differences
+> # between treatment arms for H1 and H3
+> #---------------------------------------
+> 
+> #---------------------------------------
+> # input files:
+> #	washb-bangladesh-anthro.csv
+> #	washb-bangladesh-enrol.csv
+> #
+> # output files:
+> #	bangladesh-whzminus2-adj-t1-ben.RData
+> #
+> #---------------------------------------
+> 
+> #---------------------------------------
+> # preamble
+> #---------------------------------------
+> rm(list=ls())
+> library(tmle)
+Loading required package: SuperLearner
+Loading required package: nnls
+Super Learner
+Version: 2.0-19
+Package created on 2016-02-02
+
+Welcome to the tmle package, version 1.2.0-2
+
+Use tmleNews() to see details on changes and bug fixes
+
+Attaching package: ‘tmle’
+
+The following object is masked from ‘package:SuperLearner’:
+
+    SL.glm.interaction
+
+> library(SuperLearner)
+> 
+> # source the base functions
+> source("~/WBBpa/src/basefns/washb-base-functions.R")
+> 
+> 
+> #---------------------------------------
+> # Load the analysis dataset,
+> # the baseline covariate dataset
+> #---------------------------------------
+> 
+> bd <- read.csv("~/dropbox/WBB-primary-analysis/data/final/ben/washb-bangladesh-enrol.csv",colClasses=c("dataid"="character"))
+> 
+> d <- read.csv("~/dropbox/WBB-primary-analysis/data/final/ben/washb-bangladesh-anthro.csv",colClasses=c("dataid"="character"))
+> 
+> # merge the baseline dataset to the follow-up dataset
+> ad <- merge(bd,d,by=c("dataid","clusterid","block","tr"),all.x=T,all.y=T)
+> dim(d)
+[1] 9341   49
+> dim(ad)
+[1] 10047   118
+> 
+> #---------------------------------------
+> # subset to the relevant measurement
+> # Year 1 or Year 2
+> #---------------------------------------
+> table(ad$svy)
+
+   1    2 
+4708 4633 
+> ad <- subset(ad,svy==1)
+> dim(ad)
+[1] 4708  118
+> 
+> # subset the anthropometry to target children (excluding siblings)
+> dim(ad)
+[1] 4708  118
+> ad <- subset(ad,tchild=="Target child")
+> dim(ad)
+[1] 4708  118
+> 
+> # Drop children with extreme WHZ values
+> table(ad$whz_x)
+
+   0    1 
+4695    6 
+> ad <- subset(ad,whz_x!=1)
+> 
+> 
+> # Exclude children with missing data (none)
+> table(is.na(ad$whzminus2))
+
+FALSE 
+ 4695 
+> 
+> # re-order the tr factor for convenience
+> ad$tr <- factor(ad$tr,levels=c("Control","Water","Sanitation","Handwashing","WSH","Nutrition","Nutrition + WSH"))
+> 
+> # ensure that month is coded as a factor
+> ad$month <- factor(ad$month)
+> 
+> # lump field investigators with <100 measurements into a single code (arbitrarily choosing N08002 from the list). This FRA code list with N<100 is the same for years 1 and 2.
+> ad$fracode[ad$fracode=="20"    ] <- "N08002"
+> ad$fracode[ad$fracode=="D03538"] <- "N08002"
+> ad$fracode[ad$fracode=="N00436"] <- "N08002"
+> ad$fracode[ad$fracode=="N05267"] <- "N08002"
+> ad$fracode[ad$fracode=="N05268"] <- "N08002"
+> ad$fracode[ad$fracode=="N05271"] <- "N08002"
+> ad$fracode[ad$fracode=="N06485"] <- "N08002"
+> ad$fracode[ad$fracode=="N08000"] <- "N08002"
+> ad$fracode <- factor(ad$fracode)
+> 
+> # sort the data for perfect replication with jade on the V-fold cross-validation
+> ad <- ad[order(ad$block,ad$clusterid,ad$dataid,ad$childid),]
+> 
+> #---------------------------------------
+> # Select covariates with univariate
+> # associations with the outcome of
+> # P<0.2 based on a liklihood ratio test
+> #---------------------------------------
+> 
+> 
+> # drop due to so many missing values?
+> # asset_clock
+> # birthord
+> 
+> Ws <- subset(ad,select=c("fracode","month","aged","sex","momage","momedu","momheight","hfiacat","Nlt18","Ncomp","watmin","elec","floor","walls","roof","asset_wardrobe","asset_table","asset_chair","asset_khat","asset_chouki","asset_tv","asset_refrig","asset_bike","asset_moto","asset_sewmach","asset_mobile"))
+> 
+> 
+> #---------------------------------------
+> # Estimate adjusted mean differences
+> #---------------------------------------
+> #---------------------------------------
+> # H1: Each intervention arm vs. Control
+> #---------------------------------------
+> h1.contrasts <- list(
++   c("Control","Water"),
++   c("Control","Sanitation"),
++   c("Control","Handwashing"),
++   c("Control","WSH"),
++   c("Control","Nutrition"),
++   c("Control","Nutrition + WSH")
++ )
+> 
+> # unadjusted estimates (MH estimator)
+> diff.h1 <- t(sapply(h1.contrasts,ITT.unadj,Y=ad$whzminus2,tr=ad$tr,strat=ad$block,binomial=TRUE,measure="RD"))
+Loading required package: metafor
+Loading required package: Matrix
+Loading 'metafor' package (version 1.9-8). For an overview 
+and introduction to the package please type: help(metafor).
+> rownames(diff.h1) <- c("Water v C","Sanitation v C","Handwashing v C","WSH v C","Nutrition v C","Nutrition + WSH v C")
+> 
+> # adjusted estimates (tmle)
+> cwfit    <- washb_tmle(Y=ad$whzminus2,tr=ad$tr,W=Ws,id=ad$block,family="binomial",contrast=c("Control","Water"), seed=12345)
+
+-----------------------------------------
+Dropping 23 observations due to missing
+values in one or more variables
+  Final sample size: 1713 
+-----------------------------------------
+
+-----------------------------------------
+Pre-screening the adjustment covariates:
+-----------------------------------------
+Loading required package: lmtest
+Loading required package: zoo
+
+Attaching package: ‘zoo’
+
+The following objects are masked from ‘package:base’:
+
+    as.Date, as.Date.numeric
+
+
+Likelihood Ratio Test P-values:
+      [,1]             [,2]       
+ [1,] "fracode"        "P = 0.882"
+ [2,] "month"          "P = 0.002"
+ [3,] "aged"           "P = 0.007"
+ [4,] "sex"            "P = 0.020"
+ [5,] "momage"         "P = 0.239"
+ [6,] "momedu"         "P = 0.002"
+ [7,] "momheight"      "P = 0.024"
+ [8,] "hfiacat"        "P = 0.758"
+ [9,] "Nlt18"          "P = 0.904"
+[10,] "Ncomp"          "P = 0.596"
+[11,] "watmin"         "P = 0.678"
+[12,] "elec"           "P = 0.025"
+[13,] "floor"          "P = 0.015"
+[14,] "walls"          "P = 0.532"
+[15,] "roof"           "P = 0.181"
+[16,] "asset_wardrobe" "P = 0.010"
+[17,] "asset_table"    "P = 0.035"
+[18,] "asset_chair"    "P = 0.152"
+[19,] "asset_khat"     "P = 0.017"
+[20,] "asset_chouki"   "P = 0.239"
+[21,] "asset_tv"       "P = 0.520"
+[22,] "asset_refrig"   "P = 0.004"
+[23,] "asset_bike"     "P = 0.292"
+[24,] "asset_moto"     "P = 0.123"
+[25,] "asset_sewmach"  "P = 0.448"
+[26,] "asset_mobile"   "P = 0.006"
+
+
+Covariates selected (P<0.2):
+      [,1]             [,2]       
+ [1,] "month"          "P = 0.002"
+ [2,] "aged"           "P = 0.007"
+ [3,] "sex"            "P = 0.020"
+ [4,] "momedu"         "P = 0.002"
+ [5,] "momheight"      "P = 0.024"
+ [6,] "elec"           "P = 0.025"
+ [7,] "floor"          "P = 0.015"
+ [8,] "roof"           "P = 0.181"
+ [9,] "asset_wardrobe" "P = 0.010"
+[10,] "asset_table"    "P = 0.035"
+[11,] "asset_chair"    "P = 0.152"
+[12,] "asset_khat"     "P = 0.017"
+[13,] "asset_refrig"   "P = 0.004"
+[14,] "asset_moto"     "P = 0.123"
+[15,] "asset_mobile"   "P = 0.006"
+
+-----------------------------------------
+Loading required package: arm
+Loading required package: MASS
+Loading required package: lme4
+
+arm (Version 1.9-1, built: 2016-8-21)
+
+Working directory is /Users/benarnold/WBBpa/src/whzminus2
+
+Loading required package: gam
+Loading required package: splines
+Loading required package: foreach
+Loaded gam 1.12
+
+Loading required package: glmnet
+Loaded glmnet 2.0-5
+
+
+-----------------------------------------
+Estimation Results:
+-----------------------------------------
+ Initial estimation of Q
+	 Procedure: SuperLearner
+	 Model:
+		 Y ~  SL.mean_All + SL.glm_All + SL.bayesglm_All + SL.gam_All + SL.glmnet_All
+
+	 Coefficients: 
+	     SL.mean_All    0.1119614 
+	      SL.glm_All    0 
+	 SL.bayesglm_All    0 
+	      SL.gam_All    0 
+	   SL.glmnet_All    0.8880386 
+
+ Estimation of g (treatment mechanism)
+	 Procedure: SuperLearner 
+	 Model:
+		 A ~  SL.mean_All + SL.glm_All + SL.bayesglm_All + SL.gam_All + SL.glmnet_All 
+
+	 Coefficients: 
+	     SL.mean_All    0.7949706 
+	      SL.glm_All    0 
+	 SL.bayesglm_All    0.2050294 
+	      SL.gam_All    0 
+	   SL.glmnet_All    0 
+
+ Estimation of g.Z (intermediate variable assignment mechanism)
+	 Procedure: No intermediate variable 
+
+ Estimation of g.Delta (missingness mechanism)
+	 Procedure: No missingness 
+
+ Bounds on g: ( 0.025 0.975 )
+
+ Additive Effect
+   Parameter Estimate:  0.024535
+   Estimated Variance:  0.00016012
+              p-value:  0.052511
+    95% Conf Interval: (-0.00026673, 0.049337) 
+
+ Relative Risk
+   Parameter Estimate:  1.3476
+              p-value:  0.043547
+    95% Conf Interval: (1.0087, 1.8005) 
+
+              log(RR):  0.29835
+    variance(log(RR)):  0.02185 
+
+ Odds Ratio
+   Parameter Estimate:  1.3842
+              p-value:  0.04405
+    95% Conf Interval: (1.0087, 1.8994) 
+
+              log(OR):  0.32511
+    variance(log(OR)):  0.026068 
+
+-----------------------------------------
+> csfit    <- washb_tmle(Y=ad$whzminus2,tr=ad$tr,W=Ws,id=ad$block,family="binomial",contrast=c("Control","Sanitation"), seed=12345)
+
+-----------------------------------------
+Dropping 19 observations due to missing
+values in one or more variables
+  Final sample size: 1689 
+-----------------------------------------
+
+-----------------------------------------
+Pre-screening the adjustment covariates:
+-----------------------------------------
+
+Likelihood Ratio Test P-values:
+      [,1]             [,2]       
+ [1,] "fracode"        "P = 0.172"
+ [2,] "month"          "P = 0.134"
+ [3,] "aged"           "P = 0.000"
+ [4,] "sex"            "P = 0.119"
+ [5,] "momage"         "P = 0.847"
+ [6,] "momedu"         "P = 0.002"
+ [7,] "momheight"      "P = 0.066"
+ [8,] "hfiacat"        "P = 0.321"
+ [9,] "Nlt18"          "P = 0.704"
+[10,] "Ncomp"          "P = 0.610"
+[11,] "watmin"         "P = 0.171"
+[12,] "elec"           "P = 0.003"
+[13,] "floor"          "P = 0.073"
+[14,] "walls"          "P = 0.771"
+[15,] "roof"           "P = 0.827"
+[16,] "asset_wardrobe" "P = 0.098"
+[17,] "asset_table"    "P = 0.045"
+[18,] "asset_chair"    "P = 0.075"
+[19,] "asset_khat"     "P = 0.087"
+[20,] "asset_chouki"   "P = 0.744"
+[21,] "asset_tv"       "P = 0.320"
+[22,] "asset_refrig"   "P = 0.005"
+[23,] "asset_bike"     "P = 0.184"
+[24,] "asset_moto"     "P = 0.018"
+[25,] "asset_sewmach"  "P = 0.385"
+[26,] "asset_mobile"   "P = 0.001"
+
+
+Covariates selected (P<0.2):
+      [,1]             [,2]       
+ [1,] "fracode"        "P = 0.172"
+ [2,] "month"          "P = 0.134"
+ [3,] "aged"           "P = 0.000"
+ [4,] "sex"            "P = 0.119"
+ [5,] "momedu"         "P = 0.002"
+ [6,] "momheight"      "P = 0.066"
+ [7,] "watmin"         "P = 0.171"
+ [8,] "elec"           "P = 0.003"
+ [9,] "floor"          "P = 0.073"
+[10,] "asset_wardrobe" "P = 0.098"
+[11,] "asset_table"    "P = 0.045"
+[12,] "asset_chair"    "P = 0.075"
+[13,] "asset_khat"     "P = 0.087"
+[14,] "asset_refrig"   "P = 0.005"
+[15,] "asset_bike"     "P = 0.184"
+[16,] "asset_moto"     "P = 0.018"
+[17,] "asset_mobile"   "P = 0.001"
+
+-----------------------------------------
+
+-----------------------------------------
+Estimation Results:
+-----------------------------------------
+ Initial estimation of Q
+	 Procedure: SuperLearner
+	 Model:
+		 Y ~  SL.mean_All + SL.glm_All + SL.bayesglm_All + SL.gam_All + SL.glmnet_All
+
+	 Coefficients: 
+	     SL.mean_All    0 
+	      SL.glm_All    0.02939368 
+	 SL.bayesglm_All    0 
+	      SL.gam_All    0.03419435 
+	   SL.glmnet_All    0.936412 
+
+ Estimation of g (treatment mechanism)
+	 Procedure: SuperLearner 
+	 Model:
+		 A ~  SL.mean_All + SL.glm_All + SL.bayesglm_All + SL.gam_All + SL.glmnet_All 
+
+	 Coefficients: 
+	     SL.mean_All    1 
+	      SL.glm_All    0 
+	 SL.bayesglm_All    0 
+	      SL.gam_All    0 
+	   SL.glmnet_All    0 
+
+ Estimation of g.Z (intermediate variable assignment mechanism)
+	 Procedure: No intermediate variable 
+
+ Estimation of g.Delta (missingness mechanism)
+	 Procedure: No missingness 
+
+ Bounds on g: ( 0.025 0.975 )
+
+ Additive Effect
+   Parameter Estimate:  0.0025717
+   Estimated Variance:  0.00018951
+              p-value:  0.85181
+    95% Conf Interval: (-0.02441, 0.029554) 
+
+ Relative Risk
+   Parameter Estimate:  1.0364
+              p-value:  0.85113
+    95% Conf Interval: (0.71379, 1.5047) 
+
+              log(RR):  0.035705
+    variance(log(RR)):  0.036192 
+
+ Odds Ratio
+   Parameter Estimate:  1.0392
+              p-value:  0.85118
+    95% Conf Interval: (0.69525, 1.5534) 
+
+              log(OR):  0.038477
+    variance(log(OR)):  0.042058 
+
+-----------------------------------------
+Warning message:
+glm.fit: fitted probabilities numerically 0 or 1 occurred 
+> chfit    <- washb_tmle(Y=ad$whzminus2,tr=ad$tr,W=Ws,id=ad$block,family="binomial",contrast=c("Control","Handwashing"), seed=12345)
+
+-----------------------------------------
+Dropping 25 observations due to missing
+values in one or more variables
+  Final sample size: 1686 
+-----------------------------------------
+
+-----------------------------------------
+Pre-screening the adjustment covariates:
+-----------------------------------------
+
+Likelihood Ratio Test P-values:
+      [,1]             [,2]       
+ [1,] "fracode"        "P = 0.667"
+ [2,] "month"          "P = 0.578"
+ [3,] "aged"           "P = 0.001"
+ [4,] "sex"            "P = 0.088"
+ [5,] "momage"         "P = 0.101"
+ [6,] "momedu"         "P = 0.000"
+ [7,] "momheight"      "P = 0.012"
+ [8,] "hfiacat"        "P = 0.005"
+ [9,] "Nlt18"          "P = 0.112"
+[10,] "Ncomp"          "P = 0.417"
+[11,] "watmin"         "P = 0.558"
+[12,] "elec"           "P = 0.007"
+[13,] "floor"          "P = 0.057"
+[14,] "walls"          "P = 0.900"
+[15,] "roof"           "P = 0.820"
+[16,] "asset_wardrobe" "P = 0.050"
+[17,] "asset_table"    "P = 0.095"
+[18,] "asset_chair"    "P = 0.095"
+[19,] "asset_khat"     "P = 0.162"
+[20,] "asset_chouki"   "P = 0.972"
+[21,] "asset_tv"       "P = 0.138"
+[22,] "asset_refrig"   "P = 0.039"
+[23,] "asset_bike"     "P = 0.099"
+[24,] "asset_moto"     "P = 0.065"
+[25,] "asset_sewmach"  "P = 0.732"
+[26,] "asset_mobile"   "P = 0.073"
+
+
+Covariates selected (P<0.2):
+      [,1]             [,2]       
+ [1,] "aged"           "P = 0.001"
+ [2,] "sex"            "P = 0.088"
+ [3,] "momage"         "P = 0.101"
+ [4,] "momedu"         "P = 0.000"
+ [5,] "momheight"      "P = 0.012"
+ [6,] "hfiacat"        "P = 0.005"
+ [7,] "Nlt18"          "P = 0.112"
+ [8,] "elec"           "P = 0.007"
+ [9,] "floor"          "P = 0.057"
+[10,] "asset_wardrobe" "P = 0.050"
+[11,] "asset_table"    "P = 0.095"
+[12,] "asset_chair"    "P = 0.095"
+[13,] "asset_khat"     "P = 0.162"
+[14,] "asset_tv"       "P = 0.138"
+[15,] "asset_refrig"   "P = 0.039"
+[16,] "asset_bike"     "P = 0.099"
+[17,] "asset_moto"     "P = 0.065"
+[18,] "asset_mobile"   "P = 0.073"
+
+-----------------------------------------
+
+-----------------------------------------
+Estimation Results:
+-----------------------------------------
+ Initial estimation of Q
+	 Procedure: SuperLearner
+	 Model:
+		 Y ~  SL.mean_All + SL.glm_All + SL.bayesglm_All + SL.gam_All + SL.glmnet_All
+
+	 Coefficients: 
+	     SL.mean_All    0.3961796 
+	      SL.glm_All    0 
+	 SL.bayesglm_All    0.5242416 
+	      SL.gam_All    0 
+	   SL.glmnet_All    0.07957882 
+
+ Estimation of g (treatment mechanism)
+	 Procedure: SuperLearner 
+	 Model:
+		 A ~  SL.mean_All + SL.glm_All + SL.bayesglm_All + SL.gam_All + SL.glmnet_All 
+
+	 Coefficients: 
+	     SL.mean_All    1 
+	      SL.glm_All    0 
+	 SL.bayesglm_All    0 
+	      SL.gam_All    0 
+	   SL.glmnet_All    0 
+
+ Estimation of g.Z (intermediate variable assignment mechanism)
+	 Procedure: No intermediate variable 
+
+ Estimation of g.Delta (missingness mechanism)
+	 Procedure: No missingness 
+
+ Bounds on g: ( 0.025 0.975 )
+
+ Additive Effect
+   Parameter Estimate:  0.019615
+   Estimated Variance:  0.00026039
+              p-value:  0.22415
+    95% Conf Interval: (-0.012012, 0.051243) 
+
+ Relative Risk
+   Parameter Estimate:  1.2768
+              p-value:  0.21024
+    95% Conf Interval: (0.87119, 1.8711) 
+
+              log(RR):  0.24433
+    variance(log(RR)):  0.038029 
+
+ Odds Ratio
+   Parameter Estimate:  1.3043
+              p-value:  0.21131
+    95% Conf Interval: (0.85992, 1.9783) 
+
+              log(OR):  0.26567
+    variance(log(OR)):  0.045174 
+
+-----------------------------------------
+> cwshfit  <- washb_tmle(Y=ad$whzminus2,tr=ad$tr,W=Ws,id=ad$block,family="binomial",contrast=c("Control","WSH"), seed=12345)
+
+-----------------------------------------
+Dropping 30 observations due to missing
+values in one or more variables
+  Final sample size: 1698 
+-----------------------------------------
+
+-----------------------------------------
+Pre-screening the adjustment covariates:
+-----------------------------------------
+
+Likelihood Ratio Test P-values:
+      [,1]             [,2]       
+ [1,] "fracode"        "P = 0.032"
+ [2,] "month"          "P = 0.055"
+ [3,] "aged"           "P = 0.001"
+ [4,] "sex"            "P = 0.030"
+ [5,] "momage"         "P = 0.216"
+ [6,] "momedu"         "P = 0.000"
+ [7,] "momheight"      "P = 0.032"
+ [8,] "hfiacat"        "P = 0.101"
+ [9,] "Nlt18"          "P = 0.681"
+[10,] "Ncomp"          "P = 0.576"
+[11,] "watmin"         "P = 0.784"
+[12,] "elec"           "P = 0.006"
+[13,] "floor"          "P = 0.099"
+[14,] "walls"          "P = 0.741"
+[15,] "roof"           "P = 0.601"
+[16,] "asset_wardrobe" "P = 0.003"
+[17,] "asset_table"    "P = 0.017"
+[18,] "asset_chair"    "P = 0.070"
+[19,] "asset_khat"     "P = 0.000"
+[20,] "asset_chouki"   "P = 0.109"
+[21,] "asset_tv"       "P = 0.104"
+[22,] "asset_refrig"   "P = 0.150"
+[23,] "asset_bike"     "P = 0.205"
+[24,] "asset_moto"     "P = 0.045"
+[25,] "asset_sewmach"  "P = 0.421"
+[26,] "asset_mobile"   "P = 0.000"
+
+
+Covariates selected (P<0.2):
+      [,1]             [,2]       
+ [1,] "fracode"        "P = 0.032"
+ [2,] "month"          "P = 0.055"
+ [3,] "aged"           "P = 0.001"
+ [4,] "sex"            "P = 0.030"
+ [5,] "momedu"         "P = 0.000"
+ [6,] "momheight"      "P = 0.032"
+ [7,] "hfiacat"        "P = 0.101"
+ [8,] "elec"           "P = 0.006"
+ [9,] "floor"          "P = 0.099"
+[10,] "asset_wardrobe" "P = 0.003"
+[11,] "asset_table"    "P = 0.017"
+[12,] "asset_chair"    "P = 0.070"
+[13,] "asset_khat"     "P = 0.000"
+[14,] "asset_chouki"   "P = 0.109"
+[15,] "asset_tv"       "P = 0.104"
+[16,] "asset_refrig"   "P = 0.150"
+[17,] "asset_moto"     "P = 0.045"
+[18,] "asset_mobile"   "P = 0.000"
+
+-----------------------------------------
+
+-----------------------------------------
+Estimation Results:
+-----------------------------------------
+ Initial estimation of Q
+	 Procedure: SuperLearner
+	 Model:
+		 Y ~  SL.mean_All + SL.glm_All + SL.bayesglm_All + SL.gam_All + SL.glmnet_All
+
+	 Coefficients: 
+	     SL.mean_All    0.1868114 
+	      SL.glm_All    0 
+	 SL.bayesglm_All    0.1927827 
+	      SL.gam_All    0 
+	   SL.glmnet_All    0.6204059 
+
+ Estimation of g (treatment mechanism)
+	 Procedure: SuperLearner 
+	 Model:
+		 A ~  SL.mean_All + SL.glm_All + SL.bayesglm_All + SL.gam_All + SL.glmnet_All 
+
+	 Coefficients: 
+	     SL.mean_All    1 
+	      SL.glm_All    0 
+	 SL.bayesglm_All    0 
+	      SL.gam_All    0 
+	   SL.glmnet_All    0 
+
+ Estimation of g.Z (intermediate variable assignment mechanism)
+	 Procedure: No intermediate variable 
+
+ Estimation of g.Delta (missingness mechanism)
+	 Procedure: No missingness 
+
+ Bounds on g: ( 0.025 0.975 )
+
+ Additive Effect
+   Parameter Estimate:  0.0062655
+   Estimated Variance:  0.00013846
+              p-value:  0.59441
+    95% Conf Interval: (-0.016798, 0.029329) 
+
+ Relative Risk
+   Parameter Estimate:  1.0892
+              p-value:  0.59013
+    95% Conf Interval: (0.79823, 1.4861) 
+
+              log(RR):  0.085403
+    variance(log(RR)):  0.025138 
+
+ Odds Ratio
+   Parameter Estimate:  1.0965
+              p-value:  0.59044
+    95% Conf Interval: (0.7839, 1.5339) 
+
+              log(OR):  0.092165
+    variance(log(OR)):  0.029325 
+
+-----------------------------------------
+> cnfit    <- washb_tmle(Y=ad$whzminus2,tr=ad$tr,W=Ws,id=ad$block,family="binomial",contrast=c("Control","Nutrition"), seed=12345)
+
+-----------------------------------------
+Dropping 21 observations due to missing
+values in one or more variables
+  Final sample size: 1683 
+-----------------------------------------
+
+-----------------------------------------
+Pre-screening the adjustment covariates:
+-----------------------------------------
+
+Likelihood Ratio Test P-values:
+      [,1]             [,2]       
+ [1,] "fracode"        "P = 0.161"
+ [2,] "month"          "P = 0.050"
+ [3,] "aged"           "P = 0.000"
+ [4,] "sex"            "P = 0.818"
+ [5,] "momage"         "P = 0.026"
+ [6,] "momedu"         "P = 0.000"
+ [7,] "momheight"      "P = 0.099"
+ [8,] "hfiacat"        "P = 0.071"
+ [9,] "Nlt18"          "P = 0.153"
+[10,] "Ncomp"          "P = 0.461"
+[11,] "watmin"         "P = 0.680"
+[12,] "elec"           "P = 0.006"
+[13,] "floor"          "P = 0.059"
+[14,] "walls"          "P = 0.332"
+[15,] "roof"           "P = 0.541"
+[16,] "asset_wardrobe" "P = 0.109"
+[17,] "asset_table"    "P = 0.056"
+[18,] "asset_chair"    "P = 0.081"
+[19,] "asset_khat"     "P = 0.259"
+[20,] "asset_chouki"   "P = 0.530"
+[21,] "asset_tv"       "P = 0.161"
+[22,] "asset_refrig"   "P = 0.006"
+[23,] "asset_bike"     "P = 0.120"
+[24,] "asset_moto"     "P = 0.017"
+[25,] "asset_sewmach"  "P = 0.219"
+[26,] "asset_mobile"   "P = 0.003"
+
+
+Covariates selected (P<0.2):
+      [,1]             [,2]       
+ [1,] "fracode"        "P = 0.161"
+ [2,] "month"          "P = 0.050"
+ [3,] "aged"           "P = 0.000"
+ [4,] "momage"         "P = 0.026"
+ [5,] "momedu"         "P = 0.000"
+ [6,] "momheight"      "P = 0.099"
+ [7,] "hfiacat"        "P = 0.071"
+ [8,] "Nlt18"          "P = 0.153"
+ [9,] "elec"           "P = 0.006"
+[10,] "floor"          "P = 0.059"
+[11,] "asset_wardrobe" "P = 0.109"
+[12,] "asset_table"    "P = 0.056"
+[13,] "asset_chair"    "P = 0.081"
+[14,] "asset_tv"       "P = 0.161"
+[15,] "asset_refrig"   "P = 0.006"
+[16,] "asset_bike"     "P = 0.120"
+[17,] "asset_moto"     "P = 0.017"
+[18,] "asset_mobile"   "P = 0.003"
+
+-----------------------------------------
+
+-----------------------------------------
+Estimation Results:
+-----------------------------------------
+ Initial estimation of Q
+	 Procedure: SuperLearner
+	 Model:
+		 Y ~  SL.mean_All + SL.glm_All + SL.bayesglm_All + SL.gam_All + SL.glmnet_All
+
+	 Coefficients: 
+	     SL.mean_All    0 
+	      SL.glm_All    0 
+	 SL.bayesglm_All    0 
+	      SL.gam_All    0 
+	   SL.glmnet_All    1 
+
+ Estimation of g (treatment mechanism)
+	 Procedure: SuperLearner 
+	 Model:
+		 A ~  SL.mean_All + SL.glm_All + SL.bayesglm_All + SL.gam_All + SL.glmnet_All 
+
+	 Coefficients: 
+	     SL.mean_All    1 
+	      SL.glm_All    0 
+	 SL.bayesglm_All    0 
+	      SL.gam_All    0 
+	   SL.glmnet_All    0 
+
+ Estimation of g.Z (intermediate variable assignment mechanism)
+	 Procedure: No intermediate variable 
+
+ Estimation of g.Delta (missingness mechanism)
+	 Procedure: No missingness 
+
+ Bounds on g: ( 0.025 0.975 )
+
+ Additive Effect
+   Parameter Estimate:  0.011505
+   Estimated Variance:  0.00018094
+              p-value:  0.39237
+    95% Conf Interval: (-0.014859, 0.03787) 
+
+ Relative Risk
+   Parameter Estimate:  1.1636
+              p-value:  0.37931
+    95% Conf Interval: (0.83009, 1.631) 
+
+              log(RR):  0.15148
+    variance(log(RR)):  0.029687 
+
+ Odds Ratio
+   Parameter Estimate:  1.1781
+              p-value:  0.38028
+    95% Conf Interval: (0.81686, 1.6992) 
+
+              log(OR):  0.16393
+    variance(log(OR)):  0.034911 
+
+-----------------------------------------
+> cwshnfit <- washb_tmle(Y=ad$whzminus2,tr=ad$tr,W=Ws,id=ad$block,family="binomial",contrast=c("Control","Nutrition + WSH"), seed=12345)
+
+-----------------------------------------
+Dropping 21 observations due to missing
+values in one or more variables
+  Final sample size: 1707 
+-----------------------------------------
+
+-----------------------------------------
+Pre-screening the adjustment covariates:
+-----------------------------------------
+
+Likelihood Ratio Test P-values:
+      [,1]             [,2]       
+ [1,] "fracode"        "P = 0.057"
+ [2,] "month"          "P = 0.113"
+ [3,] "aged"           "P = 0.001"
+ [4,] "sex"            "P = 0.019"
+ [5,] "momage"         "P = 0.123"
+ [6,] "momedu"         "P = 0.004"
+ [7,] "momheight"      "P = 0.444"
+ [8,] "hfiacat"        "P = 0.149"
+ [9,] "Nlt18"          "P = 0.256"
+[10,] "Ncomp"          "P = 0.326"
+[11,] "watmin"         "P = 0.131"
+[12,] "elec"           "P = 0.024"
+[13,] "floor"          "P = 0.031"
+[14,] "walls"          "P = 0.933"
+[15,] "roof"           "P = 0.725"
+[16,] "asset_wardrobe" "P = 0.028"
+[17,] "asset_table"    "P = 0.194"
+[18,] "asset_chair"    "P = 0.324"
+[19,] "asset_khat"     "P = 0.058"
+[20,] "asset_chouki"   "P = 0.345"
+[21,] "asset_tv"       "P = 0.065"
+[22,] "asset_refrig"   "P = 0.001"
+[23,] "asset_bike"     "P = 0.701"
+[24,] "asset_moto"     "P = 0.038"
+[25,] "asset_sewmach"  "P = 0.698"
+[26,] "asset_mobile"   "P = 0.015"
+
+
+Covariates selected (P<0.2):
+      [,1]             [,2]       
+ [1,] "fracode"        "P = 0.057"
+ [2,] "month"          "P = 0.113"
+ [3,] "aged"           "P = 0.001"
+ [4,] "sex"            "P = 0.019"
+ [5,] "momage"         "P = 0.123"
+ [6,] "momedu"         "P = 0.004"
+ [7,] "hfiacat"        "P = 0.149"
+ [8,] "watmin"         "P = 0.131"
+ [9,] "elec"           "P = 0.024"
+[10,] "floor"          "P = 0.031"
+[11,] "asset_wardrobe" "P = 0.028"
+[12,] "asset_table"    "P = 0.194"
+[13,] "asset_khat"     "P = 0.058"
+[14,] "asset_tv"       "P = 0.065"
+[15,] "asset_refrig"   "P = 0.001"
+[16,] "asset_moto"     "P = 0.038"
+[17,] "asset_mobile"   "P = 0.015"
+
+-----------------------------------------
+
+-----------------------------------------
+Estimation Results:
+-----------------------------------------
+ Initial estimation of Q
+	 Procedure: SuperLearner
+	 Model:
+		 Y ~  SL.mean_All + SL.glm_All + SL.bayesglm_All + SL.gam_All + SL.glmnet_All
+
+	 Coefficients: 
+	     SL.mean_All    0.3676678 
+	      SL.glm_All    0.148217 
+	 SL.bayesglm_All    0 
+	      SL.gam_All    0 
+	   SL.glmnet_All    0.4841152 
+
+ Estimation of g (treatment mechanism)
+	 Procedure: SuperLearner 
+	 Model:
+		 A ~  SL.mean_All + SL.glm_All + SL.bayesglm_All + SL.gam_All + SL.glmnet_All 
+
+	 Coefficients: 
+	     SL.mean_All    1 
+	      SL.glm_All    0 
+	 SL.bayesglm_All    0 
+	      SL.gam_All    0 
+	   SL.glmnet_All    0 
+
+ Estimation of g.Z (intermediate variable assignment mechanism)
+	 Procedure: No intermediate variable 
+
+ Estimation of g.Delta (missingness mechanism)
+	 Procedure: No missingness 
+
+ Bounds on g: ( 0.025 0.975 )
+
+ Additive Effect
+   Parameter Estimate:  0.01139
+   Estimated Variance:  0.00020222
+              p-value:  0.42316
+    95% Conf Interval: (-0.016482, 0.039262) 
+
+ Relative Risk
+   Parameter Estimate:  1.1618
+              p-value:  0.40521
+    95% Conf Interval: (0.81614, 1.6539) 
+
+              log(RR):  0.14997
+    variance(log(RR)):  0.032462 
+
+ Odds Ratio
+   Parameter Estimate:  1.1762
+              p-value:  0.40661
+    95% Conf Interval: (0.8017, 1.7257) 
+
+              log(OR):  0.1623
+    variance(log(OR)):  0.038246 
+
+-----------------------------------------
+Warning message:
+glm.fit: fitted probabilities numerically 0 or 1 occurred 
+> 
+> # pull out the estimates from the tmle objects and summarize them in a matrix
+> tmle.summary.rd <- function(x) {
++   res <- c(x$estimates$ATE$psi,x$estimates$ATE$CI[1],x$estimates$ATE$CI[2],x$estimates$ATE$pvalue)
++   names(res) <- c("rd","ci.lb","ci.ub","p")
++   return(res)
++ }
+> tmle.summary.pr <- function(x) {
++   res <- c(x$estimates$RR$psi,x$estimates$RR$CI[1],x$estimates$RR$CI[2],x$estimates$RR$pvalue)
++   names(res) <- c("pr","ci.lb","ci.ub","p")
++   return(res)
++ }
+> 
+> tmle.h1 <- list(cwfit,csfit,chfit,cwshfit,cnfit,cwshnfit)
+> rd.tmle.h1 <- t(sapply(tmle.h1,tmle.summary.rd))
+> pr.tmle.h1 <- t(sapply(tmle.h1,tmle.summary.pr))
+> rownames(rd.tmle.h1) <- rownames(pr.tmle.h1) <- rownames(diff.h1)
+> 
+> # print results
+> round(diff.h1,4)
+                        RD  se.RD   ci.lb  ci.ub      Z      p
+Water v C           0.0231 0.0140 -0.0044 0.0505 1.6482 0.0993
+Sanitation v C      0.0033 0.0132 -0.0226 0.0292 0.2486 0.8037
+Handwashing v C     0.0206 0.0143 -0.0075 0.0487 1.4363 0.1509
+WSH v C             0.0043 0.0133 -0.0217 0.0303 0.3273 0.7435
+Nutrition v C       0.0102 0.0137 -0.0167 0.0371 0.7437 0.4571
+Nutrition + WSH v C 0.0073 0.0133 -0.0188 0.0334 0.5510 0.5816
+> round(rd.tmle.h1,4)
+                        rd   ci.lb  ci.ub      p
+Water v C           0.0245 -0.0003 0.0493 0.0525
+Sanitation v C      0.0026 -0.0244 0.0296 0.8518
+Handwashing v C     0.0196 -0.0120 0.0512 0.2241
+WSH v C             0.0063 -0.0168 0.0293 0.5944
+Nutrition v C       0.0115 -0.0149 0.0379 0.3924
+Nutrition + WSH v C 0.0114 -0.0165 0.0393 0.4232
+> round(pr.tmle.h1,4)
+                        pr  ci.lb  ci.ub      p
+Water v C           1.3476 1.0087 1.8005 0.0435
+Sanitation v C      1.0364 0.7138 1.5047 0.8511
+Handwashing v C     1.2768 0.8712 1.8711 0.2102
+WSH v C             1.0892 0.7982 1.4861 0.5901
+Nutrition v C       1.1636 0.8301 1.6310 0.3793
+Nutrition + WSH v C 1.1618 0.8161 1.6539 0.4052
+> 
+> #---------------------------------------
+> # H2: Combined WSH versus single interventions
+> # NOT CURRENTLY RUN BECAUSE NOT PRE-SPECIFIED
+> #---------------------------------------
+> # h2.contrasts <- list(
+> #   c("Water","WSH"),
+> #   c("Sanitation","WSH"),
+> #   c("Handwashing","WSH")
+> # )
+> # 
+> # # unadjusted estimates (MH estimator)
+> # diff.h2 <- t(sapply(h2.contrasts,ITT.unadj,Y=ad$whzminus2,tr=ad$tr,strat=ad$block,binomial=TRUE,measure="RD"))
+> # rownames(diff.h2) <- c("WSH v Water","WSH v Sanitation","WSH v Handwashing")
+> # 
+> # # adjusted estimates (tmle)
+> # wshwfit    <- washb_tmle(Y=ad$whzminus2,tr=ad$tr,W=Ws,id=ad$block,family="binomial",contrast=c("Water","WSH"),seed=12345)
+> # wshhfit    <- washb_tmle(Y=ad$whzminus2,tr=ad$tr,W=Ws,id=ad$block,family="binomial",contrast=c("Handwashing","WSH"),seed=12345)
+> # wshsfit    <- washb_tmle(Y=ad$whzminus2,tr=ad$tr,W=Ws,id=ad$block,family="binomial",contrast=c("Sanitation","WSH"),seed=12345)
+> # 
+> # tmle.h2 <- list(wshwfit,wshhfit,wshsfit)
+> # diff.tmle.h2 <- t(sapply(tmle.h2,tmle.summary))
+> # rownames(diff.tmle.h2) <- rownames(diff.h2)
+> 
+> #---------------------------------------
+> # H3: WSH+Nutrition vs. WSH or Nutrition alone
+> #---------------------------------------
+> h3.contrasts <- list(
++   c("Nutrition","Nutrition + WSH"),
++   c("WSH","Nutrition + WSH")
++ )
+> 
+> # unadjusted estimates (MH estimator)
+> diff.h3 <- t(sapply(h3.contrasts,ITT.unadj,Y=ad$whzminus2,tr=ad$tr,strat=ad$block,binomial=TRUE,measure="RD"))
+> rownames(diff.h3) <- c("Nutrition + WSH v Nutrition", "Nutrition + WSH v WSH")
+> 
+> # adjusted estimates (tmle)
+> nwshnfit   <- washb_tmle(Y=ad$whzminus2,tr=ad$tr,W=Ws,id=ad$block,family="binomial",contrast=c("Nutrition","Nutrition + WSH"),seed=12345)
+
+-----------------------------------------
+Dropping 6 observations due to missing
+values in one or more variables
+  Final sample size: 1178 
+-----------------------------------------
+
+-----------------------------------------
+Pre-screening the adjustment covariates:
+-----------------------------------------
+
+Likelihood Ratio Test P-values:
+      [,1]             [,2]       
+ [1,] "fracode"        "P = 0.432"
+ [2,] "month"          "P = 0.232"
+ [3,] "aged"           "P = 0.003"
+ [4,] "sex"            "P = 0.712"
+ [5,] "momage"         "P = 0.020"
+ [6,] "momedu"         "P = 0.014"
+ [7,] "momheight"      "P = 0.450"
+ [8,] "hfiacat"        "P = 0.300"
+ [9,] "Nlt18"          "P = 0.014"
+[10,] "Ncomp"          "P = 0.432"
+[11,] "watmin"         "P = 0.273"
+[12,] "elec"           "P = 0.040"
+[13,] "floor"          "P = 0.022"
+[14,] "walls"          "P = 0.330"
+[15,] "roof"           "P = 0.669"
+[16,] "asset_wardrobe" "P = 0.304"
+[17,] "asset_table"    "P = 0.283"
+[18,] "asset_chair"    "P = 0.083"
+[19,] "asset_khat"     "P = 0.212"
+[20,] "asset_chouki"   "P = 0.095"
+[21,] "asset_tv"       "P = 0.011"
+[22,] "asset_refrig"   "P = 0.002"
+[23,] "asset_bike"     "P = 0.684"
+[24,] "asset_moto"     "P = 0.062"
+[25,] "asset_sewmach"  "P = 0.878"
+[26,] "asset_mobile"   "P = 0.134"
+
+
+Covariates selected (P<0.2):
+      [,1]           [,2]       
+ [1,] "aged"         "P = 0.003"
+ [2,] "momage"       "P = 0.020"
+ [3,] "momedu"       "P = 0.014"
+ [4,] "Nlt18"        "P = 0.014"
+ [5,] "elec"         "P = 0.040"
+ [6,] "floor"        "P = 0.022"
+ [7,] "asset_chair"  "P = 0.083"
+ [8,] "asset_chouki" "P = 0.095"
+ [9,] "asset_tv"     "P = 0.011"
+[10,] "asset_refrig" "P = 0.002"
+[11,] "asset_moto"   "P = 0.062"
+[12,] "asset_mobile" "P = 0.134"
+
+-----------------------------------------
+
+-----------------------------------------
+Estimation Results:
+-----------------------------------------
+ Initial estimation of Q
+	 Procedure: SuperLearner
+	 Model:
+		 Y ~  SL.mean_All + SL.glm_All + SL.bayesglm_All + SL.gam_All + SL.glmnet_All
+
+	 Coefficients: 
+	     SL.mean_All    0.5719328 
+	      SL.glm_All    0 
+	 SL.bayesglm_All    0.4280672 
+	      SL.gam_All    0 
+	   SL.glmnet_All    0 
+
+ Estimation of g (treatment mechanism)
+	 Procedure: SuperLearner 
+	 Model:
+		 A ~  SL.mean_All + SL.glm_All + SL.bayesglm_All + SL.gam_All + SL.glmnet_All 
+
+	 Coefficients: 
+	     SL.mean_All    1 
+	      SL.glm_All    0 
+	 SL.bayesglm_All    0 
+	      SL.gam_All    0 
+	   SL.glmnet_All    0 
+
+ Estimation of g.Z (intermediate variable assignment mechanism)
+	 Procedure: No intermediate variable 
+
+ Estimation of g.Delta (missingness mechanism)
+	 Procedure: No missingness 
+
+ Bounds on g: ( 0.025 0.975 )
+
+ Additive Effect
+   Parameter Estimate:  0.0002299
+   Estimated Variance:  0.00033091
+              p-value:  0.98992
+    95% Conf Interval: (-0.035424, 0.035884) 
+
+ Relative Risk
+   Parameter Estimate:  1.0028
+              p-value:  0.98991
+    95% Conf Interval: (0.6475, 1.5531) 
+
+              log(RR):  0.0028212
+    variance(log(RR)):  0.049814 
+
+ Odds Ratio
+   Parameter Estimate:  1.0031
+              p-value:  0.98991
+    95% Conf Interval: (0.623, 1.615) 
+
+              log(OR):  0.0030715
+    variance(log(OR)):  0.059047 
+
+-----------------------------------------
+> wshwshnfit <- washb_tmle(Y=ad$whzminus2,tr=ad$tr,W=Ws,id=ad$block,family="binomial",contrast=c("WSH","Nutrition + WSH"),seed=12345)
+
+-----------------------------------------
+Dropping 15 observations due to missing
+values in one or more variables
+  Final sample size: 1193 
+-----------------------------------------
+
+-----------------------------------------
+Pre-screening the adjustment covariates:
+-----------------------------------------
+
+Likelihood Ratio Test P-values:
+      [,1]             [,2]       
+ [1,] "fracode"        "P = 0.419"
+ [2,] "month"          "P = 0.049"
+ [3,] "aged"           "P = 0.012"
+ [4,] "sex"            "P = 0.002"
+ [5,] "momage"         "P = 0.227"
+ [6,] "momedu"         "P = 0.027"
+ [7,] "momheight"      "P = 0.179"
+ [8,] "hfiacat"        "P = 0.563"
+ [9,] "Nlt18"          "P = 0.183"
+[10,] "Ncomp"          "P = 0.503"
+[11,] "watmin"         "P = 0.821"
+[12,] "elec"           "P = 0.040"
+[13,] "floor"          "P = 0.046"
+[14,] "walls"          "P = 0.585"
+[15,] "roof"           "P = 0.417"
+[16,] "asset_wardrobe" "P = 0.011"
+[17,] "asset_table"    "P = 0.102"
+[18,] "asset_chair"    "P = 0.071"
+[19,] "asset_khat"     "P = 0.000"
+[20,] "asset_chouki"   "P = 0.003"
+[21,] "asset_tv"       "P = 0.005"
+[22,] "asset_refrig"   "P = 0.176"
+[23,] "asset_bike"     "P = 0.418"
+[24,] "asset_moto"     "P = 0.151"
+[25,] "asset_sewmach"  "P = 0.500"
+[26,] "asset_mobile"   "P = 0.003"
+
+
+Covariates selected (P<0.2):
+      [,1]             [,2]       
+ [1,] "month"          "P = 0.049"
+ [2,] "aged"           "P = 0.012"
+ [3,] "sex"            "P = 0.002"
+ [4,] "momedu"         "P = 0.027"
+ [5,] "momheight"      "P = 0.179"
+ [6,] "Nlt18"          "P = 0.183"
+ [7,] "elec"           "P = 0.040"
+ [8,] "floor"          "P = 0.046"
+ [9,] "asset_wardrobe" "P = 0.011"
+[10,] "asset_table"    "P = 0.102"
+[11,] "asset_chair"    "P = 0.071"
+[12,] "asset_khat"     "P = 0.000"
+[13,] "asset_chouki"   "P = 0.003"
+[14,] "asset_tv"       "P = 0.005"
+[15,] "asset_refrig"   "P = 0.176"
+[16,] "asset_moto"     "P = 0.151"
+[17,] "asset_mobile"   "P = 0.003"
+
+-----------------------------------------
+
+-----------------------------------------
+Estimation Results:
+-----------------------------------------
+ Initial estimation of Q
+	 Procedure: SuperLearner
+	 Model:
+		 Y ~  SL.mean_All + SL.glm_All + SL.bayesglm_All + SL.gam_All + SL.glmnet_All
+
+	 Coefficients: 
+	     SL.mean_All    0.5281308 
+	      SL.glm_All    0 
+	 SL.bayesglm_All    0.1250419 
+	      SL.gam_All    0 
+	   SL.glmnet_All    0.3468273 
+
+ Estimation of g (treatment mechanism)
+	 Procedure: SuperLearner 
+	 Model:
+		 A ~  SL.mean_All + SL.glm_All + SL.bayesglm_All + SL.gam_All + SL.glmnet_All 
+
+	 Coefficients: 
+	     SL.mean_All    1 
+	      SL.glm_All    0 
+	 SL.bayesglm_All    0 
+	      SL.gam_All    0 
+	   SL.glmnet_All    0 
+
+ Estimation of g.Z (intermediate variable assignment mechanism)
+	 Procedure: No intermediate variable 
+
+ Estimation of g.Delta (missingness mechanism)
+	 Procedure: No missingness 
+
+ Bounds on g: ( 0.025 0.975 )
+
+ Additive Effect
+   Parameter Estimate:  0.0067416
+   Estimated Variance:  0.00023782
+              p-value:  0.66199
+    95% Conf Interval: (-0.023484, 0.036967) 
+
+ Relative Risk
+   Parameter Estimate:  1.0894
+              p-value:  0.66017
+    95% Conf Interval: (0.74377, 1.5956) 
+
+              log(RR):  0.085609
+    variance(log(RR)):  0.037912 
+
+ Odds Ratio
+   Parameter Estimate:  1.0974
+              p-value:  0.66031
+    95% Conf Interval: (0.72506, 1.6609) 
+
+              log(OR):  0.092927
+    variance(log(OR)):  0.044708 
+
+-----------------------------------------
+> 
+> tmle.h3 <- list(nwshnfit,wshwshnfit)
+> rd.tmle.h3 <- t(sapply(tmle.h3,tmle.summary.rd))
+> pr.tmle.h3 <- t(sapply(tmle.h3,tmle.summary.pr))
+> rownames(rd.tmle.h3) <- rownames(pr.tmle.h3) <- rownames(diff.h3)
+> 
+> # print results
+> round(diff.h3,4)
+                                 RD  se.RD   ci.lb  ci.ub       Z      p
+Nutrition + WSH v Nutrition -0.0069 0.0158 -0.0378 0.0241 -0.4341 0.6642
+Nutrition + WSH v WSH        0.0048 0.0155 -0.0257 0.0352  0.3074 0.7585
+> round(rd.tmle.h3,4)
+                                rd   ci.lb  ci.ub      p
+Nutrition + WSH v Nutrition 0.0002 -0.0354 0.0359 0.9899
+Nutrition + WSH v WSH       0.0067 -0.0235 0.0370 0.6620
+> round(pr.tmle.h3,4)
+                                pr  ci.lb  ci.ub      p
+Nutrition + WSH v Nutrition 1.0028 0.6475 1.5531 0.9899
+Nutrition + WSH v WSH       1.0894 0.7438 1.5956 0.6602
+> 
+> 
+> #---------------------------------------
+> # re-name into pre-specified objects
+> #---------------------------------------
+> 
+> wast_t1_h1_rd_adj <- rd.tmle.h1
+> # wast_t1_h2_rd_adj <- rd.tmle.h2
+> wast_t1_h3_rd_adj <- rd.tmle.h3
+> 
+> wast_t1_h1_pr_adj <- pr.tmle.h1
+> # wast_t1_h2_pr_adj <- pr.tmle.h2
+> wast_t1_h3_pr_adj <- pr.tmle.h3
+> 
+> 
+> #---------------------------------------
+> # Print and save results
+> #---------------------------------------
+> wast_t1_h1_rd_adj
+                             rd        ci.lb      ci.ub          p
+Water v C           0.024535073 -0.000266734 0.04933688 0.05251097
+Sanitation v C      0.002571679 -0.024410433 0.02955379 0.85181068
+Handwashing v C     0.019615166 -0.012012427 0.05124276 0.22414670
+WSH v C             0.006265460 -0.016797909 0.02932883 0.59440806
+Nutrition v C       0.011505375 -0.014859210 0.03786996 0.39236609
+Nutrition + WSH v C 0.011389831 -0.016482062 0.03926172 0.42315902
+> 
+> wast_t1_h1_pr_adj
+                          pr     ci.lb    ci.ub          p
+Water v C           1.347640 1.0086729 1.800518 0.04354747
+Sanitation v C      1.036350 0.7137867 1.504682 0.85112577
+Handwashing v C     1.276766 0.8711935 1.871148 0.21024007
+WSH v C             1.089156 0.7982334 1.486107 0.59012765
+Nutrition v C       1.163554 0.8300870 1.630982 0.37930989
+Nutrition + WSH v C 1.161796 0.8161381 1.653851 0.40521014
+> 
+> wast_t1_h3_rd_adj
+                                      rd       ci.lb      ci.ub         p
+Nutrition + WSH v Nutrition 0.0002299024 -0.03542409 0.03588390 0.9899163
+Nutrition + WSH v WSH       0.0067416218 -0.02348420 0.03696744 0.6619939
+> 
+> wast_t1_h3_pr_adj
+                                  pr     ci.lb    ci.ub         p
+Nutrition + WSH v Nutrition 1.002825 0.6475018 1.553136 0.9899149
+Nutrition + WSH v WSH       1.089380 0.7437694 1.595588 0.6601747
+> 
+> # add 'b' suffix for comparison with jade
+> wast_t1_h1_rd_adj_b <- wast_t1_h1_rd_adj
+> wast_t1_h3_rd_adj_b <- wast_t1_h3_rd_adj
+> wast_t1_h1_pr_adj_b <- wast_t1_h1_pr_adj
+> wast_t1_h3_pr_adj_b <- wast_t1_h3_pr_adj
+> rm(wast_t1_h1_rd_adj,wast_t1_h3_rd_adj,wast_t1_h1_pr_adj,wast_t1_h3_pr_adj)
+> 
+> # save everything except the datasets themselves
+> # that way we have all of the block-specific estimates if needed for plotting or additional stats
+> rm(list=c("bd","d","ad"))
+> save.image(file="~/dropbox/WBB-primary-analysis/results/raw/ben/bangladesh-whzminus2-adj-t1-ben.RData")
+> 
+> 
+> 
+> 
+> 	
+> 
+> proc.time()
+   user  system elapsed 
+ 81.821   2.151  85.359 
