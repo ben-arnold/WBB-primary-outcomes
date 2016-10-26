@@ -1,0 +1,306 @@
+
+R version 3.3.1 (2016-06-21) -- "Bug in Your Hair"
+Copyright (C) 2016 The R Foundation for Statistical Computing
+Platform: x86_64-apple-darwin13.4.0 (64-bit)
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+  Natural language support but running in an English locale
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+[Previously saved workspace restored]
+
+> 
+> #---------------------------------------
+> # lazminus3-N-prev.R
+> #
+> # ben arnold (benarnold@berkeley.edu)
+> #
+> # calculate the number of lazminus3
+> # cases and the prevalence by
+> # survey round and treatment arm
+> #---------------------------------------
+> 
+> #---------------------------------------
+> # input files:
+> #	washb-bangladesh-anthro.csv
+> #
+> # output files:
+> #	bangladesh-lazminus3-N-prev-ben.RData
+> #
+> #---------------------------------------
+> 
+> 
+> #---------------------------------------
+> # preamble
+> #---------------------------------------
+> rm(list=ls())
+> library(tmle)
+Loading required package: SuperLearner
+Loading required package: nnls
+Super Learner
+Version: 2.0-19
+Package created on 2016-02-02
+
+Welcome to the tmle package, version 1.2.0-2
+
+Use tmleNews() to see details on changes and bug fixes
+
+Attaching package: ‘tmle’
+
+The following object is masked from ‘package:SuperLearner’:
+
+    SL.glm.interaction
+
+> 
+> #---------------------------------------
+> # Load the analysis dataset
+> #---------------------------------------
+> d <- read.csv("~/dropbox/wbb-primary-analysis/data/final/ben/washb-bangladesh-anthro.csv")
+> 
+> #---------------------------------------
+> # Drop children with extreme LAZ values
+> #---------------------------------------
+> table(d$laz_x)
+
+   0    1 
+9277   28 
+> ad <- subset(d,laz_x!=1)
+> 
+> #---------------------------------------
+> # Exclude children with missing data
+> # and subset the data to target children
+> #---------------------------------------
+> table(is.na(ad$lazminus3))
+
+FALSE 
+ 9277 
+> ad <- subset(ad,!is.na(ad$lazminus3))
+> 
+> table(ad$tchild)
+
+Target child 
+        9277 
+> ad <- subset(ad,tchild=="Target child")
+> dim(ad)
+[1] 9277   49
+> 
+> # re-order the tr factor for convenience
+> ad$tr <- factor(ad$tr,levels=c("Control","Water","Sanitation","Handwashing","WSH","Nutrition","Nutrition + WSH"))
+> 
+> #---------------------------------------
+> # Calculate N and lazminus3 cases
+> # by survey round and by treatment arm
+> #---------------------------------------
+> 
+> Nchild    <- tapply(ad$lazminus3,list(ad$svy,ad$tr),function(x) length(x))
+> lazminus3 <- tapply(ad$lazminus3,list(ad$svy,ad$tr),function(x) sum(x))
+> 
+> #---------------------------------------
+> # Calculate unadjusted prevalences
+> # and 95% CIs by arm
+> #---------------------------------------
+> # wrapper function to call for each treatment and survey round
+> # has to be applied to the ad data frame with diar7d and tr variables
+> tmle.mean.est <- function(Y,tr,svy,id,group="Control",s=0) {
++ 	# Y : outcome variable
++ 	# tr: treatment indicator variable
++   # svy  : measurment round variable
++   # id: cluster ID variable
++   # group : string. treatment factor level to compute mean
++   # s     : survey round to compute mean. 0, 1, or 2 
++   tmledat <- data.frame(id=id[tr==group & svy==s],
++                         svy=svy[tr==group & svy==s],
++                         Y=Y[tr==group & svy==s],
++                         tr=tr[tr==group & svy==s])
++   mu.fit <- tmle(Y=tmledat$Y,A=NULL,W=as.matrix(rep(1,nrow(tmledat)),nrow=length(Y)),id=tmledat$id,Q.SL.library="SL.mean")
++ 	print(mu.fit)
++ 	mu <- mu.fit$estimates$EY1$psi
++ 	se <- sqrt(mu.fit$estimates$EY1$var.psi)
++ 	ci <- mu.fit$estimates$EY1$CI
++ 	res <- c(mu,ci[1],ci[2])
++ 	names(res) <- c("mean","ci.lb","ci.ub")
++ 	return(res)
++ }
+> 
+> 
+> # Calculate means and influence-curve based 95% CIs by survey round
+> set.seed(12345)
+> arms <- levels(ad$tr)
+> mu1 <- sapply(arms,tmle.mean.est,Y=ad$lazminus3,tr=ad$tr,svy=ad$svy,id=ad$clusterid,s=1)
+ Population Mean
+   Parameter Estimate:  0.0561
+   Estimated Variance:  5.835e-05
+              p-value:  2.0714e-13
+    95% Conf Interval: (0.041128, 0.071072) 
+ Population Mean
+   Parameter Estimate:  0.057377
+   Estimated Variance:  9.6493e-05
+              p-value:  5.1871e-09
+    95% Conf Interval: (0.038124, 0.07663) 
+ Population Mean
+   Parameter Estimate:  0.070205
+   Estimated Variance:  0.00011219
+              p-value:  3.4006e-11
+    95% Conf Interval: (0.049445, 0.090966) 
+ Population Mean
+   Parameter Estimate:  0.052811
+   Estimated Variance:  8.284e-05
+              p-value:  6.5392e-09
+    95% Conf Interval: (0.034972, 0.07065) 
+ Population Mean
+   Parameter Estimate:  0.057851
+   Estimated Variance:  0.00010125
+              p-value:  8.9646e-09
+    95% Conf Interval: (0.038129, 0.077574) 
+ Population Mean
+   Parameter Estimate:  0.031088
+   Estimated Variance:  5.6596e-05
+              p-value:  3.5899e-05
+    95% Conf Interval: (0.016343, 0.045833) 
+ Population Mean
+   Parameter Estimate:  0.049587
+   Estimated Variance:  8.4279e-05
+              p-value:  6.6125e-08
+    95% Conf Interval: (0.031593, 0.06758) 
+> mu2 <- sapply(arms,tmle.mean.est,Y=ad$lazminus3,tr=ad$tr,svy=ad$svy,id=ad$clusterid,s=2)
+ Population Mean
+   Parameter Estimate:  0.11242
+   Estimated Variance:  0.00010577
+              p-value:  <2e-16
+    95% Conf Interval: (0.092263, 0.13258) 
+ Population Mean
+   Parameter Estimate:  0.14454
+   Estimated Variance:  0.00018394
+              p-value:  <2e-16
+    95% Conf Interval: (0.11796, 0.17112) 
+ Population Mean
+   Parameter Estimate:  0.11226
+   Estimated Variance:  0.00027549
+              p-value:  1.3453e-11
+    95% Conf Interval: (0.079731, 0.14479) 
+ Population Mean
+   Parameter Estimate:  0.11404
+   Estimated Variance:  0.00023886
+              p-value:  1.6014e-13
+    95% Conf Interval: (0.083743, 0.14433) 
+ Population Mean
+   Parameter Estimate:  0.1019
+   Estimated Variance:  0.0002049
+              p-value:  1.0897e-12
+    95% Conf Interval: (0.073844, 0.12996) 
+ Population Mean
+   Parameter Estimate:  0.082892
+   Estimated Variance:  0.00016008
+              p-value:  5.6907e-11
+    95% Conf Interval: (0.058094, 0.10769) 
+ Population Mean
+   Parameter Estimate:  0.084602
+   Estimated Variance:  0.00013479
+              p-value:  3.1651e-13
+    95% Conf Interval: (0.061847, 0.10736) 
+> 
+> #---------------------------------------
+> # Create final objects
+> #---------------------------------------
+> 
+> # condense results into pre-specfied objects
+> sstunt_t1_n <- cbind(Nchild[1,],lazminus3[1,])
+> sstunt_t2_n <- cbind(Nchild[2,],lazminus3[2,])
+> colnames(sstunt_t1_n) <-  colnames(sstunt_t2_n) <- c("N","n")
+> 
+> sstunt_t1_prev <- t(mu1)
+> sstunt_t2_prev <- t(mu2)
+> 
+> #---------------------------------------
+> # Internal consistency check:
+> # the n/N and tmle prevalence estimates
+> # should be the same
+> #---------------------------------------
+> round(cbind(sstunt_t1_n[,2]/sstunt_t1_n[,1],sstunt_t1_prev[,1]),4)
+                  [,1]   [,2]
+Control         0.0561 0.0561
+Water           0.0574 0.0574
+Sanitation      0.0702 0.0702
+Handwashing     0.0528 0.0528
+WSH             0.0579 0.0579
+Nutrition       0.0311 0.0311
+Nutrition + WSH 0.0496 0.0496
+> round(cbind(sstunt_t2_n[,2]/sstunt_t2_n[,1],sstunt_t2_prev[,1]),4)
+                  [,1]   [,2]
+Control         0.1124 0.1124
+Water           0.1445 0.1445
+Sanitation      0.1123 0.1123
+Handwashing     0.1140 0.1140
+WSH             0.1019 0.1019
+Nutrition       0.0829 0.0829
+Nutrition + WSH 0.0846 0.0846
+> 
+> #---------------------------------------
+> # Print and save results
+> #---------------------------------------
+> 
+> sstunt_t1_n
+                   N  n
+Control         1123 63
+Water            610 35
+Sanitation       584 41
+Handwashing      587 31
+WSH              605 35
+Nutrition        579 18
+Nutrition + WSH  605 30
+> sstunt_t2_n
+                   N   n
+Control         1103 124
+Water            595  86
+Sanitation       579  65
+Handwashing      570  65
+WSH              579  59
+Nutrition        567  47
+Nutrition + WSH  591  50
+> round(sstunt_t1_prev,4)
+                  mean  ci.lb  ci.ub
+Control         0.0561 0.0411 0.0711
+Water           0.0574 0.0381 0.0766
+Sanitation      0.0702 0.0494 0.0910
+Handwashing     0.0528 0.0350 0.0707
+WSH             0.0579 0.0381 0.0776
+Nutrition       0.0311 0.0163 0.0458
+Nutrition + WSH 0.0496 0.0316 0.0676
+> round(sstunt_t2_prev,4)
+                  mean  ci.lb  ci.ub
+Control         0.1124 0.0923 0.1326
+Water           0.1445 0.1180 0.1711
+Sanitation      0.1123 0.0797 0.1448
+Handwashing     0.1140 0.0837 0.1443
+WSH             0.1019 0.0738 0.1300
+Nutrition       0.0829 0.0581 0.1077
+Nutrition + WSH 0.0846 0.0618 0.1074
+> 
+> # add 'b' suffix for comparison w/ jade
+> sstunt_t1_n_b <- sstunt_t1_n
+> sstunt_t2_n_b <- sstunt_t2_n
+> sstunt_t1_prev_b <- sstunt_t1_prev
+> sstunt_t2_prev_b <- sstunt_t2_prev
+> 
+> 
+> save(sstunt_t1_n_b,sstunt_t2_n_b,sstunt_t1_prev_b,sstunt_t2_prev_b,file="~/dropbox/wbb-primary-analysis/results/raw/ben/bangladesh-lazminus3-N-prev-ben.RData")
+> 
+> 
+> 
+> 
+> 
+> 	
+> 
+> proc.time()
+   user  system elapsed 
+  0.957   0.051   1.030 

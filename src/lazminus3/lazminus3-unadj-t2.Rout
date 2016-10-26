@@ -1,0 +1,218 @@
+
+R version 3.3.1 (2016-06-21) -- "Bug in Your Hair"
+Copyright (C) 2016 The R Foundation for Statistical Computing
+Platform: x86_64-apple-darwin13.4.0 (64-bit)
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+  Natural language support but running in an English locale
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+[Previously saved workspace restored]
+
+> 
+> #---------------------------------------
+> # lazminus3-unadj-t2.R
+> #
+> # ben arnold (benarnold@berkeley.edu)
+> #
+> # calculate unadjusted prevalence ratios
+> # and differences in prevalence for lazminus3
+> #
+> # using the Mantel-Hanzel estimator
+> #
+> #---------------------------------------
+> 
+> #---------------------------------------
+> # input files:
+> #	washb-bangladesh-anthro.csv
+> #
+> # output files:
+> # bangladesh-lazminus3-unadj-t2.RData
+> #
+> #---------------------------------------
+> 
+> 
+> #---------------------------------------
+> # preamble
+> #---------------------------------------
+> rm(list=ls())
+> library(metafor)
+Loading required package: Matrix
+Loading 'metafor' package (version 1.9-8). For an overview 
+and introduction to the package please type: help(metafor).
+> 
+> # source the base functions
+> source("~/WBBpa/src/basefns/washb-base-functions.R")
+> 
+> 
+> #---------------------------------------
+> # Load the analysis dataset
+> #---------------------------------------
+> d <- read.csv("~/dropbox/wbb-primary-analysis/data/final/ben/washb-bangladesh-anthro.csv")
+> 
+> 
+> #---------------------------------------
+> # subset to the relevant measurement
+> # Year 1 or Year 2
+> #---------------------------------------
+> table(d$svy)
+
+   1    2 
+4708 4633 
+> ad <- subset(d,svy==2)
+> dim(ad)
+[1] 4633   49
+> 
+> #---------------------------------------
+> # Drop children with extreme LAZ values
+> #---------------------------------------
+> table(ad$laz_x)
+
+   0    1 
+4584   20 
+> ad <- subset(ad,laz_x!=1)
+> 
+> #---------------------------------------
+> # Exclude children with missing data
+> # and subset the data to target children
+> #---------------------------------------
+> table(is.na(ad$lazminus3))
+
+FALSE 
+ 4584 
+> ad <- subset(ad,!is.na(ad$lazminus3))
+> 
+> table(ad$tchild)
+
+Target child 
+        4584 
+> ad <- subset(ad,tchild=="Target child")
+> dim(ad)
+[1] 4584   49
+> 
+> # re-order the tr factor for convenience
+> ad$tr <- factor(ad$tr,levels=c("Control","Water","Sanitation","Handwashing","WSH","Nutrition","Nutrition + WSH"))
+> 
+> #---------------------------------------
+> # cross-tabs of final observations
+> # in the analysis, by group
+> #---------------------------------------
+> table(ad$tr,ad$lazminus3)
+                 
+                    0   1
+  Control         979 124
+  Water           509  86
+  Sanitation      514  65
+  Handwashing     505  65
+  WSH             520  59
+  Nutrition       520  47
+  Nutrition + WSH 541  50
+> 
+> 
+> #---------------------------------------
+> # Mantel-Haenszel PR and RD estimates
+> # H1: Each intervention arm vs. Control
+> #---------------------------------------
+> 
+> h1.contrasts <- list(
++   c("Control","Water"),
++   c("Control","Sanitation"),
++   c("Control","Handwashing"),
++   c("Control","WSH"),
++   c("Control","Nutrition"),
++   c("Control","Nutrition + WSH")
++ )
+> pr.h1 <- t(sapply(h1.contrasts,ITT.unadj,Y=ad$lazminus3,tr=ad$tr,strat=ad$block,binomial=T))
+> rd.h1 <- t(sapply(h1.contrasts,ITT.unadj,Y=ad$lazminus3,tr=ad$tr,strat=ad$block,binomial=T,measure="RD"))
+> rownames(pr.h1) <- rownames(rd.h1) <- c("Water v C","Sanitation v C","Handwashing v C","WSH v C","Nutrition v C","Nutrition + WSH v C")
+> 
+> #---------------------------------------
+> # Mantel-Haenszel PR and RD estimates
+> # H3: WSH+Nutrition vs. WSH or Nutrition alone
+> #---------------------------------------
+> h3.contrasts <- list(
++   c("Nutrition","Nutrition + WSH"),
++   c("WSH","Nutrition + WSH")
++ )
+> pr.h3 <- t(sapply(h3.contrasts,ITT.unadj,Y=ad$lazminus3,tr=ad$tr,strat=ad$block,binomial=T))
+> rd.h3 <- t(sapply(h3.contrasts,ITT.unadj,Y=ad$lazminus3,tr=ad$tr,strat=ad$block,binomial=T,measure="RD"))
+> rownames(pr.h3) <- rownames(rd.h3) <- c("Nutrition + WSH v Nutrition","Nutrition + WSH v WSH")
+> 
+> 
+> #---------------------------------------
+> # Create final objects (pre-specified names)
+> #---------------------------------------
+> sstunt_t2_h1_pr_unadj <- pr.h1[,c(1,3,4,6)]
+> sstunt_t2_h1_rd_unadj <- rd.h1[,c(1,3,4,6)]
+> sstunt_t2_h3_pr_unadj <- pr.h3[,c(1,3,4,6)]
+> sstunt_t2_h3_rd_unadj <- rd.h3[,c(1,3,4,6)]
+> 
+> # exponentiate the PR and 95% estimates
+> sstunt_t2_h1_pr_unadj[,c(1,2,3)] <- exp(sstunt_t2_h1_pr_unadj[,c(1,2,3)])
+> sstunt_t2_h3_pr_unadj[,c(1,2,3)] <- exp(sstunt_t2_h3_pr_unadj[,c(1,2,3)])
+> colnames(sstunt_t2_h1_pr_unadj)[1] <- colnames(sstunt_t2_h3_pr_unadj)[1] <- "PR"
+> 
+> #---------------------------------------
+> # Print and save results
+> #---------------------------------------
+> round(sstunt_t2_h1_pr_unadj,4)
+                        PR  ci.lb  ci.ub      p
+Water v C           1.2947 0.9988 1.6782 0.0511
+Sanitation v C      1.0127 0.7634 1.3433 0.9305
+Handwashing v C     1.0192 0.7674 1.3534 0.8957
+WSH v C             0.9141 0.6833 1.2229 0.5454
+Nutrition v C       0.7534 0.5500 1.0322 0.0779
+Nutrition + WSH v C 0.7378 0.5390 1.0099 0.0577
+> 
+> round(sstunt_t2_h1_rd_unadj,4)
+                         RD   ci.lb   ci.ub      p
+Water v C            0.0330 -0.0013  0.0673 0.0593
+Sanitation v C       0.0014 -0.0304  0.0332 0.9307
+Handwashing v C      0.0021 -0.0298  0.0341 0.8959
+WSH v C             -0.0097 -0.0409  0.0215 0.5422
+Nutrition v C       -0.0277 -0.0571  0.0018 0.0653
+Nutrition + WSH v C -0.0299 -0.0593 -0.0005 0.0463
+> 
+> round(sstunt_t2_h3_pr_unadj,4)
+                                PR  ci.lb  ci.ub      p
+Nutrition + WSH v Nutrition 0.9697 0.6612 1.4222 0.8749
+Nutrition + WSH v WSH       0.8137 0.5673 1.1670 0.2625
+> 
+> round(sstunt_t2_h3_rd_unadj,4)
+                                 RD   ci.lb  ci.ub      p
+Nutrition + WSH v Nutrition -0.0026 -0.0347 0.0296 0.8751
+Nutrition + WSH v WSH       -0.0191 -0.0523 0.0141 0.2595
+> 
+> 
+> # add a 'b' suffix for comparison with jade
+> sstunt_t2_h1_pr_unadj_b <- sstunt_t2_h1_pr_unadj
+> sstunt_t2_h1_rd_unadj_b <- sstunt_t2_h1_rd_unadj
+> sstunt_t2_h3_pr_unadj_b <- sstunt_t2_h3_pr_unadj
+> sstunt_t2_h3_rd_unadj_b <- sstunt_t2_h3_rd_unadj
+> rm(sstunt_t2_h1_pr_unadj, sstunt_t2_h1_rd_unadj, sstunt_t2_h3_pr_unadj, sstunt_t2_h3_rd_unadj)
+> 
+> # save everything except the datasets themselves
+> # that way we have all of the block-specific estimates if needed for plotting or additional stats
+> rm(list=c("d","ad"))
+> save.image(file="~/dropbox/wbb-primary-analysis/results/raw/ben/bangladesh-lazminus3-unadj-t2-ben.RData")
+> 
+> 
+> 
+> 
+> 
+> 	
+> 
+> 
+> proc.time()
+   user  system elapsed 
+  1.773   0.088   1.885 
