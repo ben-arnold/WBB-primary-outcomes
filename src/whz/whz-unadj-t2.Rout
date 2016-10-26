@@ -1,0 +1,222 @@
+
+R version 3.3.1 (2016-06-21) -- "Bug in Your Hair"
+Copyright (C) 2016 The R Foundation for Statistical Computing
+Platform: x86_64-apple-darwin13.4.0 (64-bit)
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+  Natural language support but running in an English locale
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+[Previously saved workspace restored]
+
+> 
+> #---------------------------------------
+> # whz-diff-unadj-t2.R
+> #
+> # ben arnold (benarnold@berkeley.edu)
+> #
+> # calculate unadjusted differences
+> # between treatment arms for H1 and H3
+> #---------------------------------------
+> 
+> #---------------------------------------
+> # input files:
+> #	washb-bangladesh-anthro.csv
+> #
+> # output files:
+> #	bangladesh-whz-unadj-t2-ben.RData
+> #
+> #---------------------------------------
+> 
+> #---------------------------------------
+> # preamble
+> #---------------------------------------
+> rm(list=ls())
+> 
+> # source the base functions
+> source("~/WBBpa/src/basefns/washb-base-functions.R")
+> 
+> 
+> #---------------------------------------
+> # Load the analysis dataset
+> #---------------------------------------
+> 
+> d <- read.csv("~/dropbox/wbb-primary-analysis/data/final/ben/washb-bangladesh-anthro.csv")
+> 
+> 
+> 
+> #---------------------------------------
+> # subset to the relevant measurement
+> # Year 1 or Year 2
+> #---------------------------------------
+> table(d$svy)
+
+   1    2 
+4708 4633 
+> ad <- subset(d,svy==2)
+> dim(ad)
+[1] 4633   49
+> 
+> #---------------------------------------
+> # Drop children with extreme whz values
+> #---------------------------------------
+> table(ad$whz_x)
+
+   0    1 
+4588   16 
+> ad <- subset(ad,whz_x!=1)
+> 
+> #---------------------------------------
+> # Exclude children with missing data
+> # and subset the data to target children
+> #---------------------------------------
+> table(is.na(ad$whz))
+
+FALSE 
+ 4588 
+> ad <- subset(ad,!is.na(ad$whz))
+> 
+> table(ad$tchild)
+
+Target child 
+        4588 
+> ad <- subset(ad,tchild=="Target child")
+> dim(ad)
+[1] 4588   49
+> 
+> # re-order the tr factor for convenience
+> ad$tr <- factor(ad$tr,levels=c("Control","Water","Sanitation","Handwashing","WSH","Nutrition","Nutrition + WSH"))
+> 
+> #---------------------------------------
+> # Calculate N, mean and SD of whz
+> #---------------------------------------
+> whz.n <- tapply(ad$whz,ad$tr,function(x) length(x))
+> whz.mu <- tapply(ad$whz,ad$tr,function(x) mean(x))
+> whz.sd <- tapply(ad$whz,ad$tr,function(x) sd(x))
+> 
+> # condense results into pre-specfied objects
+> whz_t2_n <- cbind(whz.n, whz.mu, whz.sd)
+> 
+> # final labeling
+> colnames(whz_t2_n) <- c("N","Mean","SD")
+> 
+> # print
+> whz_t2_n
+                   N       Mean        SD
+Control         1104 -0.8757156 0.9339566
+Water            596 -0.9164094 0.9665857
+Sanitation       580 -0.8528621 0.9480897
+Handwashing      570 -0.8618947 0.9419375
+WSH              580 -0.8756034 1.0101633
+Nutrition        567 -0.7140741 1.0019034
+Nutrition + WSH  591 -0.7864467 0.9383402
+> 
+> # add 'b' suffix for comparison with jade
+> whz_t2_n_b <- whz_t2_n
+> rm(whz_t2_n)
+> 
+> #---------------------------------------
+> # Estimate paired t-tests for differences
+> # in means at the randomization block level
+> #---------------------------------------
+> 
+> #---------------------------------------
+> # paired T-test for differences in whz
+> # H1: Each intervention arm vs. Control
+> #---------------------------------------
+> h1.contrasts <- list(
++   c("Control","Water"),
++   c("Control","Sanitation"),
++   c("Control","Handwashing"),
++   c("Control","WSH"),
++   c("Control","Nutrition"),
++   c("Control","Nutrition + WSH")
++ )
+> diff.h1 <- t(sapply(h1.contrasts,ITT.unadj,Y=ad$whz,tr=ad$tr,strat=ad$block))
+> rownames(diff.h1) <- c("Water v C","Sanitation v C","Handwashing v C","WSH v C","Nutrition v C","Nutrition + WSH v C")
+> 
+> #---------------------------------------
+> # paired T-test for differences in whz
+> # H2: Combined WSH versus single interventions
+> #---------------------------------------
+> h2.contrasts <- list(
++   c("Water","WSH"),
++   c("Sanitation","WSH"),
++   c("Handwashing","WSH")
++ )
+> diff.h2 <- t(sapply(h2.contrasts,ITT.unadj,Y=ad$whz,tr=ad$tr,strat=ad$block))
+> rownames(diff.h2) <- c("WSH v Water","WSH v Sanitation","WSH v Handwashing")
+> 
+> #---------------------------------------
+> # paired T-test for differences in whz
+> # H3: WSH+Nutrition vs. WSH or Nutrition alone
+> #---------------------------------------
+> h3.contrasts <- list(
++   c("Nutrition","Nutrition + WSH"),
++   c("WSH","Nutrition + WSH")
++ )
+> diff.h3 <- t(sapply(h3.contrasts,ITT.unadj,Y=ad$whz,tr=ad$tr,strat=ad$block))
+> rownames(diff.h3) <- c("Nutrition + WSH v Nutrition","Nutrition + WSH v WSH")
+> 
+> 
+> #---------------------------------------
+> # re-name into pre-specified objects
+> #---------------------------------------
+> 
+> whz_t2_h1_diff_unadj <- diff.h1
+> whz_t2_h2_diff_unadj <- diff.h2
+> whz_t2_h3_diff_unadj <- diff.h3
+> 
+> 
+> #---------------------------------------
+> # Print and save results
+> #---------------------------------------
+> round(whz_t2_h1_diff_unadj,4)
+                       diff   ci.lb  ci.ub  t-stat      p
+Water v C           -0.0432 -0.1393 0.0529 -0.8925 0.3745
+Sanitation v C       0.0067 -0.0935 0.1069  0.1329 0.8946
+Handwashing v C      0.0042 -0.1070 0.1154  0.0752 0.9402
+WSH v C              0.0024 -0.1032 0.1080  0.0446 0.9645
+Nutrition v C        0.1499  0.0395 0.2604  2.6970 0.0084
+Nutrition + WSH v C  0.0911  0.0003 0.1819  1.9928 0.0493
+> 
+> round(whz_t2_h2_diff_unadj,4)
+                     diff   ci.lb  ci.ub  t-stat      p
+WSH v Water        0.0455 -0.0693 0.1604  0.7880 0.4328
+WSH v Sanitation  -0.0043 -0.1337 0.1251 -0.0665 0.9471
+WSH v Handwashing -0.0018 -0.1343 0.1306 -0.0276 0.9780
+> 
+> round(whz_t2_h3_diff_unadj,4)
+                               diff   ci.lb  ci.ub  t-stat      p
+Nutrition + WSH v Nutrition -0.0589 -0.1658 0.0480 -1.0941 0.2769
+Nutrition + WSH v WSH        0.0887 -0.0279 0.2053  1.5114 0.1342
+> 
+> # add 'b' suffix for comparison with jade
+> whz_t2_h1_diff_unadj_b <- whz_t2_h1_diff_unadj
+> whz_t2_h2_diff_unadj_b <- whz_t2_h2_diff_unadj
+> whz_t2_h3_diff_unadj_b <- whz_t2_h3_diff_unadj
+> rm(whz_t2_h1_diff_unadj,whz_t2_h2_diff_unadj,whz_t2_h3_diff_unadj)
+> 
+> # save everything except the datasets themselves
+> # that way we have all of the block-specific estimates if needed for plotting or additional stats
+> rm(list=c("d","ad"))
+> save.image(file="~/dropbox/wbb-primary-analysis/results/raw/ben/bangladesh-whz-unadj-t2-ben.RData")
+> 
+> 
+> 
+> 
+> 	
+> 
+> proc.time()
+   user  system elapsed 
+  0.760   0.045   0.826 
