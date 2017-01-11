@@ -45,6 +45,7 @@ t1n <- bruise_t1_n_b
 t0p <- bruise_t0_prev_b
 t1p <- bruise_t1_prev_b
 fuPrev <- bruise_t12_prev_b
+fuN <- bruise_t12_n_b
 
 h1pr <- bruise_h1_pr_unadj_b
 h2pr <- bruise_h2_pr_unadj_b
@@ -95,6 +96,9 @@ MidPts <- barplot(1:7,names.arg=NA,border=NA,col=NA,
 	mtext("Prevalence Ratio (95% CI)",side=3,line=5.5,at=hx,adj=1,cex=1)
 	mtext("Intervention v. Control",side=3,line=4.5,at=hx,adj=1,cex=0.8,col="gray30")
 	mtext(c("ref",prform(h1pr[,1],h1pr[,2],h1pr[,3])),side=3,line=4.5,at=MidPts,cex=0.8,col="gray30")
+	
+	# print Ns in the footer
+	mtext(c("N =",fuN[,1]),side=1,line=0,at=c(0,MidPts),cex=0.8,col=c(cols[1],cols))
 	
 	# print header table - PRs for H2a - c
 	mtext("WSH v. W",side=3,line=3,at=hx,adj=1,cex=0.8,col="gray30")

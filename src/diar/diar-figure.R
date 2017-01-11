@@ -45,6 +45,7 @@ t1n <- diar_t1_n_b
 t0p <- diar_t0_prev_b
 t1p <- diar_t1_prev_b
 fuPrev <- diar_t12_prev_b
+fuN <- diar_t12_n_b
 
 h1pr <- diar_h1_pr_unadj_b
 h2pr <- diar_h2_pr_unadj_b
@@ -91,6 +92,9 @@ MidPts <- barplot(1:7,names.arg=NA,border=NA,col=NA,
 	prform <- function(pr,lb,ub) {
 		paste(sprintf("%1.2f",pr)," (",sprintf("%1.2f",lb),", ",sprintf("%1.2f",ub),")",sep="")
 	}
+	
+	# print Ns in the footer
+	mtext(c("N =",fuN[,1]),side=1,line=0,at=c(0,MidPts),cex=0.8,col=c(cols[1],cols))
 	
 	# print header table - PRs for H1	
 	mtext("Prevalence Ratio (95% CI)",side=3,line=5.5,at=hx,adj=1,cex=1)

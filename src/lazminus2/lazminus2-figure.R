@@ -42,6 +42,7 @@ glab2 <- c("C","W","S","H","WSH","N","WSHN")
 
 
 fuPrev <- stunt_t2_prev_b
+fuN <- stunt_t2_n_b
 
 h1rd <- stunt_t2_h1_rd_unadj_b
 h3rd <- stunt_t2_h3_rd_unadj_b
@@ -88,6 +89,9 @@ MidPts <- barplot(1:7,names.arg=NA,border=NA,col=NA,
 	rdform <- function(rd,lb,ub) {
 		paste(sprintf("%1.1f",rd*100)," (",sprintf("%1.1f",lb*100),", ",sprintf("%1.1f",ub*100),")",sep="")
 	}
+	
+	# print Ns in the footer
+	mtext(c("N =",fuN[,1]),side=1,line=0,at=c(0,MidPts),cex=0.8,col=c(cols[1],cols))
 	
 	# print header table - RDs for H1	
 	mtext("Difference (95% CI)",side=3,line=5.5,at=hx2,adj=0,cex=1)

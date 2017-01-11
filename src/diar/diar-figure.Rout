@@ -17,8 +17,6 @@ Type 'demo()' for some demos, 'help()' for on-line help, or
 'help.start()' for an HTML browser interface to help.
 Type 'q()' to quit R.
 
-[Previously saved workspace restored]
-
 > # --------------------------------------
 > # diar-figure.R
 > # ben arnold (benarnold@berkeley.edu)
@@ -66,6 +64,7 @@ Type 'q()' to quit R.
 > t0p <- diar_t0_prev_b
 > t1p <- diar_t1_prev_b
 > fuPrev <- diar_t12_prev_b
+> fuN <- diar_t12_n_b
 > 
 > h1pr <- diar_h1_pr_unadj_b
 > h2pr <- diar_h2_pr_unadj_b
@@ -113,6 +112,9 @@ Type 'q()' to quit R.
 + 		paste(sprintf("%1.2f",pr)," (",sprintf("%1.2f",lb),", ",sprintf("%1.2f",ub),")",sep="")
 + 	}
 > 	
+> 	# print Ns in the footer
+> 	mtext(c("N =",fuN[,1]),side=1,line=0,at=c(0,MidPts),cex=0.8,col=c(cols[1],cols))
+> 	
 > 	# print header table - PRs for H1	
 > 	mtext("Prevalence Ratio (95% CI)",side=3,line=5.5,at=hx,adj=1,cex=1)
 > 	mtext("Intervention v. Control",side=3,line=4.5,at=hx,adj=1,cex=0.8,col="gray30")
@@ -139,4 +141,4 @@ null device
 > 
 > proc.time()
    user  system elapsed 
-  1.831   0.138   2.296 
+  0.359   0.044   0.454 
