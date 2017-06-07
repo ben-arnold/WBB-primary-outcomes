@@ -72,7 +72,7 @@ MidPts <- barplot(1:7,names.arg=NA,border=NA,col=NA,
 	ylim=range(ytics),ylab="",yaxt="n",
 	las=1,bty="n"
 	)
-	segments(x0=0,x1=max(MidPts+0.5),y0=ytics,lty=2,lwd=1,col="gray80")
+	segments(x0=0,x1=max(MidPts+0.5),y0=ytics,lty=1,lwd=1,col="gray90")
 	axis(2,at=ytics,las=1)
 	mtext("LAZ < -2\nPrevalence\nat Year 2\n(%)",side=2,line=3,las=1)
 

@@ -76,7 +76,7 @@ MidPts <- barplot(1:7,names.arg=NA,border=NA,col=NA,
 	ylim=range(ytics),ylab="",yaxt="n",
 	las=1,bty="n"
 	)
-	segments(x0=0,x1=max(MidPts+0.5),y0=ytics,lty=2,lwd=1,col="gray80")
+	segments(x0=0,x1=max(MidPts+0.5),y0=ytics,lty=1,lwd=1,col="gray90")
 	axis(2,at=ytics,las=1)
 	mtext("Diarrhoea\nPrevalence\nDuring\nFollow-up\n(%)",side=2,line=3,las=1)
 
@@ -102,13 +102,13 @@ MidPts <- barplot(1:7,names.arg=NA,border=NA,col=NA,
 	mtext(c("ref",prform(h1pr[,1],h1pr[,2],h1pr[,3])),side=3,line=4.5,at=MidPts,cex=0.8,col="gray30")
 	
 	# print header table - PRs for H2a - c
-	mtext("WSH v. W",side=3,line=3,at=hx,adj=1,cex=0.8,col="gray30")
+	mtext("WSH v. Water",side=3,line=3,at=hx,adj=1,cex=0.8,col="gray30")
 	mtext(c("ref",prform(h2pr[1,1],h2pr[1,2],h2pr[1,3])),side=3,line=3,at=MidPts[c(2,5)],cex=0.8,col=c(cols[2],"gray30"))
 	
-	mtext("WSH v. S",side=3,line=2,at=hx,adj=1,cex=0.8,col="gray30")
+	mtext("WSH v. Sanitation",side=3,line=2,at=hx,adj=1,cex=0.8,col="gray30")
 	mtext(c("ref",prform(h2pr[2,1],h2pr[2,2],h2pr[2,3])),side=3,line=2,at=MidPts[c(3,5)],cex=0.8,col=c(cols[3],"gray30"))
 	
-	mtext("WSH v. H",side=3,line=1,at=hx,adj=1,cex=0.8,col="gray30")
+	mtext("WSH v. Handwashing",side=3,line=1,at=hx,adj=1,cex=0.8,col="gray30")
 	mtext(c("ref",prform(h2pr[3,1],h2pr[3,2],h2pr[3,3])),side=3,line=1,at=MidPts[c(4,5)],cex=0.8,col=c(cols[4],"gray30"))
 	
 par(op)
