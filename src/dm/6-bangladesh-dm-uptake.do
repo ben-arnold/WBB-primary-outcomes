@@ -3,7 +3,7 @@ set more off
 clear all
 
 
-log using "~/WASHB-Bangladesh-primary-outcomes/src/dm/6-bangladesh-dm-uptake.log", text replace
+log using "~/WBB-primary-outcomes/src/dm/6-bangladesh-dm-uptake.log", text replace
 
 *--------------------------------------------
 * 6-bangladesh-dm-uptake.do
@@ -45,10 +45,10 @@ log using "~/WASHB-Bangladesh-primary-outcomes/src/dm/6-bangladesh-dm-uptake.log
 * grab the treatment assignments
 *--------------------------------------------
 * blinded treatment assignments:
-use "~/dropbox/washb-bangladesh-data/1-primary-outcome-datasets/washb-bangladesh-blind-tr.dta", clear
+*use "~/dropbox/washb-bangladesh-data/1-primary-outcome-datasets/washb-bangladesh-blind-tr.dta", clear
 
-* real treatment assignments (not used to keep data blinded)
-* use "/Volumes/0-Treatment-assignments/washb-bangladesh-tr.dta", clear
+* real treatment assignments:
+use "/Volumes/0-Treatment-assignments/washb-bangladesh-tr.dta", clear
 
 sort clusterid
 tempfile trdata
@@ -316,6 +316,16 @@ sum lnsn lnsp if lnsn>=0 & lnsn<=28, d
 	
 sum rlnsn rlnsp, d
 	
+	
+*--------------------------------------------
+* a single Handwashing compound has 
+* a detectible free chlorine measurement,
+* which is a data-entry error (was not measured
+* in non-water arms.  correct it.
+*--------------------------------------------
+replace freechl = 0 if dataid=="64204" & svy==1
+
+
 *--------------------------------------------
 * Save an uptake analysis dataset
 * compound-survey level observations

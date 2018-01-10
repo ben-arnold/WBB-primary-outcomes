@@ -1,9 +1,9 @@
---------------------------------------------------------------------------------
+-------------------------------------------------------------------------------
       name:  <unnamed>
-       log:  /Users/benarnold/WASHB-Bangladesh-primary-outcomes/src/dm/6-banglad
-> esh-dm-uptake.log
+       log:  /Users/benarnold/WBB-primary-outcomes/src/dm/6-bangladesh-dm-uptak
+> e.log
   log type:  text
- opened on:  16 Sep 2016, 13:26:30
+ opened on:   9 Jan 2018, 17:50:08
 
 . 
 . *--------------------------------------------
@@ -28,7 +28,8 @@
 . * input files:
 . *
 . *  Treatment assignments 
-. *  washb-bangladesh-tr.dta (or washb-bangladesh-blind-tr.dta if blinded still)
+. *  washb-bangladesh-tr.dta (or washb-bangladesh-blind-tr.dta if blinded still
+> )
 . *
 . *  1. WASHB_Baseline_main_survey.dta
 . *  1. WASHB_Midline_main_survey_cleaned.dta
@@ -46,21 +47,20 @@
 . * grab the treatment assignments
 . *--------------------------------------------
 . * blinded treatment assignments:
-. use "~/dropbox/washb-bangladesh-data/1-primary-outcome-datasets/washb-banglade
-> sh-blind-tr.dta", clear
-(WASH Benefits Bangladesh cluster level treatment assignments (scrambled/blinded
-> !)
-
+. *use "~/dropbox/washb-bangladesh-data/1-primary-outcome-datasets/washb-bangla
+> desh-blind-tr.dta", clear
 . 
-. * real treatment assignments (not used to keep data blinded)
-. * use "/Volumes/0-Treatment-assignments/washb-bangladesh-tr.dta", clear
+. * real treatment assignments:
+. use "/Volumes/0-Treatment-assignments/washb-bangladesh-tr.dta", clear
+(WASH Benefits Bangladesh cluster level treatment assignments)
+
 . 
 . sort clusterid
 
 . tempfile trdata
 
 . save `trdata'
-file /var/folders/1g/dryqjv753dv7rgwhzs2lyl140000gp/T//S_00923.000001 saved
+file /var/folders/rr/cz_9j6zj16s2h636vy80zf940000gn/T//S_02827.000001 saved
 
 . 
 . 
@@ -69,8 +69,8 @@ file /var/folders/1g/dryqjv753dv7rgwhzs2lyl140000gp/T//S_00923.000001 saved
 . * to subset nutrition uptake measures to 
 . * children 6-24 months old
 . *--------------------------------------------
-. use "~/dropbox/washb-bangladesh-data/1-primary-outcome-datasets/washb-banglade
-> sh-diar.dta", clear
+. use "~/dropbox/washb-bangladesh-data/1-primary-outcome-datasets/washb-banglad
+> esh-diar.dta", clear
 (Bangladesh diarrhea dataset, created by 3-bangladesh-dm-diar.do)
 
 . * restrict to index children and drop twins
@@ -84,7 +84,7 @@ file /var/folders/1g/dryqjv753dv7rgwhzs2lyl140000gp/T//S_00923.000001 saved
 . tempfile aged
 
 . save `aged'
-file /var/folders/1g/dryqjv753dv7rgwhzs2lyl140000gp/T//S_00923.000002 saved
+file /var/folders/rr/cz_9j6zj16s2h636vy80zf940000gn/T//S_02827.000002 saved
 
 . 
 . 
@@ -92,8 +92,8 @@ file /var/folders/1g/dryqjv753dv7rgwhzs2lyl140000gp/T//S_00923.000002 saved
 . * load the enrollment dataset
 . *--------------------------------------------
 . 
-. use "~/dropbox/WASHB-Bangladesh-Data/0-Untouched-data/1-Main-survey/1_Baseline
-> /1. WASHB_Baseline_main_survey.dta", clear
+. use "~/dropbox/WASHB-Bangladesh-Data/0-Untouched-data/1-Main-survey/1_Baselin
+> e/1. WASHB_Baseline_main_survey.dta", clear
 
 . sort dataid 
 
@@ -107,9 +107,9 @@ file /var/folders/1g/dryqjv753dv7rgwhzs2lyl140000gp/T//S_00923.000002 saved
 
 .         codebook svydate
 
---------------------------------------------------------------------------------
-svydate                                                              Survey date
---------------------------------------------------------------------------------
+-------------------------------------------------------------------------------
+svydate                                                             Survey date
+-------------------------------------------------------------------------------
 
                   type:  numeric daily date (float)
 
@@ -153,7 +153,7 @@ delimiter now cr
 . tempfile svy0
 
 . save `svy0'
-file /var/folders/1g/dryqjv753dv7rgwhzs2lyl140000gp/T//S_00923.000003 saved
+file /var/folders/rr/cz_9j6zj16s2h636vy80zf940000gn/T//S_02827.000003 saved
 
 . 
 . 
@@ -161,8 +161,8 @@ file /var/folders/1g/dryqjv753dv7rgwhzs2lyl140000gp/T//S_00923.000003 saved
 . * load the year 1 dataset
 . *--------------------------------------------
 . 
-. use "~/dropbox/WASHB-Bangladesh-Data/0-Untouched-data/1-Main-survey/2_Midline/
-> 1. WASHB_Midline_main_survey_cleaned.dta", clear
+. use "~/dropbox/WASHB-Bangladesh-Data/0-Untouched-data/1-Main-survey/2_Midline
+> /1. WASHB_Midline_main_survey_cleaned.dta", clear
 
 . 
 . * format survey dates
@@ -174,9 +174,9 @@ file /var/folders/1g/dryqjv753dv7rgwhzs2lyl140000gp/T//S_00923.000003 saved
 
 .         codebook svydate
 
---------------------------------------------------------------------------------
-svydate                                                              Survey date
---------------------------------------------------------------------------------
+-------------------------------------------------------------------------------
+svydate                                                             Survey date
+-------------------------------------------------------------------------------
 
                   type:  numeric daily date (float)
 
@@ -238,7 +238,7 @@ delimiter now cr
 . tempfile svy1
 
 . save `svy1'
-file /var/folders/1g/dryqjv753dv7rgwhzs2lyl140000gp/T//S_00923.000004 saved
+file /var/folders/rr/cz_9j6zj16s2h636vy80zf940000gn/T//S_02827.000004 saved
 
 . 
 . 
@@ -247,8 +247,8 @@ file /var/folders/1g/dryqjv753dv7rgwhzs2lyl140000gp/T//S_00923.000004 saved
 . * load the year 2 LNS uptake dataset
 . *--------------------------------------------
 . 
-. use "~/dropbox/WASHB-Bangladesh-Data/0-Untouched-data/1-Main-survey/3_Endline/
-> 11. WASHB_Endline_LNS_cleaned.dta", clear
+. use "~/dropbox/WASHB-Bangladesh-Data/0-Untouched-data/1-Main-survey/3_Endline
+> /11. WASHB_Endline_LNS_cleaned.dta", clear
 
 . 
 . * drop 9 twins (seem to have identical data)
@@ -263,7 +263,7 @@ file /var/folders/1g/dryqjv753dv7rgwhzs2lyl140000gp/T//S_00923.000004 saved
 . tempfile y2lns
 
 . save `y2lns'
-file /var/folders/1g/dryqjv753dv7rgwhzs2lyl140000gp/T//S_00923.000005 saved
+file /var/folders/rr/cz_9j6zj16s2h636vy80zf940000gn/T//S_02827.000005 saved
 
 . 
 . 
@@ -271,8 +271,8 @@ file /var/folders/1g/dryqjv753dv7rgwhzs2lyl140000gp/T//S_00923.000005 saved
 . * load the year 2 main survey dataset
 . *--------------------------------------------
 . 
-. use "~/dropbox/WASHB-Bangladesh-Data/0-Untouched-data/1-Main-survey/3_Endline/
-> 04. WASHB_Endline_main_survey_cleaned.dta", clear
+. use "~/dropbox/WASHB-Bangladesh-Data/0-Untouched-data/1-Main-survey/3_Endline
+> /04. WASHB_Endline_main_survey_cleaned.dta", clear
 
 . 
 . * format survey dates
@@ -284,9 +284,9 @@ file /var/folders/1g/dryqjv753dv7rgwhzs2lyl140000gp/T//S_00923.000005 saved
 
 .         codebook svydate
 
---------------------------------------------------------------------------------
-svydate                                                              Survey date
---------------------------------------------------------------------------------
+-------------------------------------------------------------------------------
+svydate                                                             Survey date
+-------------------------------------------------------------------------------
 
                   type:  numeric daily date (float)
 
@@ -454,7 +454,8 @@ delimiter now cr
 .         replace freechl = . if (svy==0) | (q1027==999)
 (5,623 real changes made, 5,623 to missing)
 
-.         label var freechl "Free chlorine detected in stored water (>0.1 mg/L)"
+.         label var freechl "Free chlorine detected in stored water (>0.1 mg/L)
+> "
 
 .         
 . * latrine with a functional water seal
@@ -481,12 +482,12 @@ delimiter now cr
 .         replace humfeces = 0 if (q4201>0) | (q4203>0) | (q4205>0)
 (826 real changes made)
 
-.         replace humfeces = . if inlist(q4201,99,.) & inlist(q4203,99,.) & inli
-> st(q4205,99,.)
+.         replace humfeces = . if inlist(q4201,99,.) & inlist(q4203,99,.) & inl
+> ist(q4205,99,.)
 (6 real changes made, 6 to missing)
 
-.         label var humfeces "No human feces observed in house/compound (q4201,4
-> 203,4205)"
+.         label var humfeces "No human feces observed in house/compound (q4201,
+> 4203,4205)"
 
 .         
 . * primary handwashing station has water
@@ -501,8 +502,8 @@ delimiter now cr
 . * primary handwashing station has soap
 . gen byte hwss = (q704_2==1|q704_3==1|q704_4==1|q704_5==1|q704_6==1)
 
-.         replace hwss = . if (q704_2==.&q704_3==.&q704_4==.&q704_5==.&q704_6==.
-> )
+.         replace hwss = . if (q704_2==.&q704_3==.&q704_4==.&q704_5==.&q704_6==
+> .)
 (825 real changes made, 825 to missing)
 
 .         label var hwss "Prim handwashing loc has soap (q704_2-6)"
@@ -707,6 +708,18 @@ delimiter now cr
 99%            1            3.5       Kurtosis       23.67538
 
 .         
+.         
+. *--------------------------------------------
+. * a single Handwashing compound has 
+. * a detectible free chlorine measurement,
+. * which is a data-entry error (was not measured
+. * in non-water arms.  correct it.
+. *--------------------------------------------
+. replace freechl = 0 if dataid=="64204" & svy==1
+(1 real change made)
+
+. 
+. 
 . *--------------------------------------------
 . * Save an uptake analysis dataset
 . * compound-survey level observations
@@ -716,48 +729,47 @@ delimiter now cr
 . 
 . * restrict to household level variables used in the analysis
 . * and save the data
-. keep dataid clusterid block tr svy svydate storewat freechl latseal latfeces h
-> umfeces hwsw hwss hwsws *lns*
-
-. 
-. order dataid clusterid block tr svy svydate storewat freechl latseal latfeces 
+. keep dataid clusterid block tr svy svydate storewat freechl latseal latfeces 
 > humfeces hwsw hwss hwsws *lns*
 
 . 
+. order dataid clusterid block tr svy svydate storewat freechl latseal latfeces
+>  humfeces hwsw hwss hwsws *lns*
+
 . 
-. *** DROP TREATMENT ASSIGNMENTS to keep the data fully blinded (analyses can me
-> rge in treatement)
+. 
+. *** DROP TREATMENT ASSIGNMENTS to keep the data fully blinded (analyses can m
+> erge in treatement)
 . drop tr
 
 . 
 . compress
-  variable block was long now byte
   variable svy was float now byte
   variable svydate was float now int
   variable rlnsn was float now byte
-  (163,966 bytes saved)
+  (119,248 bytes saved)
 
 . sort dataid svy
 
-. label data "Bangladesh uptake analysis dataset (compound-svy obs), created by 
-> 6-bangladesh-dm-uptake.do"
+. label data "Bangladesh uptake analysis dataset (compound-svy obs), created by
+>  6-bangladesh-dm-uptake.do"
 note: label truncated to 80 characters
 
-. saveold "~/dropbox/washb-bangladesh-data/1-primary-outcome-datasets/washb-bang
-> ladesh-uptake.dta", replace version(12)
+. saveold "~/dropbox/washb-bangladesh-data/1-primary-outcome-datasets/washb-ban
+> gladesh-uptake.dta", replace version(12)
 (saving in Stata 12 format, which can be read by Stata 11 or 12)
-file ~/dropbox/washb-bangladesh-data/1-primary-outcome-datasets/washb-bangladesh
-> -uptake.dta saved
+file ~/dropbox/washb-bangladesh-data/1-primary-outcome-datasets/washb-banglades
+> h-uptake.dta saved
 
-. outsheet using "~/dropbox/washb-bangladesh-data/1-primary-outcome-datasets/was
-> hb-bangladesh-uptake.csv", comma replace
+. outsheet using "~/dropbox/washb-bangladesh-data/1-primary-outcome-datasets/wa
+> shb-bangladesh-uptake.csv", comma replace
 
 . 
 . * write a codebook for the dataset
 . log close
       name:  <unnamed>
-       log:  /Users/benarnold/WASHB-Bangladesh-primary-outcomes/src/dm/6-banglad
-> esh-dm-uptake.log
+       log:  /Users/benarnold/WBB-primary-outcomes/src/dm/6-bangladesh-dm-uptak
+> e.log
   log type:  text
- closed on:  16 Sep 2016, 13:26:33
---------------------------------------------------------------------------------
+ closed on:   9 Jan 2018, 17:50:09
+-------------------------------------------------------------------------------

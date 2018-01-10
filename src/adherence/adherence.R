@@ -23,15 +23,20 @@
 # preamble
 #---------------------------------------
 rm(list=ls())
-library(dplyr)
+library(tidyverse)
 
 # source the base functions
-source("~/WBBpa/src/basefns/washb-base-functions.R")
+source("~/WBB-primary-outcomes/src/basefns/washb-base-functions.R")
 
 #---------------------------------------
 # load the uptake analysis dataset
 #---------------------------------------
-d <- read.csv("~/dropbox/wbb-primary-analysis/data/final/ben/washb-bangladesh-uptake.csv")
+d <- read.csv("~/dropbox/WASHB-Bangladesh-Data/1-primary-outcome-datasets/washb-bangladesh-uptake.csv")
+
+# merge in the treatment assignments
+d_tr    <- read.csv('/Volumes/0-Treatment-assignments/washb-bangladesh-tr.csv')
+d <- left_join(d,d_tr,by=c("clusterid","block"))
+
 
 # re-order the treatment factor for convenience
 d$tr <- factor(d$tr,levels=c("Control","Water","Sanitation","Handwashing","WSH","Nutrition","Nutrition + WSH"))
@@ -42,72 +47,59 @@ d$tr <- factor(d$tr,levels=c("Control","Water","Sanitation","Handwashing","WSH",
 # measurement round
 #---------------------------------------
 
-d.svy <- group_by(d, tr,svy)
+# list the indicators to include
+inds <- c("storewat","freechl","latseal","latfeces","humfeces","hwsw","hwss","hwsws","rlnsp")
 
 # number of observations
-ncompounds <- summarise(d.svy,n=n())
+ncompounds <- group_by(d,tr,svy)  %>%
+  summarise(n=n())
 
-# store water
-storewat <- summarise(d.svy,mean=mean(storewat,na.rm=T))
+# reshape long to calculate means and Ns for selected indicators
+dlong <- d %>%
+  select(-svydate) %>%
+  gather(indicator,value,-dataid,-clusterid,-block,-tr,-svy) %>%
+  filter(indicator %in% inds ) %>%
+  group_by(indicator,tr,svy)
 
-# store water with detectable chlorine
-freechl <- summarise(d.svy,mean=mean(freechl,na.rm=T))
+dsum <- dlong %>%
+  summarize(mean=mean(value,na.rm=T),N=sum(!is.na(value)),n=sum(value,na.rm=T)) %>%
+  ungroup() %>%
+  mutate(indicator = factor(indicator,levels=inds)) %>%
+  arrange(indicator,tr,svy)
 
-# Latrine w/ a functional water seal
-latseal <- summarise(d.svy,mean=mean(latseal,na.rm=T))
+# note that the "n" does not make sense for the LNS sachet consumption
+# since that is % of expected consumption
+dsum <- dsum %>%
+  mutate(n=ifelse(indicator=="rlnsp",NA,n))
 
-# No visible feces on the latrine slab or floor
-latfeces <- summarise(d.svy,mean=mean(latfeces,na.rm=T))
 
-# No human feces in the compound
-humfeces <- summarise(d.svy,mean=mean(humfeces,na.rm=T))
+# format the indicator labels
+dsum$indlab <- ""
+dsum$indlab[dsum$indicator %in% "storewat"] <-  "Store water"
+dsum$indlab[dsum$indicator %in% "freechl"] <- "Store water with detectable free chlorine"
+dsum$indlab[dsum$indicator %in% "latseal"] <- "Latrine with functional water seal"
+dsum$indlab[dsum$indicator %in% "latfeces"] <- "Visible feces on latrine slab or floor"
+dsum$indlab[dsum$indicator %in% "humfeces"] <- "Human feces in house or compound"
+dsum$indlab[dsum$indicator %in% "hwsw"] <- "Primary handwashing station has water"
+dsum$indlab[dsum$indicator %in% "hwss"] <- "Primary handwashing station has soap"
+dsum$indlab[dsum$indicator %in% "hwsws"] <- "Primary handwashing station has soap & water"
+dsum$indlab[dsum$indicator %in% "rlnsp"] <- "LNS sachet consumption"
 
-# Primary handwashing station has water
-hwsw <- summarise(d.svy,mean=mean(hwsw,na.rm=T))
+# now spread the data wide by arm
+# for final tables
 
-# Primary handwashing station has soap
-hwss <- summarise(d.svy,mean=mean(hwss,na.rm=T))
+uptake_tab_n <- dsum %>%
+  select(-mean,-N) %>%
+  spread(tr,n)
 
-# Primary handwashing station has soap & water
-hwsws <- summarise(d.svy,mean=mean(hwsws,na.rm=T))
+uptake_tab_mean <- dsum %>%
+  select(-N,-n) %>%
+  spread(tr,mean)
 
-# Mean sachets of LNS fed in prior week to index child 6-24 mos
-rlnsp <- summarise(d.svy,mean=mean(rlnsp,na.rm=T))
+# print tables
+data.frame(uptake_tab_n)
+data.frame(uptake_tab_mean)
 
-#---------------------------------------
-# combine estimates into a single matrix
-#---------------------------------------
-uptake.tab <- as.data.frame(
-  rbind(
-  ncompounds$n,
-  storewat$mean,
-  freechl$mean,
-  latseal$mean,
-  latfeces$mean,
-  humfeces$mean,
-  hwsw$mean,
-  hwss$mean,
-  hwsws$mean,
-  rlnsp$mean
-))
-names(uptake.tab) <- paste(rep(levels(d$tr),rep(3,7)),c("0","1","2"))
-uptake.tab$label=c(
-  "N compounds",
-  "Store water",
-  "Store water with detectable free chlorine",
-  "Latrine with functional water seal",
-  "Visible feces on latrine slab or floor",
-  "Human feces in house or compound",
-  "Primary handwashing station has water",
-  "Primary handwashing station has soap",
-  "Primary handwashing station has soap & water",
-  "LNS sachet consumption"
-)
-# reorder label
-uptake_table_b <- uptake.tab[,c(ncol(uptake.tab),1:(ncol(uptake.tab)-1))]
-
-# print table
-uptake_table_b
 
 #---------------------------------------
 # Calculate means and influence-curve 
