@@ -1,9 +1,9 @@
---------------------------------------------------------------------------------
+-------------------------------------------------------------------------------
       name:  <unnamed>
-       log:  /Users/benarnold/WASHB-Bangladesh-primary-outcomes/src/dm/5-banglad
-> esh-dm-consort.log
+       log:  /Users/benarnold/WBB-primary-outcomes/src/dm/5-bangladesh-dm-conso
+> rt.log
   log type:  text
- opened on:  17 Aug 2016, 14:38:41
+ opened on:   9 Jan 2018, 17:50:22
 
 . 
 . *--------------------------------------------
@@ -36,8 +36,8 @@
 . * summarize reasons for withrawal
 . * at the compound level
 . *--------------------------------------------
-. use "~/dropbox/WASHB-Bangladesh-Data/0-Untouched-data/1-Main-survey/3_Endline/
-> 01. WASHB_Midline_Endline_data_count_cleaned.dta", clear
+. use "~/dropbox/WASHB-Bangladesh-Data/0-Untouched-data/1-Main-survey/3_Endline
+> /01. WASHB_Midline_Endline_data_count_cleaned.dta", clear
 
 . 
 . * recode withdrawal reasons to standard categories
@@ -58,30 +58,30 @@
 
 .         label var miss1reason "Reason for no measurement in year 1"
 
-.         label define missreason 0 "Not lost" 1 "No live birth" 2 "Withdrew" 3 
+.         label define missreason 0 "Not lost" 1 "No live birth" 2 "Refused" 3 
 > "Moved away" 4 "Child death" 5 "Absent"
 
 .         label values miss1reason missreason
 
 . 
-.         replace miss1reason = 1 if (miss1==1) & inlist(reason_midline,"FALSE P
-> REGNANCY","MISCARRIAGE", "STILL BIRTH","ABORTION")
+.         replace miss1reason = 1 if (miss1==1) & inlist(reason_midline,"FALSE 
+> PREGNANCY","MISCARRIAGE", "STILL BIRTH","ABORTION")
 (363 real changes made)
 
-.         replace miss1reason = 2 if (miss1==1) & inlist(reason_midline,"REFUSE"
-> )
+.         replace miss1reason = 2 if (miss1==1) & inlist(reason_midline,"REFUSE
+> ")
 (32 real changes made)
 
-.         replace miss1reason = 3 if (miss1==1) & inlist(reason_midline,"MIGRATI
-> ON OUT")
+.         replace miss1reason = 3 if (miss1==1) & inlist(reason_midline,"MIGRAT
+> ION OUT")
 (57 real changes made)
 
-.         replace miss1reason = 4 if (miss1==1) & inlist(reason_midline,"CHILD D
-> EATH")
+.         replace miss1reason = 4 if (miss1==1) & inlist(reason_midline,"CHILD 
+> DEATH")
 (197 real changes made)
 
-.         replace miss1reason = 5 if (miss1==1) & inlist(reason_midline,"ABSENT"
-> )
+.         replace miss1reason = 5 if (miss1==1) & inlist(reason_midline,"ABSENT
+> ")
 (186 real changes made)
 
 . 
@@ -96,70 +96,51 @@
 
 .         
 .         * start with year 2 reasons
-.         replace miss2reason = 1 if (miss2==1) & inlist(reason_endline,"FALSE P
-> REGNANCY","MISCARRIAGE", "STILL BIRTH","ABORTION")
+.         replace miss2reason = 1 if (miss2==1) & inlist(reason_endline,"FALSE 
+> PREGNANCY","MISCARRIAGE", "STILL BIRTH","ABORTION")
 (0 real changes made)
 
-.         replace miss2reason = 2 if (miss2==1) & inlist(reason_endline,"REFUSE"
-> )
+.         replace miss2reason = 2 if (miss2==1) & inlist(reason_endline,"REFUSE
+> ")
 (47 real changes made)
 
-.         replace miss2reason = 3 if (miss2==1) & inlist(reason_endline,"MIGRATI
-> ON OUT")
+.         replace miss2reason = 3 if (miss2==1) & inlist(reason_endline,"MIGRAT
+> ION OUT")
 (55 real changes made)
 
-.         replace miss2reason = 4 if (miss2==1) & inlist(reason_endline,"CHILD D
-> EATH")
+.         replace miss2reason = 4 if (miss2==1) & inlist(reason_endline,"CHILD 
+> DEATH")
 (23 real changes made)
 
-.         replace miss2reason = 5 if (miss2==1) & inlist(reason_endline,"ABSENT"
-> )
+.         replace miss2reason = 5 if (miss2==1) & inlist(reason_endline,"ABSENT
+> ")
 (173 real changes made)
 
 .         
 .         * back fill with year 1 reasons
-.         replace miss2reason = 1 if (miss2==1) & (miss2reason==.) & inlist(reas
-> on_midline,"FALSE PREGNANCY","MISCARRIAGE", "STILL BIRTH","ABORTION")
-(363 real changes made)
-
-.         replace miss2reason = 2 if (miss2==1) & (miss2reason==.) & inlist(reas
-> on_midline,"REFUSE")
-(0 real changes made)
-
-.         replace miss2reason = 3 if (miss2==1) & (miss2reason==.) & inlist(reas
-> on_midline,"MIGRATION OUT")
-(54 real changes made)
-
-.         replace miss2reason = 4 if (miss2==1) & (miss2reason==.) & inlist(reas
-> on_midline,"CHILD DEATH")
-(197 real changes made)
-
-.         replace miss2reason = 5 if (miss2==1) & (miss2reason==.) & inlist(reas
-> on_midline,"ABSENT")
-(0 real changes made)
-
+.         /*
+>         *** commented out in January 2018 because Lancet is asking for strati
+> fied 
+>         *** estimates by round of measurement --> no longer traking losses cu
+> mulatively
+>         replace miss2reason = 1 if (miss2==1) & (miss2reason==.) & inlist(rea
+> son_midline,"FALSE PREGNANCY","MISCARRIAGE", "STILL BIRTH","ABORTION")
+>         replace miss2reason = 2 if (miss2==1) & (miss2reason==.) & inlist(rea
+> son_midline,"REFUSE")
+>         replace miss2reason = 3 if (miss2==1) & (miss2reason==.) & inlist(rea
+> son_midline,"MIGRATION OUT")
+>         replace miss2reason = 4 if (miss2==1) & (miss2reason==.) & inlist(rea
+> son_midline,"CHILD DEATH")
+>         replace miss2reason = 5 if (miss2==1) & (miss2reason==.) & inlist(rea
+> son_midline,"ABSENT")
+>         */
 .         
 .         replace miss2reason = 0 if (miss2==0)
 (4,639 real changes made)
 
-.         assert miss2reason!=.
-
+.         *assert miss2reason!=.
 .         
-. * there are 2 compounds with identified measurements at year 1, but are absent
->  at year 2.
-. * final determination of their status is pending, but in the interim set them 
-> to not lost at year 1 and absent at year 2
-. replace miss1 = 0 if inlist(dataid,"02604","03704")
-(2 real changes made)
-
-. replace miss1reason = 0 if inlist(dataid,"02604","03704")
-(2 real changes made)
-
-. replace miss2reason = 5 if inlist(dataid,"02604","03704")
-(2 real changes made)
-
 . 
-.         
 . keep dataid miss1 miss1reason miss2 miss2reason
 
 . order dataid miss1 miss1reason miss2 miss2reason
@@ -169,18 +150,18 @@
 . tempfile withd
 
 . save `withd'
-file /var/folders/1g/dryqjv753dv7rgwhzs2lyl140000gp/T//S_03012.000001 saved
+file /var/folders/rr/cz_9j6zj16s2h636vy80zf940000gn/T//S_02827.000001 saved
 
 . 
 . *--------------------------------------------
 . * CONSORT flow: compounds
 . *--------------------------------------------
-. use "~/dropbox/WASHB-Bangladesh-Data/1-primary-outcome-datasets/washb-banglade
-> sh-enrol.dta", clear
-(Bangladesh enrollment analysis dataset (HH obs), created by 2-bangladesh-dm-enr
-> o)
+. use "~/dropbox/WASHB-Bangladesh-Data/1-primary-outcome-datasets/washb-banglad
+> esh-enrol.dta", clear
+(Bangladesh enrollment analysis dataset (HH obs), created by 2-bangladesh-dm-en
+> ro)
 
-. keep dataid clusterid block tr
+. keep dataid clusterid block
 
 . sort dataid
 
@@ -206,27 +187,23 @@ file /var/folders/1g/dryqjv753dv7rgwhzs2lyl140000gp/T//S_03012.000001 saved
 . sort dataid
 
 . 
-. *** DROP TREATMENT ASSIGNMENTS to keep the data fully blinded (analyses can me
-> rge in treatement)
-. drop tr
-
 . 
 . label data "WASH Benefits Bangladesh tracking file, compounds"
 
-. saveold "~/dropbox/WASHB-Bangladesh-Data/1-primary-outcome-datasets/washb-bang
-> ladesh-track-compound.dta", version(12) replace
+. saveold "~/dropbox/WASHB-Bangladesh-Data/1-primary-outcome-datasets/washb-ban
+> gladesh-track-compound.dta", version(12) replace
 (saving in Stata 12 format, which can be read by Stata 11 or 12)
-file ~/dropbox/WASHB-Bangladesh-Data/1-primary-outcome-datasets/washb-bangladesh
-> -track-compound.dta saved
+file ~/dropbox/WASHB-Bangladesh-Data/1-primary-outcome-datasets/washb-banglades
+> h-track-compound.dta saved
 
-. outsheet using "~/dropbox/WASHB-Bangladesh-Data/1-primary-outcome-datasets/was
-> hb-bangladesh-track-compound.csv", comma replace
+. outsheet using "~/dropbox/WASHB-Bangladesh-Data/1-primary-outcome-datasets/wa
+> shb-bangladesh-track-compound.csv", comma replace
 
 . 
 . log close
       name:  <unnamed>
-       log:  /Users/benarnold/WASHB-Bangladesh-primary-outcomes/src/dm/5-banglad
-> esh-dm-consort.log
+       log:  /Users/benarnold/WBB-primary-outcomes/src/dm/5-bangladesh-dm-conso
+> rt.log
   log type:  text
- closed on:  17 Aug 2016, 14:38:41
---------------------------------------------------------------------------------
+ closed on:   9 Jan 2018, 17:50:22
+-------------------------------------------------------------------------------

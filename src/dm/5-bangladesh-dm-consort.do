@@ -3,7 +3,7 @@ set more off
 clear all
 
 
-log using "~/WASHB-Bangladesh-primary-outcomes/src/dm/5-bangladesh-dm-consort.log", text replace
+log using "~/WBB-primary-outcomes/src/dm/5-bangladesh-dm-consort.log", text replace
 
 *--------------------------------------------
 * 5-bangladesh-dm-consort.do
@@ -49,7 +49,7 @@ gen miss2 = status_endline!=1
 * summary reasons for compounds missing measurements in years 1 and 2
 gen miss1reason = 0
 	label var miss1reason "Reason for no measurement in year 1"
-	label define missreason 0 "Not lost" 1 "No live birth" 2 "Withdrew" 3 "Moved away" 4 "Child death" 5 "Absent"
+	label define missreason 0 "Not lost" 1 "No live birth" 2 "Refused" 3 "Moved away" 4 "Child death" 5 "Absent"
 	label values miss1reason missreason
 
 	replace miss1reason = 1 if (miss1==1) & inlist(reason_midline,"FALSE PREGNANCY","MISCARRIAGE", "STILL BIRTH","ABORTION")
@@ -72,22 +72,20 @@ gen miss2reason = .
 	replace miss2reason = 5 if (miss2==1) & inlist(reason_endline,"ABSENT")
 	
 	* back fill with year 1 reasons
+	/*
+	*** commented out in January 2018 because Lancet is asking for stratified 
+	*** estimates by round of measurement --> no longer traking losses cumulatively
 	replace miss2reason = 1 if (miss2==1) & (miss2reason==.) & inlist(reason_midline,"FALSE PREGNANCY","MISCARRIAGE", "STILL BIRTH","ABORTION")
 	replace miss2reason = 2 if (miss2==1) & (miss2reason==.) & inlist(reason_midline,"REFUSE")
 	replace miss2reason = 3 if (miss2==1) & (miss2reason==.) & inlist(reason_midline,"MIGRATION OUT")
 	replace miss2reason = 4 if (miss2==1) & (miss2reason==.) & inlist(reason_midline,"CHILD DEATH")
 	replace miss2reason = 5 if (miss2==1) & (miss2reason==.) & inlist(reason_midline,"ABSENT")
+	*/
 	
 	replace miss2reason = 0 if (miss2==0)
-	assert miss2reason!=.
+	*assert miss2reason!=.
 	
-* there are 2 compounds with identified measurements at year 1, but are absent at year 2.
-* final determination of their status is pending, but in the interim set them to not lost at year 1 and absent at year 2
-replace miss1 = 0 if inlist(dataid,"02604","03704")
-replace miss1reason = 0 if inlist(dataid,"02604","03704")
-replace miss2reason = 5 if inlist(dataid,"02604","03704")
 
-	
 keep dataid miss1 miss1reason miss2 miss2reason
 order dataid miss1 miss1reason miss2 miss2reason
 sort dataid
@@ -98,7 +96,7 @@ save `withd'
 * CONSORT flow: compounds
 *--------------------------------------------
 use "~/dropbox/WASHB-Bangladesh-Data/1-primary-outcome-datasets/washb-bangladesh-enrol.dta", clear
-keep dataid clusterid block tr
+keep dataid clusterid block
 sort dataid
 merge 1:1 dataid using `withd'
 assert _merge==3
@@ -106,8 +104,6 @@ drop _merge
 compress
 sort dataid
 
-*** DROP TREATMENT ASSIGNMENTS to keep the data fully blinded (analyses can merge in treatement)
-drop tr
 
 label data "WASH Benefits Bangladesh tracking file, compounds"
 saveold "~/dropbox/WASHB-Bangladesh-Data/1-primary-outcome-datasets/washb-bangladesh-track-compound.dta", version(12) replace
