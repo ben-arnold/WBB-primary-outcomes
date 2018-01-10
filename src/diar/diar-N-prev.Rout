@@ -1,7 +1,7 @@
 
-R version 3.3.1 (2016-06-21) -- "Bug in Your Hair"
-Copyright (C) 2016 The R Foundation for Statistical Computing
-Platform: x86_64-apple-darwin13.4.0 (64-bit)
+R version 3.4.1 (2017-06-30) -- "Single Candle"
+Copyright (C) 2017 The R Foundation for Statistical Computing
+Platform: x86_64-apple-darwin15.6.0 (64-bit)
 
 R is free software and comes with ABSOLUTELY NO WARRANTY.
 You are welcome to redistribute it under certain conditions.
@@ -16,8 +16,6 @@ Type 'contributors()' for more information and
 Type 'demo()' for some demos, 'help()' for on-line help, or
 'help.start()' for an HTML browser interface to help.
 Type 'q()' to quit R.
-
-[Previously saved workspace restored]
 
 > 
 > #---------------------------------------
@@ -44,33 +42,43 @@ Type 'q()' to quit R.
 > # preamble
 > #---------------------------------------
 > rm(list=ls())
+> library(tidyverse)
+Loading tidyverse: ggplot2
+Loading tidyverse: tibble
+Loading tidyverse: tidyr
+Loading tidyverse: readr
+Loading tidyverse: purrr
+Loading tidyverse: dplyr
+Conflicts with tidy packages ---------------------------------------------------
+filter(): dplyr, stats
+lag():    dplyr, stats
+Warning message:
+package ‘purrr’ was built under R version 3.4.2 
 > library(tmle)
 Loading required package: SuperLearner
 Loading required package: nnls
 Super Learner
-Version: 2.0-19
-Package created on 2016-02-02
+Version: 2.0-22
+Package created on 2017-07-18
 
-Welcome to the tmle package, version 1.2.0-2
+Welcome to the tmle package, version 1.2.0-5
 
 Use tmleNews() to see details on changes and bug fixes
-
-Attaching package: ‘tmle’
-
-The following object is masked from ‘package:SuperLearner’:
-
-    SL.glm.interaction
-
 > 
 > # source the base functions
-> source("~/WBBpa/src/basefns/washb-base-functions.R")
+> source("~/WBB-primary-outcomes/src/basefns/washb-base-functions.R")
 > 
 > 
 > #---------------------------------------
 > # Load the analysis dataset
 > #---------------------------------------
 > 
-> d <- read.csv("~/dropbox/wbb-primary-analysis/data/final/ben/washb-bangladesh-diar.csv")
+> d <- read.csv("~/dropbox/WASHB-Bangladesh-Data/1-primary-outcome-datasets/washb-bangladesh-diar.csv")
+> 
+> # merge in the treatment assignments
+> d_tr    <- read.csv('/Volumes/0-Treatment-assignments/washb-bangladesh-tr.csv')
+> d <- left_join(d,d_tr,by=c("clusterid","block"))
+> 
 > 
 > #---------------------------------------
 > # Exclude:
@@ -136,10 +144,14 @@ FALSE  TRUE
 > #---------------------------------------
 > # calculate Ns and prevalence for
 > # all of follow-up (surveys 1 and 2)
+> #
+> # Lancet is requesting we include the
+> # SD of the prevalence for the manuscript
+> # table, so add that
 > #---------------------------------------
 > Nchildfu <- tapply(ad$diar7d[ad$svy==1|ad$svy==2],ad$tr[ad$svy==1|ad$svy==2],function(x) length(x))
 > diar7dfu <- tapply(ad$diar7d[ad$svy==1|ad$svy==2],ad$tr[ad$svy==1|ad$svy==2],function(x) sum(x))
-> 
+> diar7dfu_sd <- tapply(ad$diar7d[ad$svy==1|ad$svy==2],ad$tr[ad$svy==1|ad$svy==2],function(x) sd(x))
 > 
 > #---------------------------------------
 > # Create randomization block indicators
@@ -191,7 +203,7 @@ FALSE  TRUE
 > diar_t2_prev <- t(mu2)
 > diar_t12_prev <- t(mu12)
 > 
-> 
+> diar_t12_prev_sd <- diar7dfu_sd
 > 
 > #---------------------------------------
 > # Internal consistency check:
@@ -312,6 +324,13 @@ WSH             0.0389 0.0295 0.0484
 Nutrition       0.0345 0.0229 0.0461
 Nutrition + WSH 0.0355 0.0265 0.0444
 > 
+> round(diar_t12_prev_sd,4)
+        Control           Water      Sanitation     Handwashing             WSH 
+         0.2316          0.2166          0.1830          0.1827          0.1934 
+      Nutrition Nutrition + WSH 
+         0.1827          0.1850 
+> 
+> 
 > # add 'b' suffix for comparison w/ jade
 > diar_t0_n_b <- diar_t0_n
 > diar_t1_n_b <- diar_t1_n
@@ -321,9 +340,9 @@ Nutrition + WSH 0.0355 0.0265 0.0444
 > diar_t1_prev_b <- diar_t1_prev
 > diar_t2_prev_b <- diar_t2_prev
 > diar_t12_prev_b <- diar_t12_prev
+> diar_t12_prev_sd_b <- diar_t12_prev_sd
 > 
-> 
-> save(diar_t0_n_b,diar_t1_n_b,diar_t2_n_b,diar_t12_n_b,diar_t0_prev_b,diar_t1_prev_b,diar_t2_prev_b,diar_t12_prev_b,file="~/dropbox/wbb-primary-analysis/results/raw/ben/bangladesh-diar-N-prev-ben.RData")
+> save(diar_t0_n_b,diar_t1_n_b,diar_t2_n_b,diar_t12_n_b,diar_t0_prev_b,diar_t1_prev_b,diar_t2_prev_b,diar_t12_prev_b,diar_t12_prev_sd_b,file="~/dropbox/wbb-primary-analysis/results/raw/ben/bangladesh-diar-N-prev-ben.RData")
 > 
 > 
 > 
@@ -333,4 +352,4 @@ Nutrition + WSH 0.0355 0.0265 0.0444
 > 
 > proc.time()
    user  system elapsed 
-  3.277   0.214   3.675 
+  2.722   0.163   2.885 

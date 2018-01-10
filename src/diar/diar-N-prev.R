@@ -23,17 +23,23 @@
 # preamble
 #---------------------------------------
 rm(list=ls())
+library(tidyverse)
 library(tmle)
 
 # source the base functions
-source("~/WBBpa/src/basefns/washb-base-functions.R")
+source("~/WBB-primary-outcomes/src/basefns/washb-base-functions.R")
 
 
 #---------------------------------------
 # Load the analysis dataset
 #---------------------------------------
 
-d <- read.csv("~/dropbox/wbb-primary-analysis/data/final/ben/washb-bangladesh-diar.csv")
+d <- read.csv("~/dropbox/WASHB-Bangladesh-Data/1-primary-outcome-datasets/washb-bangladesh-diar.csv")
+
+# merge in the treatment assignments
+d_tr    <- read.csv('/Volumes/0-Treatment-assignments/washb-bangladesh-tr.csv')
+d <- left_join(d,d_tr,by=c("clusterid","block"))
+
 
 #---------------------------------------
 # Exclude:
@@ -73,10 +79,14 @@ diar7d <- tapply(ad$diar7d,list(ad$svy,ad$tr),function(x) sum(x))
 #---------------------------------------
 # calculate Ns and prevalence for
 # all of follow-up (surveys 1 and 2)
+#
+# Lancet is requesting we include the
+# SD of the prevalence for the manuscript
+# table, so add that
 #---------------------------------------
 Nchildfu <- tapply(ad$diar7d[ad$svy==1|ad$svy==2],ad$tr[ad$svy==1|ad$svy==2],function(x) length(x))
 diar7dfu <- tapply(ad$diar7d[ad$svy==1|ad$svy==2],ad$tr[ad$svy==1|ad$svy==2],function(x) sum(x))
-
+diar7dfu_sd <- tapply(ad$diar7d[ad$svy==1|ad$svy==2],ad$tr[ad$svy==1|ad$svy==2],function(x) sd(x))
 
 #---------------------------------------
 # Create randomization block indicators
@@ -128,7 +138,7 @@ diar_t1_prev <- t(mu1)
 diar_t2_prev <- t(mu2)
 diar_t12_prev <- t(mu12)
 
-
+diar_t12_prev_sd <- diar7dfu_sd
 
 #---------------------------------------
 # Internal consistency check:
@@ -153,6 +163,9 @@ round(diar_t1_prev,4)
 round(diar_t2_prev,4)
 round(diar_t12_prev,4)
 
+round(diar_t12_prev_sd,4)
+
+
 # add 'b' suffix for comparison w/ jade
 diar_t0_n_b <- diar_t0_n
 diar_t1_n_b <- diar_t1_n
@@ -162,9 +175,9 @@ diar_t0_prev_b <- diar_t0_prev
 diar_t1_prev_b <- diar_t1_prev
 diar_t2_prev_b <- diar_t2_prev
 diar_t12_prev_b <- diar_t12_prev
+diar_t12_prev_sd_b <- diar_t12_prev_sd
 
-
-save(diar_t0_n_b,diar_t1_n_b,diar_t2_n_b,diar_t12_n_b,diar_t0_prev_b,diar_t1_prev_b,diar_t2_prev_b,diar_t12_prev_b,file="~/dropbox/wbb-primary-analysis/results/raw/ben/bangladesh-diar-N-prev-ben.RData")
+save(diar_t0_n_b,diar_t1_n_b,diar_t2_n_b,diar_t12_n_b,diar_t0_prev_b,diar_t1_prev_b,diar_t2_prev_b,diar_t12_prev_b,diar_t12_prev_sd_b,file="~/dropbox/wbb-primary-analysis/results/raw/ben/bangladesh-diar-N-prev-ben.RData")
 
 
 
