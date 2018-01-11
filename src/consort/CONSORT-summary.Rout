@@ -17,6 +17,8 @@ Type 'demo()' for some demos, 'help()' for on-line help, or
 'help.start()' for an HTML browser interface to help.
 Type 'q()' to quit R.
 
+[Previously saved workspace restored]
+
 > 
 > 
 > 
@@ -162,6 +164,12 @@ package ‘purrr’ was built under R version 3.4.2
 +                              "Year 1 total", "Year 1 analyzed", "Year 1 missing",
 +                              "Year 2 total","Year 2 analyzed", "Year 2 missing")
 > 
+> # identify the number of index children by arm and survey
+> dindex <- d36 %>%
++   filter(tchild=="Target child")
+> 
+> n_index <- table(dindex$svy,dindex$tr)
+> 
 > 
 > # identify the number of twin pairs by arm
 > # twins are identified by childid=="T2"
@@ -247,6 +255,19 @@ Year 2 total               1014
 Year 2 analyzed             908
 Year 2 missing              106
 > 
+> n_index
+   
+    Control Water Sanitation Handwashing  WSH Nutrition Nutrition + WSH
+  1    1155   614        587         591  609       584             607
+  2    1141   601        590         575  591       577             592
+> 
+> n_twins
+   
+    Control Water Sanitation Handwashing WSH Nutrition Nutrition + WSH
+  1       4     3          4           6   4         3               7
+  2       3     3          5           5   3         3               6
+> 
+> 
 > #---------------------------------------
 > # add "_b" suffix to compare with jade
 > #---------------------------------------
@@ -256,15 +277,16 @@ Year 2 missing              106
 > 
 > laz_tracking_b   <- laz_tracking
 > diar_tracking_b  <- diar_tracking
-> 
-> rm(compound_tracking,compound_lost1,compound_lost2,laz_tracking,diar_tracking)
+> n_index_b <- n_index
+> n_twins_b <- n_twins
+> rm(compound_tracking,compound_lost1,compound_lost2,laz_tracking,diar_tracking,n_index,n_twins)
 > 
 > 
 > #---------------------------------------
 > # save objects 
 > #(drop datasets to save space)
 > #---------------------------------------
-> rm(d,chd,d36)
+> rm(d,chd,d36,dindex)
 > save.image(file="~/dropbox/WBB-primary-analysis/results/raw/ben/bangladesh-CONSORT-ben.RData")
 > 
 > 
@@ -273,4 +295,4 @@ Year 2 missing              106
 > 
 > proc.time()
    user  system elapsed 
-  1.952   0.187   2.343 
+  2.013   0.189   2.508 

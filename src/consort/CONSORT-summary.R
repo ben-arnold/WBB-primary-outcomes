@@ -128,6 +128,12 @@ rownames(diar_tracking) <- c("Enroll total", "Enroll analyzed", "Enroll missing"
                              "Year 1 total", "Year 1 analyzed", "Year 1 missing",
                              "Year 2 total","Year 2 analyzed", "Year 2 missing")
 
+# identify the number of index children by arm and survey
+dindex <- d36 %>%
+  filter(tchild=="Target child")
+
+n_index <- table(dindex$svy,dindex$tr)
+
 
 # identify the number of twin pairs by arm
 # twins are identified by childid=="T2"
@@ -147,6 +153,11 @@ laz_tracking
 
 diar_tracking
 
+n_index
+
+n_twins
+
+
 #---------------------------------------
 # add "_b" suffix to compare with jade
 #---------------------------------------
@@ -156,15 +167,16 @@ compound_lost2_b    <- compound_lost2
 
 laz_tracking_b   <- laz_tracking
 diar_tracking_b  <- diar_tracking
-
-rm(compound_tracking,compound_lost1,compound_lost2,laz_tracking,diar_tracking)
+n_index_b <- n_index
+n_twins_b <- n_twins
+rm(compound_tracking,compound_lost1,compound_lost2,laz_tracking,diar_tracking,n_index,n_twins)
 
 
 #---------------------------------------
 # save objects 
 #(drop datasets to save space)
 #---------------------------------------
-rm(d,chd,d36)
+rm(d,chd,d36,dindex)
 save.image(file="~/dropbox/WBB-primary-analysis/results/raw/ben/bangladesh-CONSORT-ben.RData")
 
 
