@@ -2,7 +2,7 @@
 #---------------------------------------
 # mortality.R
 #
-# ben arnold (benarnold@berkeley.edu)
+# ben arnold (bfarnold@gmail.com)
 #
 # calculate unadjusted comparisons
 # between treatment arms in cumulative
@@ -11,9 +11,9 @@
 
 #---------------------------------------
 # input files:
-#	washb-bangladesh-anthro.csv
-#	washb-bangladesh-enrol.csv
 # washb-bangladesh-track-compound.csv
+# washb-bangladesh-enrol-tr.csv
+#	washb-bangladesh-anthro.csv
 #
 # output files:
 #	bangladesh-mortality.RData
@@ -23,12 +23,13 @@
 #---------------------------------------
 # preamble
 #---------------------------------------
-rm(list=ls())
+library(here)
+here()
 library(tmle)
-library(SuperLearner)
+library(metafor)
 
 # source the base functions
-source("~/WBBpa/src/basefns/washb-base-functions.R")
+source(here::here("src/basefns/","washb-base-functions.R"))
 
 
 #---------------------------------------
@@ -36,14 +37,19 @@ source("~/WBBpa/src/basefns/washb-base-functions.R")
 # the compound tracking dataset
 #---------------------------------------
 
-bd <- read.csv("~/dropbox/WBB-primary-analysis/data/final/ben/washb-bangladesh-enrol.csv",colClasses=c("dataid"="character"))
+trd <- read.csv(here::here("data","washb-bangladesh-tr-public.csv"),colClasses=c("clusterid"="character"))
 
-td <- read.csv("~/dropbox/WBB-primary-analysis/data/final/ben/washb-bangladesh-track-compound.csv",colClasses=c("dataid"="character"))
+td <- read.csv(here::here("data","washb-bangladesh-track-compound-public.csv"),colClasses=c("dataid"="character"))
 
-d <- read.csv("~/dropbox/WBB-primary-analysis/data/final/ben/washb-bangladesh-anthro.csv",colClasses=c("dataid"="character"))
+d <- read.csv(here::here("data","washb-bangladesh-anthro-public.csv"),colClasses=c("dataid"="character"))
+
+# merge treatment assigments to the tracking dataset
+ad <- merge(td,trd,by=c("block","clusterid"),all.x=T,all.y=T)
+dim(td)
+dim(ad)
 
 # merge the tracking dataset to the follow-up dataset
-ad <- merge(td,d,by=c("dataid","clusterid","block","tr"),all.x=T,all.y=T)
+ad <- merge(ad,d,by=c("dataid","clusterid","block"),all.x=T,all.y=T)
 dim(d)
 dim(ad)
 
@@ -101,7 +107,7 @@ round(cbind(death.rd.crude,death.rd[,1], death.rd.crude-death.rd[,1]),5)
 
 # exponentiate the CIR and 95% estimates
 death.cir[,c(1,3,4)] <- exp(death.cir[,c(1,3,4)])
-colnames(death.cir)[1:1] <- c("CIR","se.logCIR")
+colnames(death.cir)[1:2] <- c("CIR","se.logCIR")
 
 
 #---------------------------------------
@@ -115,11 +121,9 @@ round(death.rd,4)
 round(death.cir,4)
 
 
-
-
 # save everything except the datasets themselves
 rm(list=c("d","td","ad","md"))
-save.image(file="~/dropbox/WBB-primary-analysis/results/raw/ben/bangladesh-mortality.RData")
+save.image(file=here("results/raw/","bangladesh-mortality.RData"))
 
 
 

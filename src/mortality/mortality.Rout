@@ -1,7 +1,7 @@
 
-R version 3.2.3 (2015-12-10) -- "Wooden Christmas-Tree"
-Copyright (C) 2015 The R Foundation for Statistical Computing
-Platform: x86_64-apple-darwin13.4.0 (64-bit)
+R version 3.6.1 (2019-07-05) -- "Action of the Toes"
+Copyright (C) 2019 The R Foundation for Statistical Computing
+Platform: x86_64-apple-darwin15.6.0 (64-bit)
 
 R is free software and comes with ABSOLUTELY NO WARRANTY.
 You are welcome to redistribute it under certain conditions.
@@ -23,7 +23,7 @@ Type 'q()' to quit R.
 > #---------------------------------------
 > # mortality.R
 > #
-> # ben arnold (benarnold@berkeley.edu)
+> # ben arnold (bfarnold@gmail.com)
 > #
 > # calculate unadjusted comparisons
 > # between treatment arms in cumulative
@@ -32,9 +32,9 @@ Type 'q()' to quit R.
 > 
 > #---------------------------------------
 > # input files:
-> #	washb-bangladesh-anthro.csv
-> #	washb-bangladesh-enrol.csv
 > # washb-bangladesh-track-compound.csv
+> # washb-bangladesh-enrol-tr.csv
+> #	washb-bangladesh-anthro.csv
 > #
 > # output files:
 > #	bangladesh-mortality.RData
@@ -44,28 +44,27 @@ Type 'q()' to quit R.
 > #---------------------------------------
 > # preamble
 > #---------------------------------------
-> rm(list=ls())
+> library(here)
+here() starts at /Users/benarnold/WBB-primary-outcomes
+> here()
+[1] "/Users/benarnold/WBB-primary-outcomes"
 > library(tmle)
 Loading required package: SuperLearner
 Loading required package: nnls
 Super Learner
-Version: 2.0-19
-Package created on 2016-02-02
+Version: 2.0-25
+Package created on 2019-08-05
 
-Welcome to the tmle package, version 1.2.0-2
+Welcome to the tmle package, version 1.3.0-2
 
 Use tmleNews() to see details on changes and bug fixes
-
-Attaching package: ‘tmle’
-
-The following object is masked from ‘package:SuperLearner’:
-
-    SL.glm.interaction
-
-> library(SuperLearner)
+> library(metafor)
+Loading required package: Matrix
+Loading 'metafor' package (version 2.1-0). For an overview 
+and introduction to the package please type: help(metafor).
 > 
 > # source the base functions
-> source("~/WBBpa/src/basefns/washb-base-functions.R")
+> source(here::here("src/basefns/","washb-base-functions.R"))
 > 
 > 
 > #---------------------------------------
@@ -73,18 +72,25 @@ The following object is masked from ‘package:SuperLearner’:
 > # the compound tracking dataset
 > #---------------------------------------
 > 
-> bd <- read.csv("~/dropbox/WBB-primary-analysis/data/final/ben/washb-bangladesh-enrol.csv",colClasses=c("dataid"="character"))
+> trd <- read.csv(here::here("data","washb-bangladesh-tr-public.csv"),colClasses=c("clusterid"="character"))
 > 
-> td <- read.csv("~/dropbox/WBB-primary-analysis/data/final/ben/washb-bangladesh-track-compound.csv",colClasses=c("dataid"="character"))
+> td <- read.csv(here::here("data","washb-bangladesh-track-compound-public.csv"),colClasses=c("dataid"="character"))
 > 
-> d <- read.csv("~/dropbox/WBB-primary-analysis/data/final/ben/washb-bangladesh-anthro.csv",colClasses=c("dataid"="character"))
+> d <- read.csv(here::here("data","washb-bangladesh-anthro-public.csv"),colClasses=c("dataid"="character"))
+> 
+> # merge treatment assigments to the tracking dataset
+> ad <- merge(td,trd,by=c("block","clusterid"),all.x=T,all.y=T)
+> dim(td)
+[1] 5551    7
+> dim(ad)
+[1] 5551    8
 > 
 > # merge the tracking dataset to the follow-up dataset
-> ad <- merge(td,d,by=c("dataid","clusterid","block","tr"),all.x=T,all.y=T)
+> ad <- merge(ad,d,by=c("dataid","clusterid","block"),all.x=T,all.y=T)
 > dim(d)
-[1] 9341   46
+[1] 9341   49
 > dim(ad)
-[1] 10047    50
+[1] 10047    54
 > 
 > # re-order the tr factor for convenience
 > ad$tr <- factor(ad$tr,levels=c("Control","Water","Sanitation","Handwashing","WSH","Nutrition","Nutrition + WSH"))
@@ -111,9 +117,9 @@ The following object is masked from ‘package:SuperLearner’:
   Control         1244   62
   Water            629   27
   Sanitation       625   27
-  Handwashing      619   29
+  Handwashing      618   29
   WSH              631   31
-  Nutrition        626   25
+  Nutrition        625   25
   Nutrition + WSH  627   19
 > 
 > 
@@ -139,10 +145,6 @@ The following object is masked from ‘package:SuperLearner’:
 +   c("Control","Nutrition + WSH")
 + )
 > death.cir <- t(sapply(h1.contrasts,ITT.unadj,Y=md$death,tr=md$tr,strat=md$block,binomial=T))
-Loading required package: metafor
-Loading required package: Matrix
-Loading 'metafor' package (version 1.9-8). For an overview 
-and introduction to the package please type: help(metafor).
 > death.rd<- t(sapply(h1.contrasts,ITT.unadj,Y=md$death,tr=md$tr,strat=md$block,binomial=T,measure="RD"))
 > rownames(death.cir) <- rownames(death.rd) <- c("Water v C","Sanitation v C","Handwashing v C","WSH v C","Nutrition v C","Nutrition + WSH v C")
 > 
@@ -153,17 +155,14 @@ and introduction to the package please type: help(metafor).
                 death.rd.crude                  
 Water                 -0.00631 -0.00610 -0.00021
 Sanitation            -0.00606 -0.00514 -0.00093
-Handwashing           -0.00272 -0.00286  0.00014
+Handwashing           -0.00265 -0.00286  0.00021
 WSH                   -0.00065 -0.00043 -0.00021
-Nutrition             -0.00907 -0.00860 -0.00047
+Nutrition             -0.00901 -0.00861 -0.00040
 Nutrition + WSH       -0.01806 -0.01846  0.00040
 > 
 > # exponentiate the CIR and 95% estimates
 > death.cir[,c(1,3,4)] <- exp(death.cir[,c(1,3,4)])
-> colnames(death.cir)[1:1] <- c("CIR","se.logCIR")
-Warning message:
-In colnames(death.cir)[1:1] <- c("CIR", "se.logCIR") :
-  number of items to replace is not a multiple of replacement length
+> colnames(death.cir)[1:2] <- c("CIR","se.logCIR")
 > 
 > 
 > #---------------------------------------
@@ -175,35 +174,33 @@ In colnames(death.cir)[1:1] <- c("CIR", "se.logCIR") :
 Control              1306       62        0.0475 0.0353 0.0597
 Water                 656       27        0.0412 0.0261 0.0562
 Sanitation            652       27        0.0414 0.0279 0.0550
-Handwashing           648       29        0.0448 0.0271 0.0624
+Handwashing           647       29        0.0448 0.0272 0.0625
 WSH                   662       31        0.0468 0.0310 0.0626
-Nutrition             651       25        0.0384 0.0230 0.0538
+Nutrition             650       25        0.0385 0.0231 0.0538
 Nutrition + WSH       646       19        0.0294 0.0178 0.0410
 > 
 > round(death.rd,4)
                          RD  se.RD   ci.lb   ci.ub       Z      p
 Water v C           -0.0061 0.0097 -0.0251  0.0129 -0.6302 0.5286
 Sanitation v C      -0.0051 0.0098 -0.0244  0.0141 -0.5239 0.6003
-Handwashing v C     -0.0029 0.0101 -0.0226  0.0169 -0.2836 0.7767
+Handwashing v C     -0.0029 0.0101 -0.0227  0.0169 -0.2836 0.7767
 WSH v C             -0.0004 0.0100 -0.0201  0.0192 -0.0432 0.9655
-Nutrition v C       -0.0086 0.0094 -0.0271  0.0099 -0.9110 0.3623
+Nutrition v C       -0.0086 0.0095 -0.0271  0.0099 -0.9110 0.3623
 Nutrition + WSH v C -0.0185 0.0089 -0.0358 -0.0011 -2.0847 0.0371
 > 
 > round(death.cir,4)
-                       CIR se.logPR  ci.lb  ci.ub       Z      p
-Water v C           0.8704   0.2264 0.5585 1.3565 -0.6132 0.5397
-Sanitation v C      0.8899   0.2274 0.5699 1.3896 -0.5128 0.6081
-Handwashing v C     0.9400   0.2203 0.6104 1.4475 -0.2810 0.7787
-WSH v C             0.9908   0.2139 0.6515 1.5068 -0.0431 0.9656
-Nutrition v C       0.8168   0.2308 0.5196 1.2842 -0.8765 0.3807
-Nutrition + WSH v C 0.6132   0.2577 0.3700 1.0160 -1.8984 0.0576
-> 
-> 
+                       CIR se.logCIR  ci.lb  ci.ub       Z      p
+Water v C           0.8704    0.2264 0.5585 1.3565 -0.6132 0.5397
+Sanitation v C      0.8899    0.2274 0.5699 1.3896 -0.5128 0.6081
+Handwashing v C     0.9400    0.2203 0.6104 1.4475 -0.2810 0.7787
+WSH v C             0.9908    0.2139 0.6515 1.5068 -0.0431 0.9656
+Nutrition v C       0.8168    0.2308 0.5196 1.2842 -0.8765 0.3807
+Nutrition + WSH v C 0.6132    0.2577 0.3700 1.0160 -1.8984 0.0576
 > 
 > 
 > # save everything except the datasets themselves
 > rm(list=c("d","td","ad","md"))
-> save.image(file="~/dropbox/WBB-primary-analysis/results/raw/ben/bangladesh-mortality.RData")
+> save.image(file=here("results/raw/","bangladesh-mortality.RData"))
 > 
 > 
 > 
@@ -212,4 +209,4 @@ Nutrition + WSH v C 0.6132   0.2577 0.3700 1.0160 -1.8984 0.0576
 > 
 > proc.time()
    user  system elapsed 
-  3.662   0.188   6.038 
+  1.377   0.114   1.484 
