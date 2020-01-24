@@ -12,9 +12,9 @@
 
 #---------------------------------------
 # input files:
-#	washb-bangladesh-track-compound.csv
-# washb-bangladesh-anthro.csv
-# washb-bangladesh-diar.csv
+#	washb-bangladesh-track-compound-public.csv
+# washb-bangladesh-anthro-public.csv
+# washb-bangladesh-diar-public.csv
 #
 # output files:
 #	bangladesh-CONSORT-ben.RData
@@ -25,18 +25,17 @@
 #---------------------------------------
 # preamble
 #---------------------------------------
-rm(list=ls())
+rm(list=ls()); library(here)
 library(tidyverse)
-
 #---------------------------------------
 # CONSORT: compounds
 #---------------------------------------
 
 # read in the compound tracking file
-d <- read.csv("~/dropbox/WASHB-Bangladesh-Data/1-primary-outcome-datasets/washb-bangladesh-track-compound.csv")
+d <- read.csv(here("data/washb-bangladesh-track-compound-public.csv"))
 
 # merge in the treatment assignments
-d_tr    <- read.csv('/Volumes/0-Treatment-assignments/washb-bangladesh-tr.csv')
+d_tr    <- read.csv(here('data/washb-bangladesh-tr-public.csv'))
 d <- left_join(d,d_tr,by=c("clusterid","block"))
 
 # re-order the tr factor for convenience
@@ -68,7 +67,7 @@ rownames(compound_lost2)[1] <- "Compounds Lost"
 # CONSORT: index children
 # based on anthropometry dataset
 #---------------------------------------
-chd <- read.csv("~/dropbox/WASHB-Bangladesh-Data/1-primary-outcome-datasets/washb-bangladesh-anthro.csv")
+chd <- read.csv(here("data/washb-bangladesh-anthro-public.csv"))
 
 chd <- left_join(chd,d_tr,by=c("clusterid","block"))
 
@@ -97,7 +96,7 @@ rownames(laz_tracking) <- c("Year 1 total","Year 1 analyzed", "Year 1 missing","
 # based on diarrhea dataset
 #---------------------------------------
 
-d36 <- read.csv("~/dropbox/WASHB-Bangladesh-Data/1-primary-outcome-datasets/washb-bangladesh-diar.csv")
+d36 <- read.csv(here("data/washb-bangladesh-diar-public.csv"))
 
 d36 <- left_join(d36,d_tr,by=c("clusterid","block"))
 
@@ -161,23 +160,23 @@ n_twins
 #---------------------------------------
 # add "_b" suffix to compare with jade
 #---------------------------------------
-compound_tracking_b <- compound_tracking
-compound_lost1_b    <- compound_lost1
-compound_lost2_b    <- compound_lost2
-
-laz_tracking_b   <- laz_tracking
-diar_tracking_b  <- diar_tracking
-n_index_b <- n_index
-n_twins_b <- n_twins
-rm(compound_tracking,compound_lost1,compound_lost2,laz_tracking,diar_tracking,n_index,n_twins)
-
+# compound_tracking_b <- compound_tracking
+# compound_lost1_b    <- compound_lost1
+# compound_lost2_b    <- compound_lost2
+# 
+# laz_tracking_b   <- laz_tracking
+# diar_tracking_b  <- diar_tracking
+# n_index_b <- n_index
+# n_twins_b <- n_twins
+# rm(compound_tracking,compound_lost1,compound_lost2,laz_tracking,diar_tracking,n_index,n_twins)
+# 
 
 #---------------------------------------
 # save objects 
 #(drop datasets to save space)
 #---------------------------------------
 rm(d,chd,d36,dindex)
-save.image(file="~/dropbox/WBB-primary-analysis/results/raw/ben/bangladesh-CONSORT-ben.RData")
+save.image(file=here("results/bangladesh-CONSORT-ben.RData"))
 
 
 
