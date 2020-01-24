@@ -10,14 +10,14 @@
 #---------------------------------------
 # preamble
 #---------------------------------------
-rm(list=ls())
+rm(list=ls()); library(here)
 library(xtable)
 
 #---------------------------------------
 # load the uptake estimates
 #---------------------------------------
 
-load("~/dropbox/wbb-primary-analysis/results/raw/ben/bangladesh-uptake.RData")
+load(here("results/bangladesh-uptake.RData"))
 
 
 
@@ -111,13 +111,13 @@ rownames(adtab) <- c(
 #---------------------------------------
 # write the matrix to a file
 #---------------------------------------
-write.csv2(adtab,file='~/dropbox/wbb-primary-analysis/results/raw/tables/table-adherence.csv',quote=TRUE)
+write.csv2(adtab,file=here("results/table-adherence-public.csv"),quote=TRUE)
 
 # having trouble w/ excel opening ; delimited file
 # so just output to html
 adtab2 <- cbind(rownames(adtab),adtab)
 print(xtable(adtab2),
-      file='~/dropbox/wbb-primary-analysis/results/raw/tables/table-adherence.xls',
+      file=here('results/raw/tables/table-adherence.xls'),
       type='html',include.rownames=FALSE
   
 )
