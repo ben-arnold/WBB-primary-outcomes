@@ -9,14 +9,14 @@
 #---------------------------------------
 # preamble
 #---------------------------------------
-rm(list=ls())
+rm(list=ls()); library(here)
 library(scales)
 
 #---------------------------------------
 # load the uptake estimates
 #---------------------------------------
 
-load("~/dropbox/wbb-primary-analysis/results/raw/ben/bangladesh-uptake.RData")
+load(here("results/bangladesh-uptake.RData"))
 
 
 
@@ -82,7 +82,7 @@ uptakelabs <- c(
   "LNS sachets\nconsumed\n(% of expected)"
 )
 
-pdf("~/dropbox/wbb-primary-analysis/results/figs/bangladesh-uptake.pdf",width=10,height=14)
+pdf(here("results/figs/bangladesh-uptake.pdf"),width=10,height=14)
 # cbPalette <- c("#999999", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
 # cols <- c("gray30",cbPalette[c(2:4,6:8)])
 # brighter color blind palette:  https://personal.sron.nl/~pault/ 
