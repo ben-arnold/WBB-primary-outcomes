@@ -88,7 +88,7 @@ rm(table1)
 #(drop datasets to save space)
 #---------------------------------------
 rm(d)
-save(table1_b,file=here("results/bangladesh-enrol-characteristics-ben.RData"))
+save(table1_b,file=here("results/bangladesh-enrol-characteristics.RData"))
 
 
 
