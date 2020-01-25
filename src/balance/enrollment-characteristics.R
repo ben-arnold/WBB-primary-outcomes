@@ -12,7 +12,7 @@
 
 #---------------------------------------
 # input files:
-#	washb-bangladesh-enrol.csv
+#	washb-bangladesh-enrol-public.csv
 #
 # output files:
 #	bangladesh-enrol-characteristics-ben.RData
@@ -23,14 +23,18 @@
 #---------------------------------------
 # preamble
 #---------------------------------------
-rm(list=ls())
+rm(list=ls()); library(here)
 library(dplyr)
 
 #---------------------------------------
 # CONSORT: compounds
 #---------------------------------------
 
-d <- read.csv("~/dropbox/WBB-primary-analysis/data/final/ben/washb-bangladesh-enrol.csv")
+d <- read.csv(here("data/washb-bangladesh-enrol-public.csv"))
+
+# merge in the treatment assignments
+d_tr    <- read.csv(here("data/washb-bangladesh-tr-public.csv"))
+d <- left_join(d,d_tr,by=c("clusterid","block"))
 
 # re-order the tr factor for convenience
 d$tr <- factor(d$tr,levels=c("Control","Water","Sanitation","Handwashing","WSH","Nutrition","Nutrition + WSH"))
@@ -84,7 +88,7 @@ rm(table1)
 #(drop datasets to save space)
 #---------------------------------------
 rm(d)
-save(table1_b,file="~/dropbox/WBB-primary-analysis/results/raw/ben/bangladesh-enrol-characteristics-ben.RData")
+save(table1_b,file=here("results/bangladesh-enrol-characteristics-ben.RData"))
 
 
 
