@@ -23,6 +23,17 @@ washb.permute <- function(Y,tr,block,contrast,nreps=100000,seed=NULL) {
   # contrast : string with 2 levels of tr that should be compared in the permutation test
   # nreps : number of permutations to run to approximate the null (default=100,000)
   # seed : a seed for pseudo-random number generation (for reproducible results)
+  
+  if(!require(coin)){
+    install.packages("coin")
+    library(coin)
+  }
+  
+  if(!require(plyr)){
+    install.packages("plyr")
+    library(plyr)
+  }
+  
   require(coin)
   require(plyr)
   pd <- data.frame(Y=Y,tr=tr,block=block)
@@ -50,6 +61,11 @@ washb.permute <- function(Y,tr,block,contrast,nreps=100000,seed=NULL) {
 # randomization block as the stratification
 # variable
 #---------------------------------------
+if(!require(metafor)){
+  install.packages("metafor")
+  library(metafor)
+}
+
 # Wrapper function to call the M-H estimator for two different arms of the study
 # this relies on teh rma.mh() function in the metafor package
 mh.pool <- function(Y,tr,strat,contrast,measure="RR") {
@@ -146,6 +162,17 @@ ITT.unadj <- function(Y,tr,strat,contrast,binomial=FALSE,measure="RR") {
 # estimate effects on both the absolute
 # and relative scale
 #---------------------------------------
+
+if(!require(tmle)){
+  install.packages("tmle")
+  library(tmle)
+}
+
+if(!require(SuperLearner)){
+  install.packages("SuperLearner")
+  library(SuperLearner)
+}
+
 washb_tmle <- function(Y,tr,W=NULL,id, Delta = rep(1,length(Y)),family="gaussian",contrast,prtr=NULL,Q.SL.library=c("SL.mean","SL.glm","SL.bayesglm","SL.gam","SL.glmnet"),g.SL.library=Q.SL.library, pval=0.2, seed=NULL) {
 
   require(tmle)
@@ -348,6 +375,11 @@ tmle.mean.est <- function(Y,tr,svy,id,group="Control",s=0,family="binomial",prin
 # covariates -- restrict to those
 # with a LR test P<0.2
 # --------------------------------------
+if(!require(lmtest)){
+  install.packages("lmtest")
+  library(lmtest)
+}
+
 washb_prescreen <- function(Y,Ws,family="gaussian", pval=0.2, print=TRUE) {
   # Y   : outcome variable of interest
   # Ws  : data frame of candidate covariates to screen
