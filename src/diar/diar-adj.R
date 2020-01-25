@@ -12,7 +12,7 @@
 
 #---------------------------------------
 # input files:
-#	washb-bangladesh-diar.csv
+#	washb-bangladesh-diar-public.csv
 #
 # output files:
 #	bangladesh-diar-adj-ben.RData
@@ -22,12 +22,12 @@
 #---------------------------------------
 # preamble
 #---------------------------------------
-rm(list=ls())
+rm(list=ls()); library(here)
 library(tmle)
 library(SuperLearner)
 
 # source the base functions
-source("~/WBBpa/src/basefns/washb-base-functions.R")
+source(here("src/basefns/washb-base-functions.R"))
 
 
 #---------------------------------------
@@ -35,17 +35,22 @@ source("~/WBBpa/src/basefns/washb-base-functions.R")
 # the baseline covariate dataset
 #---------------------------------------
 
-bd <- read.csv("~/dropbox/wbb-primary-analysis/data/final/ben/washb-bangladesh-enrol.csv")
+bd <- read.csv(here("data/washb-bangladesh-enrol-public.csv"))
 
   # drop svydate and month because they are superceded in the child level diarrhea data
   bd$svydate <- NULL
   bd$month <- NULL
 
-d <- read.csv("~/dropbox/wbb-primary-analysis/data/final/ben/washb-bangladesh-diar.csv")
+d <- read.csv(here("data/washb-bangladesh-diar-public.csv"))
+
+# merge in the treatment assignments
+tr <- read.csv(here("data/washb-bangladesh-tr-public.csv"))
+bd_tr <- left_join(bd,tr,by=c("clusterid","block"))
+d_tr <- left_join(d,tr,by=c("clusterid","block"))
 
 # merge the baseline dataset to the follow-up dataset
-ad <- merge(bd,d,by=c("dataid","clusterid","block","tr"),all.x=F,all.y=T)
-dim(d)
+ad <- merge(bd_tr,d_tr,by=c("dataid","clusterid","block","tr"),all.x=F,all.y=T)
+dim(d_tr)
 dim(ad)
 
 #---------------------------------------
@@ -234,16 +239,16 @@ diar_h2_pr_adj
 
 
 # add 'b' suffix for comparison with jade
-diar_h1_rd_adj_b <- diar_h1_rd_adj
-diar_h2_rd_adj_b <- diar_h2_rd_adj
-diar_h1_pr_adj_b <- diar_h1_pr_adj
-diar_h2_pr_adj_b <- diar_h2_pr_adj
-rm(diar_h1_rd_adj,diar_h2_rd_adj,diar_h1_pr_adj,diar_h2_pr_adj)
+# diar_h1_rd_adj_b <- diar_h1_rd_adj
+# diar_h2_rd_adj_b <- diar_h2_rd_adj
+# diar_h1_pr_adj_b <- diar_h1_pr_adj
+# diar_h2_pr_adj_b <- diar_h2_pr_adj
+# rm(diar_h1_rd_adj,diar_h2_rd_adj,diar_h1_pr_adj,diar_h2_pr_adj)
 
 # save everything except the datasets themselves
 # that way we have all of the block-specific estimates if needed for plotting or additional stats
-rm(list=c("d","ad"))
-save.image(file="~/dropbox/wbb-primary-analysis/results/raw/ben/bangladesh-diar-adj-ben.RData")
+rm(list=c("d","ad","d_tr"))
+save.image(file="results/bangladesh-diar-adj.RData")
 
 
 
