@@ -13,14 +13,14 @@
 #---------------------------------------
 # preamble
 #---------------------------------------
-rm(list=ls())
+rm(list=ls()); library(here)
 library(plyr)
 library(coin)
 library(SuperLearner)
 
 # source the base functions
 # which includes the permutation test function used below
-source("~/WBBpa/src/basefns/washb-base-functions.R")
+source("src/basefns/washb-base-functions.R")
 
 
 #---------------------------------------
@@ -28,13 +28,17 @@ source("~/WBBpa/src/basefns/washb-base-functions.R")
 # the baseline covariate dataset
 #---------------------------------------
 
-bd <- read.csv("~/dropbox/WBB-primary-analysis/data/final/ben/washb-bangladesh-enrol.csv")
+bd <- read.csv(here("data/washb-bangladesh-enrol-public.csv"))
+d <- read.csv(here("data/washb-bangladesh-diar-public.csv"))
 
-d <- read.csv("~/dropbox/WBB-primary-analysis/data/final/ben/washb-bangladesh-diar.csv")
+# merge in the treatment assignments
+tr <- read.csv(here("data/washb-bangladesh-tr-public.csv"))
+bd_tr <- left_join(bd,tr,by=c("clusterid","block"))
+d_tr <- left_join(d,tr,by=c("clusterid","block"))
 
 # merge the baseline dataset to the follow-up dataset
-ad <- merge(bd,d,by=c("dataid","clusterid","block","tr"),all.x=F,all.y=T)
-dim(d)
+ad <- merge(bd_tr,d_tr,by=c("dataid","clusterid","block","tr"),all.x=F,all.y=T)
+dim(d_tr)
 dim(ad)
 
 ad$block <- as.factor(ad$block)
@@ -159,16 +163,16 @@ diar_h2_pval_adj
 #---------------------------------------
 # add suffix for replication
 #---------------------------------------
-diar_h1_pval_adj_b <- diar_h1_pval_adj
-diar_h2_pval_adj_b <- diar_h2_pval_adj
-rm(diar_h1_pval_adj,diar_h2_pval_adj)
+# diar_h1_pval_adj_b <- diar_h1_pval_adj
+# diar_h2_pval_adj_b <- diar_h2_pval_adj
+# rm(diar_h1_pval_adj,diar_h2_pval_adj)
 
 #---------------------------------------
 # save all of the results
 # excluding the datasets
 #---------------------------------------
-rm(bd,d,ad)
+rm(bd,d,bd_tr,d_tr,ad)
 rm(SLfit,h1res,h2res)
-save.image("~/dropbox/WBB-primary-analysis/results/raw/ben/bangladesh-diar-adj-permute.RData")
+save.image("results/bangladesh-diar-adj-permute.RData")
 
 
