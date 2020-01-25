@@ -11,7 +11,7 @@
 
 #---------------------------------------
 # input files:
-#	washb-bangladesh-uptake.csv
+#	washb-bangladesh-uptake-public.csv
 #
 # output files:
 # bangladesh-uptake.RData
@@ -22,19 +22,19 @@
 #---------------------------------------
 # preamble
 #---------------------------------------
-rm(list=ls())
+rm(list=ls()); library(here)
 library(tidyverse)
 
 # source the base functions
-source("~/WBB-primary-outcomes/src/basefns/washb-base-functions.R")
+source(here("src/basefns/washb-base-functions.R"))
 
 #---------------------------------------
 # load the uptake analysis dataset
 #---------------------------------------
-d <- read.csv("~/dropbox/WASHB-Bangladesh-Data/1-primary-outcome-datasets/washb-bangladesh-uptake.csv")
+d <- read.csv(here("data/washb-bangladesh-uptake-public.csv"))
 
 # merge in the treatment assignments
-d_tr    <- read.csv('/Volumes/0-Treatment-assignments/washb-bangladesh-tr.csv')
+d_tr    <- read.csv(here("data/washb-bangladesh-tr-public.csv"))
 d <- left_join(d,d_tr,by=c("clusterid","block"))
 
 
@@ -56,7 +56,6 @@ ncompounds <- group_by(d,tr,svy)  %>%
 
 # reshape long to calculate means and Ns for selected indicators
 dlong <- d %>%
-  select(-svydate) %>%
   gather(indicator,value,-dataid,-clusterid,-block,-tr,-svy) %>%
   filter(indicator %in% inds ) %>%
   group_by(indicator,tr,svy)
@@ -175,7 +174,7 @@ rlnsp2 <- sapply(narms,tmle.mean.est,Y=d$rlnsp,tr=d$tr,svy=d$svy,id=d$clusterid,
 # save the objects
 #---------------------------------------
 rm(d)
-save.image(file="~/dropbox/wbb-primary-analysis/results/raw/ben/bangladesh-uptake.RData")
+save.image(file=here("results/bangladesh-uptake.RData"))
 
 
 
