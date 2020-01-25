@@ -8,7 +8,7 @@
 #---------------------------------------
 # preamble
 #---------------------------------------
-rm(list=ls())
+rm(list=ls()); library(here)
 library(washb)
 library(lubridate)
 library(scales)
@@ -16,7 +16,11 @@ library(scales)
 #---------------------------------------
 # Load the analysis dataset
 #---------------------------------------
-d <- read.csv("~/dropbox/wbb-primary-analysis/data/final/ben/washb-bangladesh-diar.csv")
+d <- read.csv(here("data/washb-bangladesh-diar-public.csv"))
+
+# merge in the treatment assignments
+d_tr    <- read.csv(here("data/washb-bangladesh-tr-public.csv"))
+d <- left_join(d,d_tr,by=c("clusterid","block"))
 
 #---------------------------------------
 # Subset the Data to Follow-up data only
@@ -112,7 +116,7 @@ corange <- "#EEA722"
 cyellow <- "#FFEE33"
 cgrey <- "#777777"
 
-pdf("~/dropbox/wbb-primary-analysis/results/figs/wbb-diar-calendar-month.pdf",width=6,height=3)
+pdf("results/figs/wbb-diar-calendar-month.pdf",width=6,height=3)
 # general plotting parameters
 op <- par(mar=c(4,4,1,1)+0.1)
 ytics <- c(0,0.05,0.10,0.15)
@@ -158,7 +162,7 @@ dev.off()
 #---------------------------------------
 # make plot w/ color + shaded 95% CIs
 #---------------------------------------
-pdf("~/dropbox/wbb-primary-analysis/results/figs/wbb-diar-calendar-month-ci.pdf",width=6,height=3)
+pdf("results/figs/wbb-diar-calendar-month-ci.pdf",width=6,height=3)
 # general plotting parameters
 op <- par(mar=c(4,4,2,1)+0.1)
 ytics <- c(0,0.05,0.10,0.15,0.2,0.25)
