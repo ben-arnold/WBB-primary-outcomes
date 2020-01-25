@@ -11,7 +11,7 @@
 
 #---------------------------------------
 # input files:
-#	washb-bangladesh-diar.csv
+#	washb-bangladesh-diar-public.csv
 #
 # output files:
 #	bangladesh-diar-N-prev-ben.RData
@@ -22,22 +22,22 @@
 #---------------------------------------
 # preamble
 #---------------------------------------
-rm(list=ls())
+rm(list=ls()); library(here)
 library(tidyverse)
 library(tmle)
 
 # source the base functions
-source("~/WBB-primary-outcomes/src/basefns/washb-base-functions.R")
+source("src/basefns/washb-base-functions.R")
 
 
 #---------------------------------------
 # Load the analysis dataset
 #---------------------------------------
 
-d <- read.csv("~/dropbox/WASHB-Bangladesh-Data/1-primary-outcome-datasets/washb-bangladesh-diar.csv")
+d <- read.csv(here("data/washb-bangladesh-diar-public.csv"))
 
 # merge in the treatment assignments
-d_tr    <- read.csv('/Volumes/0-Treatment-assignments/washb-bangladesh-tr.csv')
+d_tr    <- read.csv(here('data/washb-bangladesh-tr-public.csv'))
 d <- left_join(d,d_tr,by=c("clusterid","block"))
 
 
@@ -167,17 +167,17 @@ round(diar_t12_prev_sd,4)
 
 
 # add 'b' suffix for comparison w/ jade
-diar_t0_n_b <- diar_t0_n
-diar_t1_n_b <- diar_t1_n
-diar_t2_n_b <- diar_t2_n
-diar_t12_n_b <- diar_t12_n
-diar_t0_prev_b <- diar_t0_prev
-diar_t1_prev_b <- diar_t1_prev
-diar_t2_prev_b <- diar_t2_prev
-diar_t12_prev_b <- diar_t12_prev
-diar_t12_prev_sd_b <- diar_t12_prev_sd
+# diar_t0_n_b <- diar_t0_n
+# diar_t1_n_b <- diar_t1_n
+# diar_t2_n_b <- diar_t2_n
+# diar_t12_n_b <- diar_t12_n
+# diar_t0_prev_b <- diar_t0_prev
+# diar_t1_prev_b <- diar_t1_prev
+# diar_t2_prev_b <- diar_t2_prev
+# diar_t12_prev_b <- diar_t12_prev
+# diar_t12_prev_sd_b <- diar_t12_prev_sd
 
-save(diar_t0_n_b,diar_t1_n_b,diar_t2_n_b,diar_t12_n_b,diar_t0_prev_b,diar_t1_prev_b,diar_t2_prev_b,diar_t12_prev_b,diar_t12_prev_sd_b,file="~/dropbox/wbb-primary-analysis/results/raw/ben/bangladesh-diar-N-prev-ben.RData")
+save(diar_t0_n_b,diar_t1_n_b,diar_t2_n_b,diar_t12_n_b,diar_t0_prev_b,diar_t1_prev_b,diar_t2_prev_b,diar_t12_prev_b,diar_t12_prev_sd_b,file="results/bangladesh-diar-N-prev.RData")
 
 
 
