@@ -10,8 +10,8 @@
 
 #---------------------------------------
 # input files:
-#	washb-bangladesh-anthro.csv
-#	washb-bangladesh-enrol.csv
+#	washb-bangladesh-anthro-public.csv
+#	washb-bangladesh-enrol-public.csv
 #
 # output files:
 #	bangladesh-hcz-adj-t1-ben.RData
@@ -21,12 +21,12 @@
 #---------------------------------------
 # preamble
 #---------------------------------------
-rm(list=ls())
+rm(list=ls()); library(here)
 library(tmle)
 library(SuperLearner)
 
 # source the base functions
-source("~/WBBpa/src/basefns/washb-base-functions.R")
+source(here("src/basefns/washb-base-functions.R"))
 
 
 #---------------------------------------
@@ -34,9 +34,15 @@ source("~/WBBpa/src/basefns/washb-base-functions.R")
 # the baseline covariate dataset
 #---------------------------------------
 
-bd <- read.csv("~/dropbox/WBB-primary-analysis/data/final/ben/washb-bangladesh-enrol.csv",colClasses=c("dataid"="character"))
+bd <- read.csv(here("data/washb-bangladesh-enrol-public.csv"),colClasses=c("dataid"="character"))
 
-d <- read.csv("~/dropbox/WBB-primary-analysis/data/final/ben/washb-bangladesh-anthro.csv",colClasses=c("dataid"="character"))
+d <- read.csv(here("data/washb-bangladesh-anthro-public.csv"),colClasses=c("dataid"="character"))
+
+# merge in the treatment assignments
+tr    <- read.csv(here('data/washb-bangladesh-tr-public.csv'))
+
+d <- left_join(d,tr,by=c("clusterid","block"))
+bd <- left_join(bd,tr,by=c("clusterid","block"))
 
 # merge the baseline dataset to the follow-up dataset
 ad <- merge(bd,d,by=c("dataid","clusterid","block","tr"),all.x=T,all.y=T)
@@ -204,14 +210,14 @@ hcz_t1_h1_diff_adj
 hcz_t1_h3_diff_adj
 
 # add 'b' suffix for comparison with jade
-hcz_t1_h1_diff_adj_b <- hcz_t1_h1_diff_adj
-hcz_t1_h3_diff_adj_b <- hcz_t1_h3_diff_adj
-rm(hcz_t1_h1_diff_adj,hcz_t1_h3_diff_adj)
+# hcz_t1_h1_diff_adj_b <- hcz_t1_h1_diff_adj
+# hcz_t1_h3_diff_adj_b <- hcz_t1_h3_diff_adj
+# rm(hcz_t1_h1_diff_adj,hcz_t1_h3_diff_adj)
 
 # save everything except the datasets themselves
 # that way we have all of the block-specific estimates if needed for plotting or additional stats
 rm(list=c("d","ad"))
-save.image(file="~/dropbox/WBB-primary-analysis/results/raw/ben/bangladesh-hcz-adj-t1-ben.RData")
+save.image(file=here("results/bangladesh-hcz-adj-t1.RData"))
 
 
 
