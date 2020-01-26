@@ -14,6 +14,19 @@
 # statistic for two treatment arms
 # conditional on randomization block
 #---------------------------------------
+if(!require(coin)){
+  install.packages("coin")
+  library(coin)
+}
+
+if(!require(plyr)){
+  install.packages("plyr")
+  library(plyr)
+}
+
+require(coin)
+require(plyr)
+
 washb.permute <- function(Y,tr,block,contrast,nreps=100000,seed=NULL) {
   # conduct a permutation test of the indepdence of Y and tr, conditional on randomization block
   # using the Wilcoxon rank-sum test statistic
@@ -24,18 +37,6 @@ washb.permute <- function(Y,tr,block,contrast,nreps=100000,seed=NULL) {
   # nreps : number of permutations to run to approximate the null (default=100,000)
   # seed : a seed for pseudo-random number generation (for reproducible results)
   
-  if(!require(coin)){
-    install.packages("coin")
-    library(coin)
-  }
-  
-  if(!require(plyr)){
-    install.packages("plyr")
-    library(plyr)
-  }
-  
-  require(coin)
-  require(plyr)
   pd <- data.frame(Y=Y,tr=tr,block=block)
   pd <- subset(pd,tr==contrast[1]|tr==contrast[2])
   pd$tr <- factor(pd$tr,levels=contrast[1:2])
@@ -379,6 +380,10 @@ if(!require(lmtest)){
   install.packages("lmtest")
   library(lmtest)
 }
+if(!require(MASS)){
+  install.packages("MASS")
+  library(MASS)
+}
 
 washb_prescreen <- function(Y,Ws,family="gaussian", pval=0.2, print=TRUE) {
   # Y   : outcome variable of interest
@@ -487,6 +492,15 @@ design_matrix <- function(W) {
 # slightly modified to have it return the vcovCL object
 # rather than the updated fit (since need the VC matrix)
 # --------------------------------------
+if(!require(lmtest)){
+  install.packages("lmtest")
+  library(lmtest)
+}
+if(!require(sandwich)){
+  install.packages("sandwich")
+  library(sandwich)
+}
+
 cl   <- function(dat,fm, cluster){
   # dat: data used to fit the model
   # fm : model fit (object)
