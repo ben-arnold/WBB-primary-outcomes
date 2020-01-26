@@ -14,7 +14,7 @@
 
 #---------------------------------------
 # input files:
-#	washb-bangladesh-diar.csv
+#	washb-bangladesh-diar-public.csv
 #
 # output files:
 # bangladesh-diar-subgroup-age.RData
@@ -25,17 +25,21 @@
 #---------------------------------------
 # preamble
 #---------------------------------------
-rm(list=ls())
+rm(list=ls()); library(here)
 library(metafor)
 
 # source the base functions
-source("~/WBBpa/src/basefns/washb-base-functions.R")
+source(here("src/basefns/washb-base-functions.R"))
 
 
 #---------------------------------------
 # Load the analysis dataset
 #---------------------------------------
-d <- read.csv("~/dropbox/wbb-primary-analysis/data/final/ben/washb-bangladesh-diar.csv")
+d <- read.csv(here("data/washb-bangladesh-diar-public.csv"))
+
+# merge in the treatment assignments
+d_tr    <- read.csv(here('data/washb-bangladesh-tr-public.csv'))
+d <- left_join(d,d_tr,by=c("clusterid","block"))
 
 #---------------------------------------
 # Subset the Data to Follow-up data only
@@ -194,25 +198,25 @@ rownames(spr.h1.y2) <- rownames(srd.h1.y2) <- c("Water v C","Sanitation v C","Ha
 # RD estimates
 #---------------------------------------
 
-diar_h1_rd_age_b <- cbind(rowSums(iN),iN[,2],imu[1,],
+diar_h1_rd_age <- cbind(rowSums(iN),iN[,2],imu[1,],
                         rbind(rep(NA,3),ird.h1[,c(1,3,4)]),
                         rowSums(sN),sN[,2],smu[1,],
                         rbind(rep(NA,3),srd.h1[,c(1,3,4)])
                         )
 
-diar_h1_rd_age_y1_b <- cbind(rowSums(iNy[,,1]),iNy[,2,1],imu.y1[1,],
+diar_h1_rd_age_y1 <- cbind(rowSums(iNy[,,1]),iNy[,2,1],imu.y1[1,],
                         rbind(rep(NA,3),ird.h1.y1[,c(1,3,4)]),
                         rowSums(sNy[,,1]),sNy[,2,1],smu.y1[1,],
                         rbind(rep(NA,3),srd.h1.y1[,c(1,3,4)])
                         )
 
-diar_h1_rd_age_y2_b <- cbind(rowSums(iNy[,,2]),iNy[,2,2],imu.y2[1,],
+diar_h1_rd_age_y2 <- cbind(rowSums(iNy[,,2]),iNy[,2,2],imu.y2[1,],
                            rbind(rep(NA,3),ird.h1.y2[,c(1,3,4)]),
                            rowSums(sNy[,,2]),sNy[,2,2],smu.y2[1,],
                            rbind(rep(NA,3),srd.h1.y2[,c(1,3,4)])
 )
 
-colnames(diar_h1_rd_age_b) <- colnames(diar_h1_rd_age_y1_b) <- colnames(diar_h1_rd_age_y2_b) <- c(paste(rep(c("index","other"),c(6,6)),c("N","n","prev","RD","RDlb","RDub"),sep="."))
+colnames(diar_h1_rd_age) <- colnames(diar_h1_rd_age_y1) <- colnames(diar_h1_rd_age_y2) <- c(paste(rep(c("index","other"),c(6,6)),c("N","n","prev","RD","RDlb","RDub"),sep="."))
 
 
 #---------------------------------------
@@ -221,53 +225,53 @@ colnames(diar_h1_rd_age_b) <- colnames(diar_h1_rd_age_y1_b) <- colnames(diar_h1_
 # PR estimates
 #---------------------------------------
 
-diar_h1_pr_age_b <- cbind(rowSums(iN),iN[,2],imu[1,],
+diar_h1_pr_age <- cbind(rowSums(iN),iN[,2],imu[1,],
                         rbind(rep(NA,3),exp(ipr.h1[,c(1,3,4)])),
                         rowSums(sN),sN[,2],smu[1,],
                         rbind(rep(NA,3),exp(spr.h1[,c(1,3,4)]))
 )
 
-diar_h1_pr_age_y1_b <- cbind(rowSums(iNy[,,1]),iNy[,2,1],imu.y1[1,],
+diar_h1_pr_age_y1 <- cbind(rowSums(iNy[,,1]),iNy[,2,1],imu.y1[1,],
                            rbind(rep(NA,3),exp(ipr.h1.y1[,c(1,3,4)])),
                            rowSums(sNy[,,1]),sNy[,2,1],smu.y1[1,],
                            rbind(rep(NA,3),exp(spr.h1.y1[,c(1,3,4)]))
 )
 
-diar_h1_pr_age_y2_b <- cbind(rowSums(iNy[,,2]),iNy[,2,2],imu.y2[1,],
+diar_h1_pr_age_y2 <- cbind(rowSums(iNy[,,2]),iNy[,2,2],imu.y2[1,],
                            rbind(rep(NA,3),exp(ipr.h1.y2[,c(1,3,4)])),
                            rowSums(sNy[,,2]),sNy[,2,2],smu.y2[1,],
                            rbind(rep(NA,3),exp(spr.h1.y2[,c(1,3,4)]))
 )
 
-colnames(diar_h1_pr_age_b) <- colnames(diar_h1_pr_age_y1_b) <- colnames(diar_h1_pr_age_y2_b) <- c(paste(rep(c("index","other"),c(6,6)),c("N","n","prev","PR","PRlb","PRub"),sep="."))
+colnames(diar_h1_pr_age) <- colnames(diar_h1_pr_age_y1) <- colnames(diar_h1_pr_age_y2) <- c(paste(rep(c("index","other"),c(6,6)),c("N","n","prev","PR","PRlb","PRub"),sep="."))
 
 
 
 #---------------------------------------
 # Print and save results
 #---------------------------------------
-round(diar_h1_rd_age_b[,1:6],3)
-round(diar_h1_rd_age_b[,7:12],3)
+round(diar_h1_rd_age[,1:6],3)
+round(diar_h1_rd_age[,7:12],3)
 
-round(diar_h1_rd_age_y1_b[,1:6],3)
-round(diar_h1_rd_age_y1_b[,7:12],3)
+round(diar_h1_rd_age_y1[,1:6],3)
+round(diar_h1_rd_age_y1[,7:12],3)
 
-round(diar_h1_rd_age_y2_b[,1:6],3)
-round(diar_h1_rd_age_y2_b[,7:12],3)
+round(diar_h1_rd_age_y2[,1:6],3)
+round(diar_h1_rd_age_y2[,7:12],3)
 
-round(diar_h1_pr_age_b[,1:6],3)
-round(diar_h1_pr_age_b[,7:12],3)
+round(diar_h1_pr_age[,1:6],3)
+round(diar_h1_pr_age[,7:12],3)
 
-round(diar_h1_pr_age_y1_b[,1:6],3)
-round(diar_h1_pr_age_y1_b[,7:12],3)
+round(diar_h1_pr_age_y1[,1:6],3)
+round(diar_h1_pr_age_y1[,7:12],3)
 
-round(diar_h1_pr_age_y2_b[,1:6],3)
-round(diar_h1_pr_age_y2_b[,7:12],3)
+round(diar_h1_pr_age_y2[,1:6],3)
+round(diar_h1_pr_age_y2[,7:12],3)
 
 # save everything except the datasets themselves
 # that way we have all of the block-specific estimates if needed for plotting or additional stats
 rm(list=c("d","ad","adi","ads"))
-save.image(file="~/dropbox/wbb-primary-analysis/results/raw/ben/bangladesh-diar-subgroup-age-ben.RData")
+save.image(file=here("results/bangladesh-diar-subgroup-age.RData"))
 
 
 
