@@ -13,19 +13,23 @@
 #---------------------------------------
 # preamble
 #---------------------------------------
-rm(list=ls())
+rm(list=ls()); library(here)
 library(plyr)
 library(coin)
 
 # source the base functions
 # which includes the permutation test function used below
-source("~/WBBpa/src/basefns/washb-base-functions.R")
+source(here("src/basefns/washb-base-functions.R"))
 
 
 #---------------------------------------
 # load the diarrhea analysis data
 #---------------------------------------
-d <- read.csv("~/dropbox/WBB-primary-analysis/data/final/ben/washb-bangladesh-diar.csv")
+d <- read.csv(here("data/washb-bangladesh-diar-public.csv"))
+
+# merge in the treatment assignments
+d_tr    <- read.csv(here('data/washb-bangladesh-tr-public.csv'))
+d <- left_join(d,d_tr,by=c("clusterid","block"))
 
 d$block <- as.factor(d$block)
 
@@ -102,15 +106,15 @@ diar_h2_pval_unadj
 #---------------------------------------
 # add suffix for replication
 #---------------------------------------
-diar_h1_pval_unadj_b <- diar_h1_pval_unadj
-diar_h2_pval_unadj_b <- diar_h2_pval_unadj
-rm(diar_h1_pval_unadj,diar_h2_pval_unadj)
+# diar_h1_pval_unadj_b <- diar_h1_pval_unadj
+# diar_h2_pval_unadj_b <- diar_h2_pval_unadj
+# rm(diar_h1_pval_unadj,diar_h2_pval_unadj)
 
 #---------------------------------------
 # save all of the results
 # excluding the datasets
 #---------------------------------------
 rm(d,ad)
-save.image("~/dropbox/WBB-primary-analysis/results/raw/ben/bangladesh-diar-unadj-permute.RData")
+save.image(here("results/bangladesh-diar-unadj-permute.RData"))
 
 
