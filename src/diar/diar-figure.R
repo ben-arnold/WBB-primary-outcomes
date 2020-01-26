@@ -22,7 +22,7 @@
 # preamble
 # --------------------------------------
 
-rm(list=ls())
+rm(list=ls()); library(here)
 library(RColorBrewer)
 library(scales)
 
@@ -30,8 +30,8 @@ library(scales)
 # load the analysis output files
 # --------------------------------------
 
-load('~/Dropbox/wbb-primary-analysis/results/raw/ben/bangladesh-diar-N-prev-ben.RData')
-load('~/Dropbox/wbb-primary-analysis/results/raw/ben/bangladesh-diar-unadj-ben.RData')
+load(here('results/bangladesh-diar-N-prev.RData'))
+load(here('results/bangladesh-diar-unadj.RData'))
 
 # --------------------------------------
 # format the objects for plotting
@@ -40,18 +40,18 @@ load('~/Dropbox/wbb-primary-analysis/results/raw/ben/bangladesh-diar-unadj-ben.R
 glab <- c("Control\n","Water\n","Sanitation\n","Handwashing\n","Combined\nWSH","Nutrition\n","Combined\nNutrion+WSH")
 glab2 <- c("C","W","S","H","WSH","N","WSHN")
 
-t0n <- diar_t0_n_b
-t1n <- diar_t1_n_b
-t0p <- diar_t0_prev_b
-t1p <- diar_t1_prev_b
-fuPrev <- diar_t12_prev_b
-fuN <- diar_t12_n_b
+t0n <- diar_t0_n
+t1n <- diar_t1_n
+t0p <- diar_t0_prev
+t1p <- diar_t1_prev
+fuPrev <- diar_t12_prev
+fuN <- diar_t12_n
 
-h1pr <- diar_h1_pr_unadj_b
-h2pr <- diar_h2_pr_unadj_b
+h1pr <- diar_h1_pr_unadj
+h2pr <- diar_h2_pr_unadj
 
 
-pdf("~/dropbox/wbb-primary-analysis/results/figs/bangladesh-diar.pdf",width=10,height=4)
+pdf(here("results/figs/bangladesh-diar.pdf",width=10,height=4))
 
 
 # cbPalette <- c("#999999", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
