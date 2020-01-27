@@ -24,6 +24,7 @@
 rm(list=ls())
 library(tmle)
 library(SuperLearner)
+library(here)
 
 # source the base functions
 source("~/WBBpa/src/basefns/washb-base-functions.R")
@@ -35,6 +36,8 @@ source("~/WBBpa/src/basefns/washb-base-functions.R")
 #---------------------------------------
 
 bd <- read.csv("~/dropbox/WBB-primary-analysis/data/final/ben/washb-bangladesh-enrol.csv",colClasses=c("dataid"="character"))
+bd <- read.csv(here("data/washb-bangladesh-enrol-public.csv"),colClasses=c("dataid"="character"))
+
 
 d <- read.csv("~/dropbox/WBB-primary-analysis/data/final/ben/washb-bangladesh-anthro.csv",colClasses=c("dataid"="character"))
 

@@ -42,7 +42,7 @@ washb.permute <- function(Y,tr,block,contrast,nreps=100000,seed=NULL) {
   pd$tr <- factor(pd$tr,levels=contrast[1:2])
   pd <- ddply(pd,c("block","tr"),summarise,Y=mean(Y))
   if(!is.null(seed)) set.seed(seed)
-  W <- wilcoxsign_test(Y~tr|block,data=pd,distribution = approximate(B=nreps),zero.method="Pratt" )
+  W <- wilcoxsign_test(Y~tr|block,data=pd,distribution = approximate(nresample=nreps),zero.method="Pratt" )
   show(W)
 
   # now pull out some of the useful information, for convenience since coin() uses S4

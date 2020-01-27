@@ -13,9 +13,11 @@
 #---------------------------------------
 # preamble
 #---------------------------------------
-rm(list=ls()); library(here)
+rm(list=ls())
 library(plyr)
 library(coin)
+library(tidyverse)
+library(here)
 
 # source the base functions
 # which includes the permutation test function used below

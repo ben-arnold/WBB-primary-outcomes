@@ -4,9 +4,10 @@
 # Session Data files
 .RData
 # Data files
-.csv
-.txt
-.dta
+*.csv
+*.txt
+*.dta
+data
 # Example code in package build process
 *-Ex.R
 # Output files from R CMD build
@@ -29,3 +30,4 @@ vignettes/*.pdf
 # Mac files
 *.DS_Store
 .Rproj.user
+data
