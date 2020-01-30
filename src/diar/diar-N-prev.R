@@ -22,9 +22,7 @@
 #---------------------------------------
 # preamble
 #---------------------------------------
-rm(list=ls()); library(here)
-library(tidyverse)
-library(tmle)
+source(here::here("src/0-config.R"))
 
 # source the base functions
 source("src/basefns/washb-base-functions.R")
@@ -177,7 +175,7 @@ round(diar_t12_prev_sd,4)
 # diar_t12_prev_b <- diar_t12_prev
 # diar_t12_prev_sd_b <- diar_t12_prev_sd
 
-save(diar_t0_n_b,diar_t1_n_b,diar_t2_n_b,diar_t12_n_b,diar_t0_prev_b,diar_t1_prev_b,diar_t2_prev_b,diar_t12_prev_b,diar_t12_prev_sd_b,file="results/bangladesh-diar-N-prev.RData")
+save(diar_t0_n,diar_t1_n,diar_t2_n,diar_t12_n,diar_t0_prev,diar_t1_prev,diar_t2_prev,diar_t12_prev,diar_t12_prev_sd,file="results/bangladesh-diar-N-prev.RData")
 
 
 
