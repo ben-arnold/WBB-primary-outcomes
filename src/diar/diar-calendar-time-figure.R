@@ -8,10 +8,7 @@
 #---------------------------------------
 # preamble
 #---------------------------------------
-rm(list=ls()); library(here)
-library(washb)
-library(lubridate)
-library(scales)
+source(here::here("src/0-config.R"))
 
 #---------------------------------------
 # Load the analysis dataset
