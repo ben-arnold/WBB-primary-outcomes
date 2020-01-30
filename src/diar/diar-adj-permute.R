@@ -13,10 +13,7 @@
 #---------------------------------------
 # preamble
 #---------------------------------------
-rm(list=ls()); library(here)
-library(plyr)
-library(coin)
-library(SuperLearner)
+source(here::here("src/0-config.R"))
 
 # source the base functions
 # which includes the permutation test function used below
@@ -173,6 +170,6 @@ diar_h2_pval_adj
 #---------------------------------------
 rm(bd,d,bd_tr,d_tr,ad)
 rm(SLfit,h1res,h2res)
-save.image("results/bangladesh-diar-adj-permute.RData")
+save.image(here("results/bangladesh-diar-adj-permute.RData"))
 
 
