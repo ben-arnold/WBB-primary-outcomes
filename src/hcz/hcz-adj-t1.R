@@ -14,7 +14,7 @@
 #	washb-bangladesh-enrol-public.csv
 #
 # output files:
-#	bangladesh-hcz-adj-t1-ben.RData
+#	bangladesh-hcz-adj-t1.RData
 #
 #---------------------------------------
 
