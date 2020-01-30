@@ -17,7 +17,7 @@
 # washb-bangladesh-diar-public.csv
 #
 # output files:
-#	bangladesh-CONSORT-ben.RData
+#	bangladesh-CONSORT.RData
 #
 #---------------------------------------
 
@@ -176,7 +176,7 @@ n_twins
 #(drop datasets to save space)
 #---------------------------------------
 rm(d,chd,d36,dindex)
-save.image(file=here("results/bangladesh-CONSORT-ben.RData"))
+save.image(file=here("results/bangladesh-CONSORT.RData"))
 
 
 

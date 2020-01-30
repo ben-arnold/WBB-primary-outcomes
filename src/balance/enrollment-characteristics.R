@@ -15,7 +15,7 @@
 #	washb-bangladesh-enrol-public.csv
 #
 # output files:
-#	bangladesh-enrol-characteristics-ben.RData
+#	bangladesh-enrol-characteristics.RData
 #
 #---------------------------------------
 

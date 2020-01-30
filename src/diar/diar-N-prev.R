@@ -14,7 +14,7 @@
 #	washb-bangladesh-diar-public.csv
 #
 # output files:
-#	bangladesh-diar-N-prev-ben.RData
+#	bangladesh-diar-N-prev.RData
 #
 #---------------------------------------
 
