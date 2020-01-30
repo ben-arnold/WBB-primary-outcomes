@@ -10,8 +10,7 @@
 #---------------------------------------
 # preamble
 #---------------------------------------
-rm(list=ls()); library(here)
-library(xtable)
+source(here::here("src/0-config.R"))
 
 #---------------------------------------
 # load the uptake estimates
