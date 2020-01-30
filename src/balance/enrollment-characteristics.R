@@ -23,8 +23,7 @@
 #---------------------------------------
 # preamble
 #---------------------------------------
-rm(list=ls()); library(here)
-library(dplyr)
+source(here::here("src/0-config.R"))
 
 #---------------------------------------
 # CONSORT: compounds

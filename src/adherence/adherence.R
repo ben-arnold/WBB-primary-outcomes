@@ -22,8 +22,7 @@
 #---------------------------------------
 # preamble
 #---------------------------------------
-rm(list=ls()); library(here)
-library(tidyverse)
+source(here::here("src/0-config.R"))
 
 # source the base functions
 source(here("src/basefns/washb-base-functions.R"))
