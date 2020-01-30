@@ -22,9 +22,7 @@
 #---------------------------------------
 # preamble
 #---------------------------------------
-rm(list=ls()); library(here)
-library(tmle)
-library(SuperLearner)
+source(here::here("src/0-config.R"))
 
 # source the base functions
 source(here("src/basefns/washb-base-functions.R"))
@@ -248,7 +246,7 @@ diar_h2_pr_adj
 # save everything except the datasets themselves
 # that way we have all of the block-specific estimates if needed for plotting or additional stats
 rm(list=c("d","ad","d_tr"))
-save.image(file="results/bangladesh-diar-adj.RData")
+save.image(file=here("results/bangladesh-diar-adj.RData"))
 
 
 
