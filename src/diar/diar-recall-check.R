@@ -32,8 +32,7 @@
 #---------------------------------------
 # preamble
 #---------------------------------------
-rm(list=ls()); library(here)
-library(metafor)
+source(here::here("src/0-config.R"))
 
 # source the base functions
 source(here("src/basefns/washb-base-functions.R"))
@@ -140,7 +139,7 @@ res
 # save everything except the datasets themselves
 # that way we have all of the block-specific estimates if needed for plotting or additional stats
 rm(list=c("d","ad"))
-save.image(file="results/bangladesh-diar-recall-check.RData")
+save.image(file=here("results/bangladesh-diar-recall-check.RData"))
 
 
 
