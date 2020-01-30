@@ -22,9 +22,7 @@
 # preamble
 # --------------------------------------
 
-rm(list=ls()); library(here)
-library(RColorBrewer)
-library(scales)
+source(here::here("src/0-config.R"))
 
 # --------------------------------------
 # load the analysis output files
@@ -51,7 +49,7 @@ h1pr <- diar_h1_pr_unadj
 h2pr <- diar_h2_pr_unadj
 
 
-pdf(here("results/figs/bangladesh-diar.pdf",width=10,height=4))
+pdf(here("results/figs/bangladesh-diar.pdf"),width=10,height=4)
 
 
 # cbPalette <- c("#999999", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
