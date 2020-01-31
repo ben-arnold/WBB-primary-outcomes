@@ -12,10 +12,7 @@
 #---------------------------------------
 # preamble
 #---------------------------------------
-rm(list=ls()); library(here)
-library(plyr)
-library(coin)
-library(SuperLearner)
+source(here::here("src/0-config.R"))
 
 # source the base functions
 # which includes the permutation test function used below
