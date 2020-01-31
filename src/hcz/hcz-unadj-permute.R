@@ -12,20 +12,20 @@
 #---------------------------------------
 # preamble
 #---------------------------------------
-rm(list=ls())
-library(plyr)
-library(coin)
+source(here::here("src/0-config.R"))
 
 # source the base functions
 # which includes the permutation test function used below
-source("~/WBBpa/src/basefns/washb-base-functions.R")
+source(here("src/basefns/washb-base-functions.R"))
 
 
 #---------------------------------------
 # load the anthropometry analysis data
 #---------------------------------------
-d <- read.csv("~/dropbox/WBB-primary-analysis/data/final/ben/washb-bangladesh-anthro.csv")
-
+d <- read.csv(here("data/washb-bangladesh-anthro-public.csv"))
+# merge in the treatment assignments
+tr    <- read.csv(here('data/washb-bangladesh-tr-public.csv'))
+d <- left_join(d,tr,by=c("clusterid","block"))
 d$block <- as.factor(d$block)
 
 # subset the anthropometry to target children (excluding siblings)
@@ -119,11 +119,11 @@ hcz_t2_h3_pval_unadj
 #---------------------------------------
 # add suffix for replication
 #---------------------------------------
-hcz_t1_h1_pval_unadj_b <- hcz_t1_h1_pval_unadj
-hcz_t1_h3_pval_unadj_b <- hcz_t1_h3_pval_unadj
-hcz_t2_h1_pval_unadj_b <- hcz_t2_h1_pval_unadj
-hcz_t2_h3_pval_unadj_b <- hcz_t2_h3_pval_unadj
-rm(hcz_t1_h1_pval_unadj,hcz_t1_h3_pval_unadj,hcz_t2_h1_pval_unadj,hcz_t2_h3_pval_unadj)
+# hcz_t1_h1_pval_unadj_b <- hcz_t1_h1_pval_unadj
+# hcz_t1_h3_pval_unadj_b <- hcz_t1_h3_pval_unadj
+# hcz_t2_h1_pval_unadj_b <- hcz_t2_h1_pval_unadj
+# hcz_t2_h3_pval_unadj_b <- hcz_t2_h3_pval_unadj
+# rm(hcz_t1_h1_pval_unadj,hcz_t1_h3_pval_unadj,hcz_t2_h1_pval_unadj,hcz_t2_h3_pval_unadj)
 
 #---------------------------------------
 # save all of the results
@@ -131,6 +131,6 @@ rm(hcz_t1_h1_pval_unadj,hcz_t1_h3_pval_unadj,hcz_t2_h1_pval_unadj,hcz_t2_h3_pval
 #---------------------------------------
 rm(d,ad)
 rm(t1h1res,t1h3res,t2h1res,t2h3res)
-save.image("~/dropbox/WBB-primary-analysis/results/raw/ben/bangladesh-hcz-unadj-permute.RData")
+save.image(here("results/bangladesh-hcz-unadj-permute.RData"))
 
 
