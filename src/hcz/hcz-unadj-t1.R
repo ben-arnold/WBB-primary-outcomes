@@ -10,28 +10,31 @@
 
 #---------------------------------------
 # input files:
-#	washb-bangladesh-anthro.csv
+#	washb-bangladesh-anthro-public.csv
 #
 # output files:
-#	bangladesh-hcz-unadj-t1-ben.RData
+#	bangladesh-hcz-unadj-t1.RData
 #
 #---------------------------------------
 
 #---------------------------------------
 # preamble
 #---------------------------------------
-rm(list=ls())
+source(here::here("src/0-config.R"))
 
 # source the base functions
-source("~/WBBpa/src/basefns/washb-base-functions.R")
+source(here("src/basefns/washb-base-functions.R"))
 
 
 #---------------------------------------
 # Load the analysis dataset
 #---------------------------------------
 
-d <- read.csv("~/dropbox/wbb-primary-analysis/data/final/ben/washb-bangladesh-anthro.csv")
+d <- read.csv(here("data/washb-bangladesh-anthro-public.csv"))
 
+# merge in the treatment assignments
+d_tr    <- read.csv(here("data/washb-bangladesh-tr-public.csv"))
+d <- left_join(d,d_tr,by=c("clusterid","block"))
 
 
 #---------------------------------------
@@ -80,8 +83,8 @@ colnames(hcz_t1_n) <- c("N","Mean","SD")
 hcz_t1_n
 
 # add 'b' suffix for comparison with jade
-hcz_t1_n_b <- hcz_t1_n
-rm(hcz_t1_n)
+# hcz_t1_n_b <- hcz_t1_n
+# rm(hcz_t1_n)
 
 #---------------------------------------
 # Estimate paired t-tests for differences
@@ -146,15 +149,15 @@ round(hcz_t1_h2_diff_unadj,4)
 round(hcz_t1_h3_diff_unadj,4)
 
 # add 'b' suffix for comparison with jade
-hcz_t1_h1_diff_unadj_b <- hcz_t1_h1_diff_unadj
-hcz_t1_h2_diff_unadj_b <- hcz_t1_h2_diff_unadj
-hcz_t1_h3_diff_unadj_b <- hcz_t1_h3_diff_unadj
-rm(hcz_t1_h1_diff_unadj,hcz_t1_h2_diff_unadj,hcz_t1_h3_diff_unadj)
+# hcz_t1_h1_diff_unadj_b <- hcz_t1_h1_diff_unadj
+# hcz_t1_h2_diff_unadj_b <- hcz_t1_h2_diff_unadj
+# hcz_t1_h3_diff_unadj_b <- hcz_t1_h3_diff_unadj
+# rm(hcz_t1_h1_diff_unadj,hcz_t1_h2_diff_unadj,hcz_t1_h3_diff_unadj)
 
 # save everything except the datasets themselves
 # that way we have all of the block-specific estimates if needed for plotting or additional stats
 rm(list=c("d","ad"))
-save.image(file="~/dropbox/wbb-primary-analysis/results/raw/ben/bangladesh-hcz-unadj-t1-ben.RData")
+save.image(file=here("results/bangladesh-hcz-unadj-t1.RData"))
 
 
 
