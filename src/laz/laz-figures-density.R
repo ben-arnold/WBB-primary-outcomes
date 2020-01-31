@@ -10,13 +10,13 @@
 
 # --------------------------------------
 # input files:
-#	bangladesh-laz-unadj-t1-ben.RData
-#	bangladesh-laz-unadj-t2-ben.RData
-# bangladesh-laz-unadj-permute-ben.RData
+#	bangladesh-laz-unadj-t1.RData
+#	bangladesh-laz-unadj-t2.RData
+# bangladesh-laz-unadj-permute.RData
 # 
-#	bangladesh-laz-adj-t1-ben.RData
-#	bangladesh-laz-adj-t2-ben.RData
-# bangladesh-laz-adj-permute-ben.RData
+#	bangladesh-laz-adj-t1.RData
+#	bangladesh-laz-adj-t2.RData
+# bangladesh-laz-adj-permute.RData
 #
 # output files:
 #	bangladesh-laz-unadj-t1.pdf
@@ -29,39 +29,38 @@
 # preamble
 # --------------------------------------
 
-rm(list=ls())
-library(RColorBrewer)
-library(scales)
+source(here::here("src/0-config.R"))
+
 
 
 # --------------------------------------
 # load the analysis output
 # --------------------------------------
-load('~/Dropbox/WBB-primary-analysis/Results/raw/ben/bangladesh-laz-unadj-t1-ben.RData')
-load('~/Dropbox/WBB-primary-analysis/Results/raw/ben/bangladesh-laz-unadj-t2-ben.RData')
-load('~/Dropbox/WBB-primary-analysis/Results/raw/ben/bangladesh-laz-unadj-permute.RData')
+load(here("results/bangladesh-laz-unadj-t1.RData"))
+load(here("results/bangladesh-laz-unadj-t2.RData"))
+load(here("results/bangladesh-laz-unadj-permute.RData"))
 
 
 # --------------------------------------
 # rename analysis output objects
 # for convenience
 # --------------------------------------
-t1sum  <- laz_t1_n_b
-t1diffh1 <- laz_t1_h1_diff_unadj_b
-t1pvalh1 <- laz_t1_h1_pval_unadj_b
-t1diffh3 <- laz_t1_h3_diff_unadj_b
-t1pvalh3 <- laz_t1_h3_pval_unadj_b
+t1sum  <- laz_t1_n
+t1diffh1 <- laz_t1_h1_diff_unadj
+t1pvalh1 <- laz_t1_h1_pval_unadj
+t1diffh3 <- laz_t1_h3_diff_unadj
+t1pvalh3 <- laz_t1_h3_pval_unadj
 
-t2sum  <- laz_t2_n_b
-t2diffh1 <- laz_t2_h1_diff_unadj_b
-t2pvalh1 <- laz_t2_h1_pval_unadj_b
-t2diffh3 <- laz_t2_h3_diff_unadj_b
-t2pvalh3 <- laz_t2_h3_pval_unadj_b
+t2sum  <- laz_t2_n
+t2diffh1 <- laz_t2_h1_diff_unadj
+t2pvalh1 <- laz_t2_h1_pval_unadj
+t2diffh3 <- laz_t2_h3_diff_unadj
+t2pvalh3 <- laz_t2_h3_pval_unadj
 
 #---------------------------------------
 # load the anthropometry analysis data
 #---------------------------------------
-d <- read.csv("~/dropbox/WBB-primary-analysis/data/final/ben/washb-bangladesh-anthro.csv")
+d <- read.csv(here("data/washb-bangladesh-anthro-public.csv"))
 
 # subset the anthropometry to target children (excluding siblings)
 dim(d)
@@ -210,7 +209,7 @@ cyellow <- "#FFEE33"
 cgrey <- "#777777"
 cols=c(cblack,cblue,cteal,cgreen,corange,cred,cmagent)
 
-pdf("~/dropbox/wbb-primary-analysis/results/figs/bangladesh-laz-unadj-t1.pdf",width=10,height=20)
+pdf(here("results/figs/bangladesh-laz-unadj-t1.pdf"),width=10,height=20)
 # set up a layout
 lo <- layout(mat=matrix(1:8,nrow=4,ncol=2,byrow=T))
 
@@ -235,7 +234,7 @@ dev.off()
 # --------------------------------------
 #  make a multi-panel density plot - year 2
 # --------------------------------------
-pdf("~/dropbox/wbb-primary-analysis/results/figs/bangladesh-laz-unadj-t2.pdf",width=10,height=20)
+pdf(here("results/figs/bangladesh-laz-unadj-t2.pdf"),width=10,height=20)
 # set up a layout
 lo <- layout(mat=matrix(1:8,nrow=4,ncol=2,byrow=T))
 
