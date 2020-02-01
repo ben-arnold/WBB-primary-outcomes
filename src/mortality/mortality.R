@@ -11,9 +11,9 @@
 
 #---------------------------------------
 # input files:
-# washb-bangladesh-track-compound.csv
-# washb-bangladesh-enrol-tr.csv
-#	washb-bangladesh-anthro.csv
+# washb-bangladesh-track-compound-public.csv
+# washb-bangladesh-enrol-tr-public.csv
+#	washb-bangladesh-anthro-public.csv
 #
 # output files:
 #	bangladesh-mortality.RData
@@ -23,13 +23,10 @@
 #---------------------------------------
 # preamble
 #---------------------------------------
-library(here)
-here()
-library(tmle)
-library(metafor)
+source(here::here("src/0-config.R"))
 
 # source the base functions
-source(here::here("src/basefns/","washb-base-functions.R"))
+source(here("src/basefns/washb-base-functions.R"))
 
 
 #---------------------------------------
@@ -37,11 +34,11 @@ source(here::here("src/basefns/","washb-base-functions.R"))
 # the compound tracking dataset
 #---------------------------------------
 
-trd <- read.csv(here::here("data","washb-bangladesh-tr-public.csv"),colClasses=c("clusterid"="character"))
+trd <- read.csv(here("data/washb-bangladesh-tr-public.csv"),colClasses=c("clusterid"="character"))
 
-td <- read.csv(here::here("data","washb-bangladesh-track-compound-public.csv"),colClasses=c("dataid"="character"))
+td <- read.csv(here("data/washb-bangladesh-track-compound-public.csv"),colClasses=c("dataid"="character"))
 
-d <- read.csv(here::here("data","washb-bangladesh-anthro-public.csv"),colClasses=c("dataid"="character"))
+d <- read.csv(here("data/washb-bangladesh-anthro-public.csv"),colClasses=c("dataid"="character"))
 
 # merge treatment assigments to the tracking dataset
 ad <- merge(td,trd,by=c("block","clusterid"),all.x=T,all.y=T)
@@ -123,7 +120,7 @@ round(death.cir,4)
 
 # save everything except the datasets themselves
 rm(list=c("d","td","ad","md"))
-save.image(file=here("results/raw/","bangladesh-mortality.RData"))
+save.image(file=here("results/bangladesh-mortality.RData"))
 
 
 
