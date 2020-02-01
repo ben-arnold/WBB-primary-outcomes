@@ -13,7 +13,7 @@
 
 #---------------------------------------
 # input files:
-#	washb-bangladesh-anthro.csv
+#	washb-bangladesh-anthro-public.csv
 #
 # output files:
 # bangladesh-lazminus2-unadj-t1.RData
@@ -24,18 +24,20 @@
 #---------------------------------------
 # preamble
 #---------------------------------------
-rm(list=ls())
-library(metafor)
+source(here::here("src/0-config.R"))
 
 # source the base functions
-source("~/WBBpa/src/basefns/washb-base-functions.R")
+source(here("src/basefns/washb-base-functions.R"))
 
 
 #---------------------------------------
 # Load the analysis dataset
 #---------------------------------------
-d <- read.csv("~/dropbox/wbb-primary-analysis/data/final/ben/washb-bangladesh-anthro.csv")
+d <- read.csv(here("data/washb-bangladesh-anthro-public.csv"))
 
+# merge in the treatment assignments
+tr    <- read.csv(here("data/washb-bangladesh-tr-public.csv"))
+d <- left_join(d,tr,by=c("clusterid","block"))
 
 #---------------------------------------
 # subset to the relevant measurement
@@ -128,16 +130,16 @@ round(stunt_t1_h3_rd_unadj,4)
 
 
 # add a 'b' suffix for comparison with jade
-stunt_t1_h1_pr_unadj_b <- stunt_t1_h1_pr_unadj
-stunt_t1_h1_rd_unadj_b <- stunt_t1_h1_rd_unadj
-stunt_t1_h3_pr_unadj_b <- stunt_t1_h3_pr_unadj
-stunt_t1_h3_rd_unadj_b <- stunt_t1_h3_rd_unadj
-rm(stunt_t1_h1_pr_unadj, stunt_t1_h1_rd_unadj, stunt_t1_h3_pr_unadj, stunt_t1_h3_rd_unadj)
+# stunt_t1_h1_pr_unadj_b <- stunt_t1_h1_pr_unadj
+# stunt_t1_h1_rd_unadj_b <- stunt_t1_h1_rd_unadj
+# stunt_t1_h3_pr_unadj_b <- stunt_t1_h3_pr_unadj
+# stunt_t1_h3_rd_unadj_b <- stunt_t1_h3_rd_unadj
+# rm(stunt_t1_h1_pr_unadj, stunt_t1_h1_rd_unadj, stunt_t1_h3_pr_unadj, stunt_t1_h3_rd_unadj)
 
 # save everything except the datasets themselves
 # that way we have all of the block-specific estimates if needed for plotting or additional stats
 rm(list=c("d","ad"))
-save.image(file="~/dropbox/wbb-primary-analysis/results/raw/ben/bangladesh-lazminus2-unadj-t1-ben.RData")
+save.image(file=here("results/bangladesh-lazminus2-unadj-t1.RData"))
 
 
 
