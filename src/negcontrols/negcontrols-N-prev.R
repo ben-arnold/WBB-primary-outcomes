@@ -11,10 +11,10 @@
 
 #---------------------------------------
 # input files:
-#	washb-bangladesh-diar.csv
+#	washb-bangladesh-diar-public.csv
 #
 # output files:
-#	bangladesh-negcontrols-N-prev-ben.RData
+#	bangladesh-negcontrols-N-prev.RData
 #
 #---------------------------------------
 
@@ -22,18 +22,22 @@
 #---------------------------------------
 # preamble
 #---------------------------------------
-rm(list=ls())
-library(tmle)
+source(here::here("src/0-config.R"))
+
 
 # source the base functions
-source("~/WBBpa/src/basefns/washb-base-functions.R")
+source(here("src/basefns/washb-base-functions.R"))
 
 
 #---------------------------------------
 # Load the analysis dataset
 #---------------------------------------
 
-d <- read.csv("~/dropbox/wbb-primary-analysis/data/final/ben/washb-bangladesh-diar.csv")
+d <- read.csv(here("data/washb-bangladesh-diar-public.csv"))
+
+# merge in the treatment assignments
+tr    <- read.csv(here("data/washb-bangladesh-tr-public.csv"))
+d <- left_join(d,tr,by=c("clusterid","block"))
 
 #---------------------------------------
 # Exclude:
@@ -154,17 +158,17 @@ round(bruise_t2_prev,4)
 round(bruise_t12_prev,4)
 
 # add 'b' suffix for comparison w/ jade
-bruise_t0_n_b <- bruise_t0_n
-bruise_t1_n_b <- bruise_t1_n
-bruise_t2_n_b <- bruise_t2_n
-bruise_t12_n_b <- bruise_t12_n
-bruise_t0_prev_b <- bruise_t0_prev
-bruise_t1_prev_b <- bruise_t1_prev
-bruise_t2_prev_b <- bruise_t2_prev
-bruise_t12_prev_b <- bruise_t12_prev
+# bruise_t0_n_b <- bruise_t0_n
+# bruise_t1_n_b <- bruise_t1_n
+# bruise_t2_n_b <- bruise_t2_n
+# bruise_t12_n_b <- bruise_t12_n
+# bruise_t0_prev_b <- bruise_t0_prev
+# bruise_t1_prev_b <- bruise_t1_prev
+# bruise_t2_prev_b <- bruise_t2_prev
+# bruise_t12_prev_b <- bruise_t12_prev
 
 
-save(bruise_t0_n_b,bruise_t1_n_b,bruise_t2_n_b,bruise_t12_n_b,bruise_t0_prev_b,bruise_t1_prev_b,bruise_t2_prev_b,bruise_t12_prev_b,file="~/dropbox/wbb-primary-analysis/results/raw/ben/bangladesh-bruise-N-prev-ben.RData")
+save(bruise_t0_n,bruise_t1_n,bruise_t2_n,bruise_t12_n,bruise_t0_prev,bruise_t1_prev,bruise_t2_prev,bruise_t12_prev,file=here("results/bangladesh-bruise-N-prev.RData"))
 
 
 

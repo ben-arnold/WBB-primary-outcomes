@@ -13,7 +13,7 @@
 
 #---------------------------------------
 # input files:
-#	washb-bangladesh-diar.csv
+#	washb-bangladesh-diar-public.csv
 #
 # output files:
 # bangladesh-negcontrols-unadj.RData
@@ -24,17 +24,20 @@
 #---------------------------------------
 # preamble
 #---------------------------------------
-rm(list=ls())
-library(metafor)
+source(here::here("src/0-config.R"))
 
 # source the base functions
-source("~/WBBpa/src/basefns/washb-base-functions.R")
+source(here("src/basefns/washb-base-functions.R"))
 
 
 #---------------------------------------
 # Load the analysis dataset
 #---------------------------------------
-d <- read.csv("~/dropbox/wbb-primary-analysis/data/final/ben/washb-bangladesh-diar.csv")
+d <- read.csv(here("data/washb-bangladesh-diar-public.csv"))
+
+# merge in the treatment assignments
+tr    <- read.csv(here("data/washb-bangladesh-tr-public.csv"))
+d <- left_join(d,tr,by=c("clusterid","block"))
 
 #---------------------------------------
 # Subset the Data to Follow-up data only
@@ -131,16 +134,16 @@ round(bruise_h2_rd_unadj,4)
 
 
 # add a 'b' suffix for comparison with jade
-bruise_h1_pr_unadj_b <- bruise_h1_pr_unadj
-bruise_h1_rd_unadj_b <- bruise_h1_rd_unadj
-bruise_h2_pr_unadj_b <- bruise_h2_pr_unadj
-bruise_h2_rd_unadj_b <- bruise_h2_rd_unadj
-rm(bruise_h1_pr_unadj, bruise_h1_rd_unadj, bruise_h2_pr_unadj, bruise_h2_rd_unadj)
+# bruise_h1_pr_unadj_b <- bruise_h1_pr_unadj
+# bruise_h1_rd_unadj_b <- bruise_h1_rd_unadj
+# bruise_h2_pr_unadj_b <- bruise_h2_pr_unadj
+# bruise_h2_rd_unadj_b <- bruise_h2_rd_unadj
+# rm(bruise_h1_pr_unadj, bruise_h1_rd_unadj, bruise_h2_pr_unadj, bruise_h2_rd_unadj)
 
 # save everything except the datasets themselves
 # that way we have all of the block-specific estimates if needed for plotting or additional stats
 rm(list=c("d","ad"))
-save.image(file="~/dropbox/wbb-primary-analysis/results/raw/ben/bangladesh-bruise-unadj-ben.RData")
+save.image(file=here("results/bangladesh-bruise-unadj.RData"))
 
 
 
