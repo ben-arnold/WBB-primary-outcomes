@@ -22,16 +22,15 @@
 # preamble
 # --------------------------------------
 
-rm(list=ls())
-library(RColorBrewer)
-library(scales)
+source(here::here("src/0-config.R"))
+
 
 # --------------------------------------
 # load the analysis output files
 # --------------------------------------
 
-load('~/Dropbox/wbb-primary-analysis/results/raw/ben/bangladesh-bruise-N-prev-ben.RData')
-load('~/Dropbox/wbb-primary-analysis/results/raw/ben/bangladesh-bruise-unadj-ben.RData')
+load(here('results/bangladesh-bruise-N-prev.RData'))
+load(here('results/bangladesh-bruise-unadj.RData'))
 
 # --------------------------------------
 # format the objects for plotting
@@ -40,18 +39,18 @@ load('~/Dropbox/wbb-primary-analysis/results/raw/ben/bangladesh-bruise-unadj-ben
 glab <- c("Control\n","Water\n","Sanitation\n","Handwashing\n","Combined\nWSH","Nutrition\n","Combined\nNutrion+WSH")
 glab2 <- c("C","W","S","H","WSH","N","WSHN")
 
-t0n <- bruise_t0_n_b
-t1n <- bruise_t1_n_b
-t0p <- bruise_t0_prev_b
-t1p <- bruise_t1_prev_b
-fuPrev <- bruise_t12_prev_b
-fuN <- bruise_t12_n_b
+t0n <- bruise_t0_n
+t1n <- bruise_t1_n
+t0p <- bruise_t0_prev
+t1p <- bruise_t1_prev
+fuPrev <- bruise_t12_prev
+fuN <- bruise_t12_n
 
-h1pr <- bruise_h1_pr_unadj_b
-h2pr <- bruise_h2_pr_unadj_b
+h1pr <- bruise_h1_pr_unadj
+h2pr <- bruise_h2_pr_unadj
 
 
-pdf("~/dropbox/wbb-primary-analysis/results/figs/bangladesh-bruise.pdf",width=10,height=4)
+pdf(here("results/figs/bangladesh-bruise.pdf"),width=10,height=4)
 
 # cbPalette <- c("#999999", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
 # cols <- c("gray30",cbPalette[c(2:4,6:8)])
