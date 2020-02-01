@@ -62,6 +62,10 @@ t2pvalh3 <- laz_t2_h3_pval_unadj
 #---------------------------------------
 d <- read.csv(here("data/washb-bangladesh-anthro-public.csv"))
 
+# merge in the treatment assignments
+tr    <- read.csv(here("data/washb-bangladesh-tr-public.csv"))
+d <- left_join(d,tr,by=c("clusterid","block"))
+
 # subset the anthropometry to target children (excluding siblings)
 dim(d)
 d <- subset(d,tchild=="Target child")
