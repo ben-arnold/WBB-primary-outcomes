@@ -47,7 +47,7 @@ washb.permute <- function(Y,tr,block,contrast,nreps=100000,seed=NULL) {
 
   # now pull out some of the useful information, for convenience since coin() uses S4
   Ho <- qperm(W,seq(0,1,by=0.01))
-  p.value <- pvalue(W)[1]
+  p.value <- coin::pvalue(W)[1]
   Z <- statistic(W)
 
   list(p.value=p.value,Z=Z,Ho=Ho,W=W)
