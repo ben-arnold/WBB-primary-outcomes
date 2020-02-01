@@ -22,16 +22,15 @@
 # preamble
 # --------------------------------------
 
-rm(list=ls())
-library(RColorBrewer)
-library(scales)
+source(here::here("src/0-config.R"))
+
 
 # --------------------------------------
 # load the analysis output files
 # --------------------------------------
 
-load('~/Dropbox/wbb-primary-analysis/results/raw/ben/bangladesh-lazminus2-N-prev-ben.RData')
-load('~/Dropbox/wbb-primary-analysis/results/raw/ben/bangladesh-lazminus2-unadj-t2-ben.RData')
+load(here('results/bangladesh-lazminus2-N-prev.RData'))
+load(here('results/bangladesh-lazminus2-unadj-t2.RData'))
 
 # --------------------------------------
 # format the objects for plotting
@@ -41,14 +40,14 @@ glab <- c("Control\n","Water\n","Sanitation\n","Handwashing\n","Combined\nWSH","
 glab2 <- c("C","W","S","H","WSH","N","WSHN")
 
 
-fuPrev <- stunt_t2_prev_b
-fuN <- stunt_t2_n_b
+fuPrev <- stunt_t2_prev
+fuN <- stunt_t2_n
 
-h1rd <- stunt_t2_h1_rd_unadj_b
-h3rd <- stunt_t2_h3_rd_unadj_b
+h1rd <- stunt_t2_h1_rd_unadj
+h3rd <- stunt_t2_h3_rd_unadj
 
 
-pdf("~/dropbox/wbb-primary-analysis/results/figs/bangladesh-lazminus2.pdf",width=10,height=4)
+pdf(here("results/figs/bangladesh-lazminus2.pdf"),width=10,height=4)
 
 # cbPalette <- c("#999999", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
 # cols <- c("gray30",cbPalette[c(2:4,6:8)])
