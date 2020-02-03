@@ -12,14 +12,12 @@
 #---------------------------------------
 # preamble
 #---------------------------------------
-rm(list=ls())
-library(plyr)
-library(coin)
-library(SuperLearner)
+source(here::here("src/0-config.R"))
+
 
 # source the base functions
 # which includes the permutation test function used below
-source("~/WBBpa/src/basefns/washb-base-functions.R")
+source(here("src/basefns/washb-base-functions.R"))
 
 
 #---------------------------------------
@@ -27,9 +25,14 @@ source("~/WBBpa/src/basefns/washb-base-functions.R")
 # the baseline covariate dataset
 #---------------------------------------
 
-bd <- read.csv("~/dropbox/WBB-primary-analysis/data/final/ben/washb-bangladesh-enrol.csv")
+bd <- read.csv(here("data/washb-bangladesh-enrol-public.csv"))
 
-d <- read.csv("~/dropbox/WBB-primary-analysis/data/final/ben/washb-bangladesh-anthro.csv")
+d <- read.csv(here("data/washb-bangladesh-anthro-public.csv"))
+
+# merge in the treatment assignments
+tr    <- read.csv(here('data/washb-bangladesh-tr-public.csv'))
+d <- left_join(d,tr,by=c("clusterid","block"))
+bd <- left_join(bd,tr,by=c("clusterid","block"))
 
 # merge the baseline dataset to the follow-up dataset
 ad <- merge(bd,d,by=c("dataid","clusterid","block","tr"),all.x=F,all.y=T)
@@ -208,11 +211,11 @@ whz_t2_h3_pval_adj
 #---------------------------------------
 # add suffix for replication
 #---------------------------------------
-whz_t1_h1_pval_adj_b <- whz_t1_h1_pval_adj
-whz_t1_h3_pval_adj_b <- whz_t1_h3_pval_adj
-whz_t2_h1_pval_adj_b <- whz_t2_h1_pval_adj
-whz_t2_h3_pval_adj_b <- whz_t2_h3_pval_adj
-rm(whz_t1_h1_pval_adj,whz_t1_h3_pval_adj,whz_t2_h1_pval_adj,whz_t2_h3_pval_adj)
+# whz_t1_h1_pval_adj_b <- whz_t1_h1_pval_adj
+# whz_t1_h3_pval_adj_b <- whz_t1_h3_pval_adj
+# whz_t2_h1_pval_adj_b <- whz_t2_h1_pval_adj
+# whz_t2_h3_pval_adj_b <- whz_t2_h3_pval_adj
+# rm(whz_t1_h1_pval_adj,whz_t1_h3_pval_adj,whz_t2_h1_pval_adj,whz_t2_h3_pval_adj)
 
 #---------------------------------------
 # save all of the results
@@ -220,6 +223,6 @@ rm(whz_t1_h1_pval_adj,whz_t1_h3_pval_adj,whz_t2_h1_pval_adj,whz_t2_h3_pval_adj)
 #---------------------------------------
 rm(bd,d,ad,ad1,ad2,SLd,Ws,Wselect)
 rm(SLfit1,SLfit2,t1h1res,t1h3res,t2h1res,t2h3res)
-save.image("~/dropbox/WBB-primary-analysis/results/raw/ben/bangladesh-whz-adj-permute.RData")
+save.image(here("results/bangladesh-whz-adj-permute.RData"))
 
 
