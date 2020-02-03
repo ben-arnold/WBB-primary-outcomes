@@ -26,7 +26,6 @@ source(here::here("src/0-config.R"))
 
 
 # source the base functions
-# which includes the permutation test function used below
 source(here("src/basefns/washb-base-functions.R"))
 
 
