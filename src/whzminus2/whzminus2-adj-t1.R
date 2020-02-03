@@ -10,23 +10,22 @@
 
 #---------------------------------------
 # input files:
-#	washb-bangladesh-anthro.csv
-#	washb-bangladesh-enrol.csv
+#	washb-bangladesh-anthro-public.csv
+#	washb-bangladesh-enrol-public.csv
 #
 # output files:
-#	bangladesh-whzminus2-adj-t1-ben.RData
+#	bangladesh-whzminus2-adj-t1.RData
 #
 #---------------------------------------
 
 #---------------------------------------
 # preamble
 #---------------------------------------
-rm(list=ls())
-library(tmle)
-library(SuperLearner)
+source(here::here("src/0-config.R"))
+
 
 # source the base functions
-source("~/WBBpa/src/basefns/washb-base-functions.R")
+source(here("src/basefns/washb-base-functions.R"))
 
 
 #---------------------------------------
@@ -34,15 +33,19 @@ source("~/WBBpa/src/basefns/washb-base-functions.R")
 # the baseline covariate dataset
 #---------------------------------------
 
-bd <- read.csv("~/dropbox/WBB-primary-analysis/data/final/ben/washb-bangladesh-enrol.csv",colClasses=c("dataid"="character"))
+bd <- read.csv(here("data/washb-bangladesh-enrol-public.csv"))
 
-d <- read.csv("~/dropbox/WBB-primary-analysis/data/final/ben/washb-bangladesh-anthro.csv",colClasses=c("dataid"="character"))
+d <- read.csv(here("data/washb-bangladesh-anthro-public.csv"))
+
+# merge in the treatment assignments
+tr    <- read.csv(here('data/washb-bangladesh-tr-public.csv'))
+d <- left_join(d,tr,by=c("clusterid","block"))
+bd <- left_join(bd,tr,by=c("clusterid","block"))
 
 # merge the baseline dataset to the follow-up dataset
 ad <- merge(bd,d,by=c("dataid","clusterid","block","tr"),all.x=T,all.y=T)
 dim(d)
 dim(ad)
-
 #---------------------------------------
 # subset to the relevant measurement
 # Year 1 or Year 2
@@ -222,16 +225,16 @@ wast_t1_h3_rd_adj
 wast_t1_h3_pr_adj
 
 # add 'b' suffix for comparison with jade
-wast_t1_h1_rd_adj_b <- wast_t1_h1_rd_adj
-wast_t1_h3_rd_adj_b <- wast_t1_h3_rd_adj
-wast_t1_h1_pr_adj_b <- wast_t1_h1_pr_adj
-wast_t1_h3_pr_adj_b <- wast_t1_h3_pr_adj
-rm(wast_t1_h1_rd_adj,wast_t1_h3_rd_adj,wast_t1_h1_pr_adj,wast_t1_h3_pr_adj)
+# wast_t1_h1_rd_adj_b <- wast_t1_h1_rd_adj
+# wast_t1_h3_rd_adj_b <- wast_t1_h3_rd_adj
+# wast_t1_h1_pr_adj_b <- wast_t1_h1_pr_adj
+# wast_t1_h3_pr_adj_b <- wast_t1_h3_pr_adj
+# rm(wast_t1_h1_rd_adj,wast_t1_h3_rd_adj,wast_t1_h1_pr_adj,wast_t1_h3_pr_adj)
 
 # save everything except the datasets themselves
 # that way we have all of the block-specific estimates if needed for plotting or additional stats
 rm(list=c("bd","d","ad"))
-save.image(file="~/dropbox/WBB-primary-analysis/results/raw/ben/bangladesh-whzminus2-adj-t1-ben.RData")
+save.image(file=here("results/bangladesh-whzminus2-adj-t1.RData"))
 
 
 
