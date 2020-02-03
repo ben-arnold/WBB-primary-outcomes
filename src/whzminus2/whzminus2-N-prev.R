@@ -11,10 +11,10 @@
 
 #---------------------------------------
 # input files:
-#	washb-bangladesh-anthro.csv
+#	washb-bangladesh-anthro-public.csv
 #
 # output files:
-#	bangladesh-whzminus2-N-prev-ben.RData
+#	bangladesh-whzminus2-N-prev.RData
 #
 #---------------------------------------
 
@@ -22,13 +22,23 @@
 #---------------------------------------
 # preamble
 #---------------------------------------
-rm(list=ls())
-library(tmle)
+source(here::here("src/0-config.R"))
+
+
+# source the base functions
+# which includes the permutation test function used below
+source(here("src/basefns/washb-base-functions.R"))
+
 
 #---------------------------------------
 # Load the analysis dataset
 #---------------------------------------
-d <- read.csv("~/dropbox/wbb-primary-analysis/data/final/ben/washb-bangladesh-anthro.csv")
+
+d <- read.csv(here("data/washb-bangladesh-anthro-public.csv"))
+
+# merge in the treatment assignments
+tr    <- read.csv(here('data/washb-bangladesh-tr-public.csv'))
+d <- left_join(d,tr,by=c("clusterid","block"))
 
 #---------------------------------------
 # Drop children with extreme LAZ values
@@ -122,13 +132,13 @@ round(wast_t1_prev,4)
 round(wast_t2_prev,4)
 
 # add 'b' suffix for comparison w/ jade
-wast_t1_n_b <- wast_t1_n
-wast_t2_n_b <- wast_t2_n
-wast_t1_prev_b <- wast_t1_prev
-wast_t2_prev_b <- wast_t2_prev
+# wast_t1_n_b <- wast_t1_n
+# wast_t2_n_b <- wast_t2_n
+# wast_t1_prev_b <- wast_t1_prev
+# wast_t2_prev_b <- wast_t2_prev
 
 
-save(wast_t1_n_b,wast_t2_n_b,wast_t1_prev_b,wast_t2_prev_b,file="~/dropbox/wbb-primary-analysis/results/raw/ben/bangladesh-whzminus2-N-prev-ben.RData")
+save(wast_t1_n,wast_t2_n,wast_t1_prev,wast_t2_prev,file=here("results/bangladesh-whzminus2-N-prev.RData"))
 
 
 
