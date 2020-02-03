@@ -11,10 +11,10 @@
 
 #---------------------------------------
 # input files:
-#	washb-bangladesh-anthro.csv
+#	washb-bangladesh-anthro-public.csv
 #
 # output files:
-#	bangladesh-wazminus2-N-prev-ben.RData
+#	bangladesh-wazminus2-N-prev.RData
 #
 #---------------------------------------
 
@@ -22,13 +22,16 @@
 #---------------------------------------
 # preamble
 #---------------------------------------
-rm(list=ls())
-library(tmle)
+source(here::here("src/0-config.R"))
 
 #---------------------------------------
 # Load the analysis dataset
 #---------------------------------------
-d <- read.csv("~/dropbox/wbb-primary-analysis/data/final/ben/washb-bangladesh-anthro.csv")
+d <- read.csv(here("data/washb-bangladesh-anthro-public.csv"))
+
+# merge in the treatment assignments
+tr    <- read.csv(here('data/washb-bangladesh-tr-public.csv'))
+d <- left_join(d,tr,by=c("clusterid","block"))
 
 #---------------------------------------
 # Drop children with extreme LAZ values
@@ -122,13 +125,13 @@ round(underwt_t1_prev,4)
 round(underwt_t2_prev,4)
 
 # add 'b' suffix for comparison w/ jade
-underwt_t1_n_b <- underwt_t1_n
-underwt_t2_n_b <- underwt_t2_n
-underwt_t1_prev_b <- underwt_t1_prev
-underwt_t2_prev_b <- underwt_t2_prev
+# underwt_t1_n_b <- underwt_t1_n
+# underwt_t2_n_b <- underwt_t2_n
+# underwt_t1_prev_b <- underwt_t1_prev
+# underwt_t2_prev_b <- underwt_t2_prev
 
 
-save(underwt_t1_n_b,underwt_t2_n_b,underwt_t1_prev_b,underwt_t2_prev_b,file="~/dropbox/wbb-primary-analysis/results/raw/ben/bangladesh-wazminus2-N-prev-ben.RData")
+save(underwt_t1_n,underwt_t2_n,underwt_t1_prev,underwt_t2_prev,file=here("results/bangladesh-wazminus2-N-prev.RData"))
 
 
 
