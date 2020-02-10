@@ -11,7 +11,17 @@ The scripts in the `dm` directory process completely raw data and create the pro
 
 This was the single effort within the entire WASH Benefits study intention-to-treat analyses that did not use the [`washb`](https://github.com/ben-arnold/washb) package. We developed the package by building off of scripts written for this analysis (mainly in the `basefns` directory).
 
-For all analysis scripts, you will need to change directory statements within them to point them to the files on your local directory. Similar directory statement changes will be needed wherever output files are saved down (e.g., raw estimates, figures). 
+Due to R package updates since Jan 2018 used for estimates that rely on pseudo-random number generation, there are slight differences in adjusted estimates and permutation test P-values between published estimates and estimates using the current (February 2020) versions of the coin (version 1.3-1) and tmle (version 1.4.0.1) packages. These differences do not affect inferences.
+
+### Steps to set up directory
+
+1. Clone the WBB-primary-outcomes (https://github.com/ben-arnold/WBB-primary-outcomes) to your local computer, and create an R project within the directory. 
+
+2. Create two folders within the WBB-primary-outcomes directory, one named "data" and another named "results".
+
+3. Download the .csv versions of the public data files from OSF (https://osf.io/pqzj5/), and place them in the "data" folder. The "results" folder will populate with figures, tables, etc. as you run the scripts.
+
+4. Within "src", open the config file "0-config.R". This file contains all relevant packages for the scripts, and is sourced and run at the start of each script. Check that you've installed all the packages listed in the config file.
 
 ### Directory structure
 
@@ -25,7 +35,7 @@ __`consort`__ : CONSORT population flow diagram
 
 __`diar`__ : diarrhea analyses
 
-__`dm`__ : data management scripts
+__`dm`__ : data management scripts (cannot be run)
 
 __`hcz`__ : head circumference analyses
 
